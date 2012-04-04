@@ -8,7 +8,7 @@ body {background-color:#000;}
     color:#000; 
     width: 400px; 
     height: 550px;
-    margin: 100px auto;
+    margin: 30px auto;
     -moz-box-shadow: 5px 5px 5px #333;
     -webkit-box-shadow: 5px 5px 5px #333;
 }
