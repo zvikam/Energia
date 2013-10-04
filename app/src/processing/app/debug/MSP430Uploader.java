@@ -59,6 +59,18 @@ public class MSP430Uploader extends Uploader{
 	throws RunnerException, SerialException {
 		this.verbose = verbose;
 		Map<String, String> boardPreferences = Base.getBoardPreferences();
+    String protocol = boardPreferences.get("upload.protocol");
+
+    if (protocol.equals("msp430-gdb")) {
+      boolean ret = gdbloader(buildPath, className);
+	    if (ret == false) {
+		    JOptionPane.showMessageDialog(editor,
+            "Unable to upload new firmware to the target board\n"
+            + "Please check connections and serial port", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+      }
+
+      return ret;
+    }
 
 		Target target = Base.getTarget();
 		Collection params = new ArrayList();
@@ -143,5 +155,53 @@ public class MSP430Uploader extends Uploader{
 		commandDownloader.addAll(params);
 		
 		return executeUploadCommand(commandDownloader);
+	}
+
+	public boolean gdbloader(String buildPath, String className) throws RunnerException {
+    String gdbBin, sysPrompt;
+		if ( Base.isLinux()) {
+      gdbBin = Base.getMSP430BasePath() + "msp430-gdb";
+      sysPrompt = "/bin/bash";
+		}
+		else if (Base.isMacOS()) {
+			gdbBin = "/tools/msp430/bin/msp430-gdb";
+      sysPrompt = "/bin/bash";
+		}
+		else {
+			gdbBin = "\\tools\\msp430\\bin\\msp430-gdb";
+      sysPrompt = "cmd";
+		}
+
+    try {
+      System.out.println("SERIAL PORT = " + Preferences.get("serial.port"));
+      String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
+      "' -ex 'set debug remote 0' " + buildPath + File.separator + className + ".elf" +
+      " -ex 'erase' -ex 'load' -ex 'quit'";
+      System.out.println(gdbcommand);
+      String line;
+
+      Process process = Runtime.getRuntime().exec(sysPrompt);
+
+      if (process != null) {
+        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(process.getOutputStream())),true);
+
+        out.println(gdbcommand);
+        out.flush();
+        out.close();
+
+        while ((line = in.readLine()) != null) {
+            System.out.println(line);
+        } 
+
+        process.waitFor();
+        process.destroy();
+      }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return true;
 	}
 }
