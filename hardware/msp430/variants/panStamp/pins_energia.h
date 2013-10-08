@@ -37,10 +37,10 @@
 #endif
 
 #if defined(__MSP430_HAS_USCI_A0__)
-static const uint8_t UARTRXD = 14;  /* Receive  Data (RXD) at P3.7 */
-static const uint8_t UARTTXD = 15;  /* Transmit Data (TXD) at P3.6 */
-#define UARTRXD_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1 | INPUT)
-#define UARTTXD_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1 | OUTPUT)
+static const uint8_t DEBUG_UARTRXD = 14;  /* Receive  Data (RXD) at P3.7 */
+static const uint8_t DEBUG_UARTTXD = 15;  /* Transmit Data (TXD) at P3.6 */
+#define DEBUG_UARTRXD_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1 | INPUT)
+#define DEBUG_UARTTXD_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1 | OUTPUT)
 #endif
 
 #if defined(__MSP430_HAS_USCI_B0__)
@@ -50,6 +50,9 @@ static const uint8_t TWISCL  = 5; /* P1.6 */
 #define TWISDA_SET_MODE  (PORT_SELECTION0 | PORT_SELECTION1 | INPUT_PULLUP)
 #define TWISCL_SET_MODE  (PORT_SELECTION0 | PORT_SELECTION1 | INPUT_PULLUP)
 #endif
+
+// Debug UART is on USCIA0 so offset is 0
+#define DEBUG_UART_MODULE_OFFSET 0x0
 
 static const uint8_t A0  = 0;
 static const uint8_t A1  = 1;
