@@ -31,11 +31,16 @@
 /**
  * SWAP definitions
  */
+#ifdef SWAP_EXTENDED_ADDRESS
+#define SWAP_DATA_HEAD_LEN     9
+#else
 #define SWAP_DATA_HEAD_LEN     6
-#define SWAP_REG_VAL_LEN       CC1101_DATA_LEN - SWAP_DATA_HEAD_LEN   // SWAP data payload - max length
-#define SWAP_BCAST_ADDR        0x00                                   // SWAP broadcast address
-#define SWAP_NB_TX_TRIES       3                                      // Number of transmission retries
-#define SWAP_TX_DELAY          panstamp.radio.devAddress * 2         // Delay before sending
+#endif
+#define SWAP_REG_VAL_LEN       CC1101_DATA_LEN - SWAP_DATA_HEAD_LEN     // SWAP data payload - max length
+#define SWAP_BCAST_ADDR        0x00                                     // SWAP broadcast address
+#define SWAP_NB_TX_TRIES       3                                        // Number of transmission retries
+#define SWAP_TX_DELAY          (panstamp.radio.devAddress & 0xFF) * 2   // Delay before sending
+#define SWAP_EXTENDED_ADDRESS_BIT  0x80
 
 /**
  * SWAP message functions
@@ -48,6 +53,22 @@ enum SWAPFUNCT
 };
 
 /**
+ * Adressing schema
+ */
+enum SWAPADDR_SCHEMA
+{
+  SWAPADDR_SIMPLE = 0,
+  SWAPADDR_EXTENDED
+};
+
+/**
+ * Macros
+ */
+#ifndef SWAP_EXTENDED_ADDRESS
+#define smartDecrypt()         smartEncrypt(true)
+#endif
+
+/**
  * SWDATA : SWAP data structure
  */
 struct SWDATA
@@ -55,24 +76,18 @@ struct SWDATA
     /**
      * Data buffer
      */
-    unsigned char *data;
+    uint8_t *data;
 
     /**
      * Data length
      */
-    unsigned char length;
+    uint8_t length;
 
     /**
      * Data type
      */
     SWDTYPE type;
 };
-
-/**
- * Macros
- */
-#define smartDecrypt()         smartEncrypt(true)
-
 
 class SWPACKET : public CCPACKET
 {
@@ -82,50 +97,57 @@ class SWPACKET : public CCPACKET
      * 
      * Apply Smart Encryption to the SWAP packet passed as argument
      *
-     * @param decrypt if true, Decrypt packet. Encrypt otherwise
+     * 'decrypt': if true, Decrypt packet. Encrypt otherwise
      */
+    #ifndef SWAP_EXTENDED_ADDRESS
     void smartEncrypt(bool decrypt=false);
+    #endif
 
   public:
     /**
      * Destination address
      */
-    unsigned char destAddr;
+    SWADDR destAddr;
 
     /**
      * Source address
      */
-    unsigned char srcAddr;
+    SWADDR srcAddr;
 
     /**
      * Hop counter. Incremented each time the message is repeated
      */
-    unsigned char hop;
+    uint8_t hop;
 
     /**
      * Security option byte
      */
-    unsigned char security;
+    uint8_t security;
 
     /**
      * Security cyclic nonce
      */
-    unsigned char nonce;
+    uint8_t nonce;
 
     /**
      * Function byte
      */
-    unsigned char function;
+    uint8_t function;
+
+    /**
+     * Type of addressing schema
+     */
+    uint8_t addrType;
 
     /**
      * Register address
      */
-    unsigned char regAddr;
+    uint8_t regAddr;
 
     /**
      * Register id
      */
-    unsigned char regId;
+    uint8_t regId;
 
     /**
      * Register value

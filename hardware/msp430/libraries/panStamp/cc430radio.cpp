@@ -176,7 +176,7 @@ void CC430RADIO::setSyncWord(unsigned char *sync)
  * 
  * @param addr Device address
  */
-void CC430RADIO::setDevAddress(unsigned char addr) 
+void CC430RADIO::setDevAddress(unsigned char addr)
 {
   if (devAddress != addr)
   {

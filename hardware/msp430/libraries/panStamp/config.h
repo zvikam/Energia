@@ -26,6 +26,11 @@
 #define _CONFIG_H
 
 /**
+ * System clock
+ */
+#define SYSTEM_CLK_FREQ   12000000L
+
+/**
  * Repeater options
  */
 // Amount of transactions to be saved for evaluation before repeating a packet
@@ -33,8 +38,12 @@
 #define REPEATER_TABLE_DEPTH  20
 // Expiration time (in ms) for any transaction
 #define REPEATER_EXPIRATION_TIME  2000
+
+/**
+ * Addressing schema
+ */
 // Extended addresses (2 bytes)
-#define SWAP_EXTENDED_ADDRESS     1
+//#define SWAP_EXTENDED_ADDRESS     1
 
 #endif
 

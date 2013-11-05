@@ -27,10 +27,7 @@
 
 #include "datatypes.h"
 
-extern unsigned char regIndex;
-
-#define setRegValueBE     setValueFromCombinedInt
-#define serRegValue       setRegValueBE
+extern uint8_t regIndex;
 
 /**
  * Class: REGISTER
@@ -44,33 +41,33 @@ class REGISTER
     /**
      * Pointer to the register "updater" function
      *
-     *  @param rId Register ID     
+     *  @param rId  Register ID     
      */
-    const void (*updateValue)(unsigned char rId);
+    const void (*updateValue)(uint8_t rId);
 
     /**
      * Pointer to the register "setter" function
      *
-     *  @param rId Register ID     
-     *  @param v New register value
+     *  @param rId  Register ID     
+     *  @param v    New register value
      */
-    const void (*setValue)(unsigned char rId, unsigned char *v);
+    const void (*setValue)(uint8_t rId, uint8_t *v);
 
   public:
     /**
      * Register id
      */
-    const unsigned char id;
+    const uint8_t id;
     
     /**
      * Register value
      */
-    unsigned char *value;
+    uint8_t *value;
     
     /**
      * Data length
      */
-    const unsigned char length;
+    const uint8_t length;
 
     /**
      * Data type
@@ -83,19 +80,25 @@ class REGISTER
     const int eepromAddress;
 
     /**
+     * Bank in EEPROM or flash
+     */
+    const uint8_t eepromBank;
+
+    /**
      * REGISTER
      * 
      * Constructor
      * 
-     * @param val Pointer to the register value
-     * @param len Length of the register value
-     * @param getValH Pointer to the getter function
-     * @param setValH Pointer to the setter function
-     * @param typ Type of SWAP data (SWDTYPE)
+     * @param val   Pointer to the register value
+     * @param len   Length of the register value
+     * @param getValH  Pointer to the getter function
+     * @param setValH  Pointer to the setter function
+     * @param typ      Type of SWAP data (SWDTYPE)
      * @param eepromAddr address in EEPROM. Set to -1 if the register value has not to
      * be saved in EEPROM
+     * @param bank sector in eeprom or flash
      */
-    REGISTER(unsigned char *val, const unsigned char len, const void (*updateValH)(unsigned char rId), const void (*setValH)(unsigned char rId, unsigned char *v), const SWDTYPE typ=SWDTYPE_OTHER, const int eepromAddr=-1):id(regIndex++), value(val), length(len), updateValue(updateValH), setValue(setValH), type(typ), eepromAddress(eepromAddr) {};
+    REGISTER(uint8_t *val, const uint8_t len, const void (*updateValH)(uint8_t rId), const void (*setValH)(uint8_t rId, uint8_t *v), const SWDTYPE typ=SWDTYPE_OTHER, const int eepromAddr=-1, const uint8_t bank=0):id(regIndex++), value(val), length(len), updateValue(updateValH), setValue(setValH), type(typ), eepromAddress(eepromAddr), eepromBank(bank) {};
 
     /**
      * init
@@ -117,9 +120,9 @@ class REGISTER
      * 
      * Set register value
      * 
-     * 'data'	New register value
+     * @param data	New register value
      */
-    void setData(unsigned char *data);
+    void setData(uint8_t *data);
 
     /**
      * sendSwapStatus
@@ -135,19 +138,19 @@ class REGISTER
      *
      * @param beBuffer Big Endian buffer
      */
-    void setValueFromBeBuffer(unsigned char* beBuffer);
+    void setValueFromBeBuffer(uint8_t* beBuffer);
 
     /**
-     * setValueFromCombinedInt
+     * setRegValue
      *
-     * Set register combined value from different integer formats
-     * Use this method to simplify LE to BE conversion.
+     * Set register value from different data formats
+     * Use this method to simplify LE to BE conversion
      *
      * @param val New register value
      * @param size length of the value
      * @param offset starting point for the new partial value
      */
-    template<class T> void setValueFromCombinedInt(T val, unsigned char size=0 , unsigned char offset=0)
+    template<class T> void setRegValue(T val, uint8_t size=0 , uint8_t offset=0)
     {
       int i, len;
 

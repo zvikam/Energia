@@ -56,7 +56,7 @@ REPEATER::REPEATER(void)
 void REPEATER::packetHandler(SWPACKET *packet)
 {
   static bool repeatPacket = true;
-  static unsigned long currentTime;
+  static uint32_t currentTime;
 
   if (enabled)
   {

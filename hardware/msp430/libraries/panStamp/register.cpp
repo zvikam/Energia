@@ -24,8 +24,7 @@
 
 #include "register.h"
 #include "swstatus.h"
-#include "eeprom.h"
-#include "Energia.h"
+#include "cc430info.h"
 
 unsigned char regIndex = 0;
 
@@ -40,14 +39,10 @@ void REGISTER::init(void)
   // Does the value need to be read from EEPROM?
   if (eepromAddress >= 0)
   {
-    EEPROM eeprom;
-    unsigned char i;
+    CC430INFO infomem;
     
-    // Read from EEPROM
-    for(i=0 ; i<length ; i++)
-    {
-      value[i] = eeprom.readByte(eepromAddress+i);
-    }
+    // Read from info memory
+    infomem.read(value, eepromBank, eepromAddress, length);
   }
 }
 
@@ -82,15 +77,15 @@ void REGISTER::setData(unsigned char *data)
   // Send SWAP status message
   sendSwapStatus();
 
-  // Does the value need to be saved in EEPROM?
+  // Does the value need to be saved in info memory (flash)?
   if (eepromAddress >= 0)
   {
-    EEPROM eeprom;
+    CC430INFO infomem;
     unsigned char i;
     
     // Write EEPROM
     for(i=0 ; i<length ; i++)
-      eeprom.writeByte(value[i], (unsigned int)eepromAddress+i);
+      infomem.write(value, eepromBank, eepromAddress, length);
   }
 }
 

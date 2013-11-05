@@ -19,18 +19,49 @@
  * USA
  * 
  * Author: Daniel Berenguer
- * Creation date: 08/05/2013
+ * Creation date: 10/27/2013
  */
 
-#ifndef _CC430PINS_H
-#define _CC430OINS_H
+#ifndef _CC430UART_H
+#define _CC430UART_H
 
-// UART
-#define pinUARTmap()      P1MAP6 = PM_UCA0TXD; P1MAP7 = PM_UCA0RXD
-#define pinUARTconfig()   P1SEL |= BIT6 | BIT7;     // Set P1.6 and P1.7 to USCI Mode
-// I2C
-#define pinI2Cmap()       P1MAP4 = PM_UCB0SDA; P1MAP5 = PM_UCB0SCL
-#define pinI2Cconfig()    P1SEL |= BIT4 | BIT5;     // Set P1.4 and P1.5 to USCI function
+#include "datatypes.h"
+
+class CC430UART
+{
+  public:
+  /**
+   * init
+   * 
+   * Initialize UART port
+   *
+   * @param baud Serial baudrate
+   */
+  void init(uint16_t baud);
+
+  /**
+   * send
+   * 
+   * Send data buffer
+   *
+   * @param buf Buffer to be sent
+   * @param len Amount of bytes to be transferred
+   *
+   * @return Amount of bytes transmitted
+   */
+  uint16_t send(uint8_t *buf, unsigned int len);
+
+  /**
+   * receive
+   * 
+   * Read string from the Rx FIFO
+   *
+   * @param buf Buffer to be sent
+   *
+   * @return amount of bytes read or -1 if the Rx FIFO is empty
+   */
+  int receive(uint8_t *buf);
+  };
 
 #endif
 

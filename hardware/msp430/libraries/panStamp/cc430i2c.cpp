@@ -33,9 +33,17 @@
  *
  * @param address I2C slave address
  */
-void CC430I2C::init(unsigned int address) 
+void CC430I2C::init(uint16_t address) 
 {
 //  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+
+  /**
+   * Pin mapping
+   */
+	PMAPPWD = 0x02D52;	  // Get write-access to port mapping regs
+  PMAPCTL |= PMAPRECFG; // Leave Pin mapping open
+  pinI2Cmap();          // Map I2C pins
+	PMAPPWD = 0;		      // Lock port mapping registers
    
   pinI2Cconfig();                           // Configure I2C pins
 
@@ -60,9 +68,9 @@ void CC430I2C::init(unsigned int address)
  *
  * @return Amount of bytes transmitted
  */
-unsigned int CC430I2C::send(unsigned int address, unsigned char *buf, unsigned int len) 
+uint16_t CC430I2C::send(uint16_t address, uint8_t *buf, uint16_t len) 
 {
-  unsigned int i, res = len;
+  uint16_t i, res = len;
   unsigned long timeout = I2C_TIMEOUT;
 
   init(address);                            // Initialize I2C port
@@ -102,9 +110,9 @@ unsigned int CC430I2C::send(unsigned int address, unsigned char *buf, unsigned i
  *
  * @return Amount of bytes received
  */
-unsigned int CC430I2C::receive(unsigned int address, unsigned char *buf, unsigned int len) 
+uint16_t CC430I2C::receive(uint16_t address, uint8_t *buf, uint16_t len) 
 {
-  unsigned int i, res = len;
+  uint16_t i, res = len;
   unsigned long timeout = I2C_TIMEOUT;
 
   init(address);                            // Initialize I2C port

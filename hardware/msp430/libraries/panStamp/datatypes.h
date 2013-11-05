@@ -26,14 +26,15 @@
 #define _DATATYPES_H
 
 #include "config.h"
+#include "Energia.h"
 
 /**
  * SWADDR : SWAP address data type
  */
 #ifdef SWAP_EXTENDED_ADDRESS
-#define SWADDR unsigned int
+#define SWADDR uint16_t
 #else
-#define SWADDR unsigned char
+#define SWADDR uint8_t
 #endif
 
 /**

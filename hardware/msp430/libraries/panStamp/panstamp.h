@@ -33,6 +33,11 @@
 #include "config.h"
 #include "repeater.h"
 
+#ifndef Energia_h
+#include "cc430uart.h"
+#include "cc430i2c.h"
+#endif
+
 /**
  * RTC definitions
  */
@@ -47,12 +52,12 @@
  */
 #define setSwapStatusCallBack(ptrFunc)   statusReceived = ptrFunc
 
-#define eepromToFactoryDefaults()                             \
+#define eepromToFactoryDefaults()                     \
   EEPROM.write(EEPROM_SYNC_WORD, CCDEF_SYNC1);        \
   EEPROM.write(EEPROM_SYNC_WORD + 1, CCDEF_SYNC0);    \
   EEPROM.write(EEPROM_DEVICE_ADDR, CCDEF_ADDR);       \
   EEPROM.write(EEPROM_FREQ_CHANNEL, CCDEF_CHANNR);    \
-  EEPROM.write(EEPROM_TX_INTERVAL, 0xFF);                     \
+  EEPROM.write(EEPROM_TX_INTERVAL, 0xFF);             \
   EEPROM.write(EEPROM_TX_INTERVAL + 1, 0xFF)
 
 #define setHighTxPower()    radio.setTxPowerAmp(PA_LongDistance)
@@ -103,9 +108,21 @@ class PANSTAMP
     REPEATER *repeater;
 
     /**
-     * CC430RADIO radio interface
+     * Radio interface
      */
     CC430RADIO radio;
+
+    #ifndef Energia_h
+    /**
+     * Serial port
+     */
+    CC430UART serial;
+
+    /**
+     * I2C port
+     */
+    CC430I2C i2c;
+    #endif
     
     #ifdef SWAP_EXTENDED_ADDRESS
     /**

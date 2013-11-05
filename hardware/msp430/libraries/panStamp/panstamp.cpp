@@ -80,18 +80,24 @@ void radioISR(void)
 
             swPacket = SWPACKET(ccPacket);
 
-            // Repeater enabled?
-            if (panstamp.repeater != NULL)
-              panstamp.repeater->packetHandler(&swPacket);
-
-            // Smart encryption locally enabled?
-            if (panstamp.security & 0x02)
+            #ifdef SWAP_EXTENDED_ADDRESS
+            if (swPacket.addrType == SWAPADDR_EXTENDED)
+            #else
+            if (swPacket.addrType == SWAPADDR_SIMPLE)
+            #endif
             {
-              // OK, then incoming packets must be encrypted too
-              if (!(swPacket.security & 0x02))
-                eval = false;
-            }
+              // Repeater enabled?
+              if (panstamp.repeater != NULL)
+                panstamp.repeater->packetHandler(&swPacket);
 
+              // Smart encryption locally enabled?
+              if (panstamp.security & 0x02)
+              {
+                // OK, then incoming packets must be encrypted too
+                if (!(swPacket.security & 0x02))
+                  eval = false;
+              }
+            }
             if (eval)
             {
               // Function

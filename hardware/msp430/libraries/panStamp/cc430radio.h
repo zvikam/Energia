@@ -25,7 +25,7 @@
 #ifndef _CC430RADIO_H
 #define _CC430RADIO_H
 
-#include "Energia.h"
+#include "datatypes.h"
 #include "ccpacket.h"
 
 /**
@@ -150,7 +150,7 @@ class CC430RADIO
     /*
      * RF state
      */
-    unsigned char rfState;
+    uint8_t rfState;
 
     /**
      * setDefaultRegs
@@ -163,27 +163,27 @@ class CC430RADIO
     /**
      * Tx Power byte (single PATABLE config)
      */
-    unsigned char paTableByte;
+    uint8_t paTableByte;
 
     /**
      * Carrier frequency
      */
-    unsigned char carrierFreq;
+    uint8_t carrierFreq;
 
     /**
      * Frequency channel
      */
-    unsigned char channel;
+    uint8_t channel;
 
     /**
      * Synchronization word
      */
-    unsigned char syncWord[2];
+    uint8_t syncWord[2];
 
     /**
      * Device address
      */
-    unsigned char devAddress;
+    uint8_t devAddress;
 
     /**
      * CC430RADIO
@@ -228,7 +228,7 @@ class CC430RADIO
      * @param syncH	Synchronization word - High byte
      * @param syncL	Synchronization word - Low byte
      */
-    void setSyncWord(unsigned char syncH, unsigned char syncL);
+    void setSyncWord(uint8_t syncH, uint8_t syncL);
 
     /**
      * setSyncWord (overriding method)
@@ -237,7 +237,7 @@ class CC430RADIO
      * 
      * @param syncH	Synchronization word - pointer to 2-byte array
      */
-    void setSyncWord(unsigned char *sync);
+    void setSyncWord(uint8_t *sync);
 
     /**
      * setDevAddress
@@ -246,7 +246,7 @@ class CC430RADIO
      * 
      * @param addr Device address
      */
-    void setDevAddress(unsigned char addr);
+    void setDevAddress(uint8_t addr);
 
     /**
      * setCarrierFreq
@@ -255,7 +255,7 @@ class CC430RADIO
      * 
      * @param freq New carrier frequency
      */
-    void setCarrierFreq(unsigned char freq);
+    void setCarrierFreq(uint8_t freq);
     
     /**
      * setChannel
@@ -264,7 +264,7 @@ class CC430RADIO
      * 
      * 'chnl'	Frequency channel
      */
-    void setChannel(unsigned char chnl);
+    void setChannel(uint8_t chnl);
 
     /**
      * setPowerDownState
@@ -298,7 +298,7 @@ class CC430RADIO
      * 
      * @return Amount of bytes received
      */
-    unsigned char receiveData(CCPACKET *packet);
+    uint8_t receiveData(CCPACKET *packet);
 };
 
 #endif

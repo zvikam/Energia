@@ -25,6 +25,8 @@
 #ifndef _CC430I2C_H
 #define _CC430I2C_H
 
+#include "datatypes.h"
+
 #define I2C_TIMEOUT     0xFF
 
 class CC430I2C
@@ -37,7 +39,7 @@ class CC430I2C
      *
      * @param address I2C slave address
      */
-    void init(unsigned int address);
+    void init(uint16_t address);
 
   public:
     /**
@@ -51,7 +53,7 @@ class CC430I2C
      *
      * @return Amount of bytes transmitted
      */
-    unsigned int send(unsigned int address, unsigned char *buf, unsigned int len);
+    uint16_t send(uint16_t address, uint8_t *buf, uint16_t len);
 
     /**
      * receive
@@ -64,7 +66,7 @@ class CC430I2C
      *
      * @return Amount of bytes received
      */
-    unsigned int receive(unsigned int address, unsigned char *buf, unsigned int len);
+    uint16_t receive(uint16_t address, uint8_t *buf, uint16_t len);
 };
 
 #endif

@@ -92,15 +92,6 @@ void CC430CORE::init(void)
    * Interrupt Edge select register: 1 == Interrupt on High to Low transition.
    */
   RF1AIES = BIT0 | BIT9;
-
-  /**
-   * Pin mapping
-   */
-	PMAPPWD = 0x02D52;	  // Get write-access to port mapping regs
-  PMAPCTL |= PMAPRECFG; // Leave Pin mapping open
-  pinUARTmap();         // Map UART pins
-  pinI2Cmap();          // Map I2C pins
-	PMAPPWD = 0;		      // Lock port mapping registers
 }
 
 /**
