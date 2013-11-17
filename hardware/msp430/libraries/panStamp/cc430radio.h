@@ -102,8 +102,8 @@ enum RFSTATE
 #define CCDEF_IOCFG0     0x06   // GDO0 output pin configuration. Refer to SmartRF® Studio User Manual for detailed pseudo register explanation.
 #define CCDEF_PKTCTRL1   0x06   // Packet automation control.
 #define CCDEF_PKTCTRL0   0x05   // Packet automation control.
-#define CCDEF_ADDR       0xFF   // Device address.
-#define CCDEF_PKTLEN     0x3D    // Packet length.
+#define CCDEF_ADDR       0x77   // Device address.
+#define CCDEF_PKTLEN     0x3D   // Packet length.
 
 /**
  * Macros
@@ -119,8 +119,8 @@ enum RFSTATE
   /* Wait for XOSC to be stable and radio in IDLE state */ \
   while (Strobe(RF_SNOP) & 0xF0) ;               \
 }
-//#define MRFI_SYNC_PIN_INT_IS_ENABLED()     (RF1AIE & BIT9)
-#define MRFI_SYNC_PIN_INT_IS_ENABLED()     (RF1AIE & BIT0)
+#define MRFI_SYNC_PIN_INT_IS_ENABLED()     (RF1AIE & BIT9)
+//#define MRFI_SYNC_PIN_INT_IS_ENABLED()     (RF1AIE & BIT0)
 
 // Disable address check
 #define disableAddressCheck()     writeReg(PKTCTRL1, 0x04)
@@ -153,11 +153,11 @@ class CC430RADIO
     uint8_t rfState;
 
     /**
-     * setDefaultRegs
+     * setCCregs
      * 
      * Configure CC1101 registers
      */
-    void setDefaultRegs(void);
+    void setCCregs(void);
 
   public:
     /**
@@ -198,14 +198,14 @@ class CC430RADIO
      * Reset CC1101
      */
     void reset(void);
-    
+
     /**
      * init
      * 
-     * Initializa CC1101
+     * Initialize CC1101
      */
     void init(void);
-
+    
     /**
      * setRxOnState
      * 

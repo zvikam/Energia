@@ -25,6 +25,8 @@
 #ifndef _CC430CORE_H
 #define _CC430CORE_H
 
+#include "datatypes.h"
+
 /**
  * Class: CC430CORE
  * 
@@ -40,6 +42,24 @@ class CC430CORE
      * Initializa MCU core
      */
     void init(void);
+
+    /**
+     * getVcc
+     *
+     * Read voltage supply
+     *
+     * @return voltage in mV
+     */
+    uint16_t getVcc(void);
+
+    /**
+     * getTemp
+     *
+     * Read internal temperature from CC430 MCU
+     *
+     * @return voltage in 0.1 ºC
+     */
+    int getTemp(void);
 
     /**
      * delayClockCycles

@@ -28,6 +28,7 @@
 #include "cc430core.h"
 #include "cc430radio.h"
 #include "cc430rtc.h"
+#include "thermistor.h"
 #include "register.h"
 #include "swpacket.h"
 #include "config.h"
@@ -91,16 +92,6 @@ enum SYSTATE
  */
 class PANSTAMP
 {
-  private:
-    /**
-     * MCU core
-     */
-    CC430CORE core;
-    /**
-     * RTC module
-     */
-    CC430RTC rtc;
-
   public:
     /**
      * Pointer to repeater object
@@ -111,6 +102,11 @@ class PANSTAMP
      * Radio interface
      */
     CC430RADIO radio;
+
+    /**
+     * Onboard thermistor
+     */
+    THERMISTOR thermistor; 
 
     #ifndef Energia_h
     /**
@@ -155,6 +151,15 @@ class PANSTAMP
      * Smart encryption password
      */
     unsigned char encryptPwd[12];
+
+    /**
+     * MCU core
+     */
+    CC430CORE core;
+    /**
+     * RTC module
+     */
+    CC430RTC rtc;
 
     /**
      * enableRepeater

@@ -42,7 +42,7 @@
 void CC430CORE::init(void) 
 {
 	// Configure PMM
-	SetVCore(1);
+	SetVCore(2);
 
   // Set the High-Power Mode Request Enable bit so LPM3 can be entered
   // with active radio enabled
@@ -95,13 +95,44 @@ void CC430CORE::init(void)
 }
 
 /**
+ * getVcc
+ *
+ * Read voltage supply
+ *
+ * @return voltage in mV
+ */
+uint16_t CC430CORE::getVcc(void)
+{
+  analogReference(INTERNAL2V0);
+  uint16_t data = map(analogRead(11), 0, 4095, 0, 4000);
+
+  return data;
+}
+
+/**
+ * getTemp
+ *
+ * Read internal temperature from CC430 MCU
+ *
+ * @return voltage in 0.1 ºC
+ */
+int CC430CORE::getTemp(void)
+{
+  analogReference(INTERNAL2V0);
+  int data = analogRead(10);
+  data = data * 1.45 - 6.68;
+
+  return data;
+}
+
+/**
  * delayClockCycles
  *
  * Clock cycle delay
  *
  * @param n clock cycles to wait
  */
-void __inline__ CC430CORE::delayClockCycles(register unsigned int n)
+void __inline__ CC430CORE::delayClockCycles(register uint16_t n)
 {
     __asm__ __volatile__ (
                 "1: \n"

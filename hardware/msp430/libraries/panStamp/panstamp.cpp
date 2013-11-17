@@ -98,6 +98,8 @@ void radioISR(void)
                   eval = false;
               }
             }
+            else
+              eval = false;
             if (eval)
             {
               // Function
@@ -105,7 +107,7 @@ void radioISR(void)
               {
                 case SWAPFUNCT_CMD:
                   // Command not addressed to us?
-                  if (swPacket.destAddr != panstamp.radio.devAddress)
+                  if (swPacket.destAddr != panstamp.swapAddress)
                     break;
                   // Current version does not support data recording mode
                   // so destination address and register address must be the same
@@ -226,6 +228,9 @@ void PANSTAMP::init()
   // Initialize MCU core
   core.init();
 
+  // Initialize temperature sensor
+  thermistor.init();
+
   // Intialize registers
   for(i=0 ; i<regTableSize ; i++)
     regTable[i]->init();
@@ -282,6 +287,9 @@ void PANSTAMP::wakeUp(bool rxOn)
  */
 void PANSTAMP::goToSleep(RTCSRC source)
 {
+  // Power down radio
+  radio.setPowerDownState();
+
   // Sleep
   rtc.sleep(txInterval, source);
 }

@@ -80,12 +80,9 @@ void REGISTER::setData(unsigned char *data)
   // Does the value need to be saved in info memory (flash)?
   if (eepromAddress >= 0)
   {
-    CC430INFO infomem;
-    unsigned char i;
-    
-    // Write EEPROM
-    for(i=0 ; i<length ; i++)
-      infomem.write(value, eepromBank, eepromAddress, length);
+    CC430INFO infomem;   
+    // Write info memory
+    infomem.write(value, eepromBank, eepromAddress, length);
   }
 }
 

@@ -56,14 +56,14 @@ enum CUSTOM_REGINDEX                    \
  */
 #define DEFINE_COMMON_REGISTERS()                                                                                            \
 /* Product code */                                                                                                           \
-static byte dtProductCode[8] = {SWAP_MANUFACT_ID >> 24, SWAP_MANUFACT_ID >> 16 , SWAP_MANUFACT_ID >> 8, SWAP_MANUFACT_ID,    \
+static uint8_t dtProductCode[8] = {SWAP_MANUFACT_ID >> 24, SWAP_MANUFACT_ID >> 16 , SWAP_MANUFACT_ID >> 8, SWAP_MANUFACT_ID,    \
                        SWAP_PRODUCT_ID >> 24, SWAP_PRODUCT_ID >> 16 , SWAP_PRODUCT_ID >> 8, SWAP_PRODUCT_ID};                \
 REGISTER regProductCode(dtProductCode, sizeof(dtProductCode), NULL, NULL);                                                   \
 /* Hardware version */                                                                                                       \
-static byte dtHwVersion[4] = {HARDWARE_VERSION >> 24, HARDWARE_VERSION >> 16 , HARDWARE_VERSION >> 8, HARDWARE_VERSION};     \
+static uint8_t dtHwVersion[4] = {HARDWARE_VERSION >> 24, HARDWARE_VERSION >> 16 , HARDWARE_VERSION >> 8, HARDWARE_VERSION};     \
 REGISTER regHwVersion(dtHwVersion, sizeof(dtHwVersion), NULL, NULL);                                                         \
 /* Firmware version */                                                                                                       \
-static byte dtFwVersion[4] = {FIRMWARE_VERSION >> 24, FIRMWARE_VERSION >> 16 , FIRMWARE_VERSION >> 8, FIRMWARE_VERSION};     \
+static uint8_t dtFwVersion[4] = {FIRMWARE_VERSION >> 24, FIRMWARE_VERSION >> 16 , FIRMWARE_VERSION >> 8, FIRMWARE_VERSION};     \
 REGISTER regFwVersion(dtFwVersion, sizeof(dtFwVersion), NULL, NULL);                                                         \
 /* System state */                                                                                                           \
 REGISTER regSysState(&panstamp.systemState, sizeof(panstamp.systemState), NULL, &setSysState);                               \
@@ -72,7 +72,7 @@ REGISTER regFreqChannel(&panstamp.radio.channel, sizeof(panstamp.radio.channel),
 /* Security option */                                                                                                        \
 REGISTER regSecuOption(&panstamp.security, sizeof(panstamp.security), NULL, NULL);                                           \
 /* Security password (not implemented yet) */                                                                                \
-static byte dtPassword[1];                                                                                                   \
+static uint8_t dtPassword[1];                                                                                                   \
 REGISTER regPassword(dtPassword, sizeof(dtPassword), NULL, NULL);                                                            \
 /* Security nonce */                                                                                                         \
 REGISTER regSecuNonce(&panstamp.nonce, sizeof(panstamp.nonce), NULL, NULL);                                                  \
@@ -103,17 +103,17 @@ REGISTER *regTable[] = {             \
 #define DECLARE_REGISTERS_END()      \
 };                                   \
 /* Size of regTable */               \
-byte regTableSize = sizeof(regTable)/sizeof(*regTable);
+uint8_t regTableSize = sizeof(regTable)/sizeof(*regTable);
 
 /**
  * Macro for the declaration of getter/setter functions related to all common registers
  */
 #define DECLARE_COMMON_CALLBACKS()                          \
-const void setSysState(byte id, byte *state);               \
-const void setFreqChannel(byte id, byte *channel);          \
-const void setDevAddress(byte id, byte *addr);              \
-const void setNetworkId(byte rId, byte *nId);               \
-const void setTxInterval(byte id, byte *interval);
+const void setSysState(uint8_t id, uint8_t *state);               \
+const void setFreqChannel(uint8_t id, uint8_t *channel);          \
+const void setDevAddress(uint8_t id, uint8_t *addr);              \
+const void setNetworkId(uint8_t rId, uint8_t *nId);               \
+const void setTxInterval(uint8_t id, uint8_t *interval);
 
 /**
  * Macro for the definition of getter/setter functions related to all common registers
@@ -127,7 +127,7 @@ const void setTxInterval(byte id, byte *interval);
  * 'id'     Register ID                                     \
  * 'state'  New system state                                \
  */                                                         \
-const void setSysState(byte id, byte *state)                \
+const void setSysState(uint8_t id, uint8_t *state)                \
 {                                                           \
   switch(state[0])                                          \
   {                                                         \
@@ -149,7 +149,7 @@ const void setSysState(byte id, byte *state)                \
  * 'id'       Register ID                                   \
  * 'channel'  New channel                                   \
  */                                                         \
-const void setFreqChannel(byte id, byte *channel)           \
+const void setFreqChannel(uint8_t id, uint8_t *channel)           \
 {                                                           \
   if (channel[0] != regFreqChannel.value[0])                \
   {                                                         \
@@ -173,7 +173,7 @@ const void setFreqChannel(byte id, byte *channel)           \
  * 'id'    Register ID                                      \
  * 'addr'  New device address                               \
  */                                                         \
-const void setDevAddress(byte id, byte *addr)               \
+const void setDevAddress(uint8_t id, uint8_t *addr)               \
 {                                                           \
   /* Send status before setting the new address */          \
   SWSTATUS packet = SWSTATUS(regDevAddress.id, addr, regDevAddress.length); \
@@ -192,7 +192,7 @@ const void setDevAddress(byte id, byte *addr)               \
  * 'rId' Register ID                                        \
  * 'nId' New network id                                     \
  */                                                         \
-const void setNetworkId(byte rId, byte *nId)                \
+const void setNetworkId(uint8_t rId, uint8_t *nId)                \
 {                                                           \
   if ((nId[0] != regNetworkId.value[0]) ||                  \
       (nId[1] != regNetworkId.value[1]))                    \
@@ -212,7 +212,7 @@ const void setNetworkId(byte rId, byte *nId)                \
  * 'id'        Register ID                                  \
  * 'interval'  New interval (in seconds)                    \
  */                                                         \
-const void setTxInterval(byte id, byte *interval)           \
+const void setTxInterval(uint8_t id, uint8_t *interval)           \
 {                                                           \
   /* Set new Tx interval. BE to LE conversion */            \
   regTxInterval.setValueFromBeBuffer(interval);             \

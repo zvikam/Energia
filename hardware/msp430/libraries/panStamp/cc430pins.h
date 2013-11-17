@@ -31,6 +31,5 @@
 // I2C
 #define pinI2Cmap()       P1MAP4 = PM_UCB0SDA; P1MAP5 = PM_UCB0SCL
 #define pinI2Cconfig()    P1SEL |= BIT4 | BIT5;     // Set P1.4 and P1.5 to USCI function
-
 #endif
 

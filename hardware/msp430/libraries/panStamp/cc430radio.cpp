@@ -59,8 +59,12 @@ CC430RADIO::CC430RADIO(void)
  * init
  * 
  * Initialize CC1101
+ *
+ * @param ch RF channel
+ * @param sw Sync word
+ * @param addr Device address
  */
-void CC430RADIO::init(void) 
+void CC430RADIO::init(void)
 {
   // Reset radio interface
   reset();
@@ -82,15 +86,15 @@ void CC430RADIO::reset(void)
   Strobe(RF_SRES);                      // Reset the Radio Core
   Strobe(RF_SNOP);                      // Reset Radio Pointer
 
-  setDefaultRegs();                     // Reconfigure CC1101
+  setCCregs();                          // Configure CC1101 interface
 }
 
 /**
- * setDefaultRegs
+ * setCCregs
  * 
  * Configure CC430 radio registers
  */
-void CC430RADIO::setDefaultRegs(void) 
+void CC430RADIO::setCCregs(void) 
 {
   WriteSingleReg(IOCFG2, CCDEF_IOCFG2);
   WriteSingleReg(IOCFG0,  CCDEF_IOCFG0);
@@ -99,14 +103,24 @@ void CC430RADIO::setDefaultRegs(void)
   WriteSingleReg(PKTCTRL1,  CCDEF_PKTCTRL1);
   WriteSingleReg(PKTCTRL0,  CCDEF_PKTCTRL0);
 
+
   // Set default synchronization word
-  setSyncWord(CCDEF_SYNC1, CCDEF_SYNC0);
+  if (syncWord[0] != 0xFF || syncWord[1] != 0xFF)
+    setSyncWord(syncWord);
+  else
+    setSyncWord(CCDEF_SYNC1, CCDEF_SYNC0);
 
   // Set default device address
-  setDevAddress(CCDEF_ADDR);
+  if (devAddress != 0xFF)
+    setDevAddress(devAddress);
+  else
+    setDevAddress(CCDEF_ADDR);
 
   // Set default frequency channel
-  setChannel(CCDEF_CHANNR);
+  if (channel != 0xFF)
+    setChannel(channel);
+  else
+    setChannel(CCDEF_CHANNR);
 
   WriteSingleReg(FSCTRL1,  CCDEF_FSCTRL1);
   WriteSingleReg(FSCTRL0,  CCDEF_FSCTRL0);    
@@ -120,7 +134,6 @@ void CC430RADIO::setDefaultRegs(void)
   WriteSingleReg(MDMCFG1,  CCDEF_MDMCFG1);
   WriteSingleReg(MDMCFG0,  CCDEF_MDMCFG0);
   WriteSingleReg(DEVIATN,  CCDEF_DEVIATN);
-//  WriteSingleReg(MCSM1,  CCDEF_MCSM1);
   WriteSingleReg(MCSM0,  CCDEF_MCSM0);
   WriteSingleReg(FOCCFG,  CCDEF_FOCCFG);
   WriteSingleReg(BSCFG,  CCDEF_BSCFG);
@@ -146,15 +159,12 @@ void CC430RADIO::setDefaultRegs(void)
  * @param syncH	Synchronization word - High byte
  * @param syncL	Synchronization word - Low byte
  */
-void CC430RADIO::setSyncWord(unsigned char syncH, unsigned char syncL) 
+void CC430RADIO::setSyncWord(uint8_t syncH, uint8_t syncL) 
 {
-  if ((syncWord[0] != syncH) || (syncWord[1] != syncL))
-  {
-    WriteSingleReg(SYNC1, syncH);
-    WriteSingleReg(SYNC0, syncL);
-    syncWord[0] = syncH;
-    syncWord[1] = syncL;
-  }
+  WriteSingleReg(SYNC1, syncH);
+  WriteSingleReg(SYNC0, syncL);
+  syncWord[0] = syncH;
+  syncWord[1] = syncL;
 }
 
 /**
@@ -164,7 +174,7 @@ void CC430RADIO::setSyncWord(unsigned char syncH, unsigned char syncL)
  * 
  * @param syncH	Synchronization word - pointer to 2-byte
  */
-void CC430RADIO::setSyncWord(unsigned char *sync) 
+void CC430RADIO::setSyncWord(uint8_t *sync) 
 {
   CC430RADIO::setSyncWord(sync[0], sync[1]);
 }
@@ -176,13 +186,10 @@ void CC430RADIO::setSyncWord(unsigned char *sync)
  * 
  * @param addr Device address
  */
-void CC430RADIO::setDevAddress(unsigned char addr)
+void CC430RADIO::setDevAddress(uint8_t addr)
 {
-  if (devAddress != addr)
-  {
-    WriteSingleReg(ADDR, addr);
-    devAddress = addr;
-  }
+  WriteSingleReg(ADDR, addr);
+  devAddress = addr;
 }
 
 /**
@@ -192,13 +199,10 @@ void CC430RADIO::setDevAddress(unsigned char addr)
  * 
  * @param chnl Frequency channel
  */
-void CC430RADIO::setChannel(unsigned char chnl) 
+void CC430RADIO::setChannel(uint8_t chnl) 
 {
-  if (channel != chnl)
-  {
-    WriteSingleReg(CHANNR,  chnl);
-    channel = chnl;
-  }
+  WriteSingleReg(CHANNR,  chnl);
+  channel = chnl;
 }
 
 /**
@@ -208,7 +212,7 @@ void CC430RADIO::setChannel(unsigned char chnl)
  * 
  * @param freq New carrier frequency
  */
-void CC430RADIO::setCarrierFreq(unsigned char freq)
+void CC430RADIO::setCarrierFreq(uint8_t freq)
 {
   switch(freq)
   {
@@ -358,32 +362,35 @@ bool CC430RADIO::sendData(CCPACKET packet)
  * 
  * @return Amount of bytes received
  */
-unsigned char CC430RADIO::receiveData(CCPACKET *packet)
+uint8_t CC430RADIO::receiveData(CCPACKET *packet)
 {
   if (rfState != RFSTATE_RXON)
     return 0;
-
-  unsigned char val;
-  unsigned char rxBytes = ReadSingleReg(RXBYTES);
+  uint8_t i;
+  uint8_t rxBuffer[CCPACKET_BUFFER_LEN];
+  uint8_t rxLength = ReadSingleReg(RXBYTES);
 
   // Any byte waiting to be read and no overflow?
-  if (rxBytes & 0x7F && !(rxBytes & 0x80))
+  if ((rxLength & 0x7F) && !(rxLength & 0x80))
   {
-    // Read data length
-    packet->length = ReadSingleReg(RF_RXFIFORD);
     // If packet is too long
-    if (packet->length > CCPACKET_DATA_LEN)
+    if (rxLength > CCPACKET_BUFFER_LEN)
       packet->length = 0;   // Discard packet
     else
     {
       // Read data packet
-      ReadBurstReg(RF_RXFIFORD, packet->data, packet->length);
+      ReadBurstReg(RF_RXFIFORD, rxBuffer, rxLength);
+
+      packet->length = rxBuffer[0];
+
+      for(i=0 ; i<packet->length; i++)
+        packet->data[i] = rxBuffer[i+1];
+
       // Read RSSI
-      packet->rssi = ReadSingleReg(RF_RXFIFORD);
+      packet->rssi = rxBuffer[++i];
       // Read LQI and CRC_OK
-      val = ReadSingleReg(RF_RXFIFORD);
-      packet->lqi = val & 0x7F;
-      packet->crc_ok = val >> 7;
+      packet->lqi = rxBuffer[++i] & 0x7F;
+      packet->crc_ok = rxBuffer[i] >> 7;
     }
   }
   else

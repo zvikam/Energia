@@ -49,7 +49,7 @@ void CC430UART::init(uint16_t baud)
 	PMAPPWD = 0;		      // Lock port mapping registers
 
   pinUARTconfig();
-
+/*
 	UCA0CTL1 = UCSWRST;
 	UCA0CTL1 = UCSSEL_2;  // SMCLK
 	UCA0CTL0 = 0;
@@ -64,6 +64,7 @@ void CC430UART::init(uint16_t baud)
 
 	UCA0CTL1 &= ~UCSWRST;
 	UCA0IE |= UCRXIE | UCTXIE;           // Enable Rx and Tx interrupts
+*/
 }
 
 /**

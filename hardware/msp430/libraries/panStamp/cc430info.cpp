@@ -66,7 +66,7 @@ uint8_t CC430INFO::read(uint8_t *buffer, char section, uint8_t position, uint8_t
   flashPtr += position;
 
   for (i = 0; i < length; i++)
-    buffer[i] = flashPtr[i];
+    buffer[i] = *flashPtr++;
 
   return length;
 }
@@ -128,7 +128,8 @@ uint8_t CC430INFO::write(uint8_t *buffer, char section, uint8_t position, uint8_
         *flashPtr++ = buffer[j];         // Write byte to flash
       i += length-1;
     }
-    *flashPtr++ = buf[i];                // Write byte to flash
+    else
+      *flashPtr++ = buf[i];              // Write byte to flash
   }
 
   FCTL1 = FWKEY;                         // Clear WRT bit

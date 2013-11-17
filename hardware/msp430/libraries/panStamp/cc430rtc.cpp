@@ -23,7 +23,7 @@
  */
 
 #include "cc430rtc.h"
-#include "cc430x513x.h"
+#include "cc430f5137.h"
 #include "Energia.h"
 
 /**
@@ -63,7 +63,8 @@ __attribute__((interrupt(RTC_VECTOR)))
 void rtcISR(void)
 {
   RTC_ACK_ISR();
-  __bic_SR_register(LPM3_bits);  // clears the bits corresponding to LPM3 and exits the low power mode
+//WDTCTL = WDTPW;                   // Enable WDT again
+  __bic_SR_register_on_exit(LPM3_bits);  // clears the bits corresponding to LPM3 and exits the low power mode
   RTC_STOP_COUNTER();
   RTC_RESET_COUNTER();
 }
@@ -99,13 +100,14 @@ void CC430RTC::sleep(unsigned int time, RTCSRC source)
       break;
   }
 
+  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
+
   RTC_SET_TICKS(ticks);               // Initialize 32-bit counter
   RTC_ISR_ENABLE();                   // Enable RTC interrupt
   RTC_START_32BIT_COUNTER();          // Start RTC counter with 32-bit overflow
 
   __bis_SR_register(LPM3_bits + GIE); // Enter LPM3 with interrupts
- __no_operation();
 
-//digitalWrite(13, HIGH);
+  enableWatchDog();                   // Enable WDT again
 }
 
