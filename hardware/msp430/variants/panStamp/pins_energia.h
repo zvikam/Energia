@@ -43,15 +43,16 @@ static const uint8_t DEBUG_UARTRXD = 7;  /* Receive  Data (RXD) at P1.7 */
 
 static const uint8_t TWISDA  = 4; /* P1.4 */
 static const uint8_t TWISCL  = 5; /* P1.5 */
-#define TWISDA_SET_MODE  (PORT_SELECTION0 | PORT_SELECTION1 | INPUT_PULLUP)
-#define TWISCL_SET_MODE  (PORT_SELECTION0 | PORT_SELECTION1 | INPUT_PULLUP)
+#define TWISDA_SET_MODE  (PORT_SELECTION0 | (PM_UCB0SDA << 8) | INPUT_PULLUP)
+#define TWISCL_SET_MODE  (PORT_SELECTION0 | (PM_UCB0SCL << 8) | INPUT_PULLUP)
 
-static const uint8_t MOSI    = 3; /* P1.7 */
-static const uint8_t MISO    = 4; /* P1.6 */
-static const uint8_t SCK     = 5;  /* P1.5 */
-#define SPISCK_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1)
-#define SPIMOSI_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1)
-#define SPIMISO_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1)
+static const uint8_t SS      = 2; /* P1.2 */
+static const uint8_t MOSI    = 3; /* P1.3 */
+static const uint8_t MISO    = 4; /* P1.4 */
+static const uint8_t SCK     = 5; /* P1.5 */
+#define SPISCK_SET_MODE (PORT_SELECTION0 | (PM_UCB0CLK << 8))
+#define SPIMOSI_SET_MODE (PORT_SELECTION0 | (PM_UCB0SIMO << 8))
+#define SPIMISO_SET_MODE (PORT_SELECTION0 | (PM_UCB0SOMI << 8))
 
 // Debug UART is on USCIA0 so offset is 0
 #define DEBUG_UART_MODULE_OFFSET 0x0
