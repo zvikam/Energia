@@ -38,8 +38,8 @@
 
 static const uint8_t DEBUG_UARTTXD = 6;  /* Transmit Data (TXD) at P1.6 */
 static const uint8_t DEBUG_UARTRXD = 7;  /* Receive  Data (RXD) at P1.7 */
-#define DEBUG_UARTRXD_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1 | INPUT)
-#define DEBUG_UARTTXD_SET_MODE (PORT_SELECTION0 | PORT_SELECTION1 | OUTPUT)
+#define DEBUG_UARTRXD_SET_MODE (PORT_SELECTION0 | (PM_UCA0RXD << 8) | INPUT)
+#define DEBUG_UARTTXD_SET_MODE (PORT_SELECTION0 | (PM_UCA0TXD << 8) | OUTPUT)
 
 static const uint8_t TWISDA  = 4; /* P1.4 */
 static const uint8_t TWISCL  = 5; /* P1.5 */
