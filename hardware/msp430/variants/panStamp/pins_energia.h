@@ -121,6 +121,7 @@ const uint16_t port_to_input[] = {
 	(uint16_t) &P1IN,
 	(uint16_t) &P2IN,
 	(uint16_t) &P3IN,
+	(uint16_t) &P5IN,
 	(uint16_t) &PJIN,
 };
 
@@ -129,6 +130,7 @@ const uint16_t port_to_output[] = {
 	(uint16_t) &P1OUT,
 	(uint16_t) &P2OUT,
 	(uint16_t) &P3OUT,
+	(uint16_t) &P5OUT,
 	(uint16_t) &PJOUT,
 };
 
@@ -137,6 +139,7 @@ const uint16_t port_to_dir[] = {
 	(uint16_t) &P1DIR,
 	(uint16_t) &P2DIR,
 	(uint16_t) &P3DIR,
+	(uint16_t) &P5DIR,
 	(uint16_t) &PJDIR,
 };
 
@@ -145,7 +148,8 @@ const uint16_t port_to_ren[] = {
 	(uint16_t) &P1REN,
 	(uint16_t) &P2REN,
 	(uint16_t) &P3REN,
-	(uint16_t) NOT_A_PORT, //&PJREN
+	(uint16_t) &P5REN,
+	(uint16_t) NOT_A_PORT, //No PJREN
 };
 
 const uint16_t port_to_sel0[] = {
@@ -153,16 +157,17 @@ const uint16_t port_to_sel0[] = {
 	(uint16_t) &P1SEL,
 	(uint16_t) &P2SEL,
 	(uint16_t) &P3SEL,
-	(uint16_t) NOT_A_PORT, //&PJSEL,
+	(uint16_t) NOT_A_PORT, // No P5SEL
+	(uint16_t) NOT_A_PORT, // No PJSEL,
 };
 
 const uint16_t port_to_pmap[] = {
 	NOT_A_PORT,	/* PMAP starts at port P1 */
 	(uint16_t) &P1MAP0,
 	(uint16_t) &P2MAP0,
-	NOT_A_PORT,
-	NOT_A_PORT,
-	NOT_A_PORT,
+	NOT_A_PORT, // No P3MAP0
+	NOT_A_PORT, // No P5MAP0
+	NOT_A_PORT, // No PJMAP0
 };
 
 /* 
