@@ -176,25 +176,25 @@ const uint16_t port_to_pmap[] = {
  * T0A1, T1A1 and T1A2 
  */
 const uint8_t digital_pin_to_timer[] = {
-	T0A0,         /* P1.0 */
-	T0A1,         /* P1.1 */
-	T0A2,         /* P1.2 */
-	T0A3,         /* P1.3 */
-	T0A4,         /* P1.4 */
+	NOT_ON_TIMER, /* P1.0 */
+	NOT_ON_TIMER, /* P1.1 */
+	NOT_ON_TIMER, /* P1.2 */
+	NOT_ON_TIMER, /* P1.3 */
+	NOT_ON_TIMER, /* P1.4 */
 	NOT_ON_TIMER, /* P1.5 */
 	NOT_ON_TIMER, /* P1.6 */
 	NOT_ON_TIMER, /* P1.7 */
 	NOT_ON_TIMER, /* P2.0 */
-	NOT_ON_TIMER, /* P2.1 */
-	NOT_ON_TIMER, /* P2.2 */
-	NOT_ON_TIMER, /* P2.3 */
-	T1A0,         /* P2.4 */
+	T1A0,         /* P2.1 */
+	T1A1,         /* P2.2 */
+	T1A2,         /* P2.3 */
+	NOT_ON_TIMER, /* P2.4 */
 	NOT_ON_TIMER, /* TEMPSENSOR */
-	T1A1,         /* P2.6 */
+	NOT_ON_TIMER, /* P2.6 */
 	NOT_ON_TIMER, /* P2.7 */
 	NOT_ON_TIMER, /* P3.0 */
-	NOT_ON_TIMER, /* P3.1 */
-	NOT_ON_TIMER, /* P3.2 */
+	T0A0,         /* P3.1 */
+	T0A1,         /* P3.2 */
 	NOT_ON_TIMER, /* ONBOARD_LED */
 };
 
