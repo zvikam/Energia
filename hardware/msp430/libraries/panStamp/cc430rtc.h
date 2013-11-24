@@ -25,6 +25,8 @@
 #ifndef _CC430RTC_H
 #define _CC430RTC_H
 
+#include "datatypes.h"
+
 /**
  * RTC clock sources
  */
@@ -53,7 +55,22 @@ class CC430RTC
      * @param time Sleeping time in seconds
      * @param ACLK source (RTCSRC_XT1 or RTCSRC_VLO)
      */
-    void sleep(unsigned int time, RTCSRC source=RTCSRC_XT1);
+    void sleep(uint16_t time, RTCSRC source=RTCSRC_XT1);
+
+    /**
+     * sleepUntil
+     * 
+     * Put panStamp into Power-down state until the RTC alarm is triggered
+     * Here the RTC module is used in calendar mode and hexadecimal format
+     * This function uses RTC connected to an external 32.768KHz crystal
+     * in order to exit (interrupt) from the power-down state
+     * 
+     * @param day Day of month (1 to 31)
+     * @param dow Day of week (0 to 6)
+     * @param hour Hour (0 to 23)
+     * @param min Minutes day (0 to 59)
+     */
+    void sleepUntil(char day=-1, char dow=-1, char hour=-1, char min=-1);
 };
 
 #endif

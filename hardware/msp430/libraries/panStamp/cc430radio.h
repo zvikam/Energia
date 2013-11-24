@@ -84,6 +84,7 @@ enum RFSTATE
 #define CCDEF_FREND1     0x56   // Front end RX configuration.
 #define CCDEF_FREND0     0x10   // Front end TX configuration.
 #define CCDEF_MCSM0      0x18   // Main Radio Control State Machine configuration.
+#define CCDEF_MCSM1      0x20   // Main Radio Control State Machine configuration.
 #define CCDEF_FOCCFG     0x16   // Frequency Offset Compensation Configuration.
 #define CCDEF_BSCFG      0x6C   // Bit synchronization Configuration.
 #define CCDEF_AGCCTRL2   0x43   // AGC control.
@@ -120,16 +121,11 @@ enum RFSTATE
   while (Strobe(RF_SNOP) & 0xF0) ;               \
 }
 #define MRFI_SYNC_PIN_INT_IS_ENABLED()     (RF1AIE & BIT9)
-//#define MRFI_SYNC_PIN_INT_IS_ENABLED()     (RF1AIE & BIT0)
 
 // Disable address check
-#define disableAddressCheck()     writeReg(PKTCTRL1, 0x04)
-// Enable address check
-#define enableAddressCheck()      writeReg(PKTCTRL1, 0x06)
+#define disableAddressCheck()     enableAddressCheck(false)
 // Disable CCA
-#define disableCCA()              writeReg(MCSM1, 0)
-// Enable CCA
-#define enableCCA()               writeReg(MCSM1, CC1101_DEFVAL_MCSM1)
+#define disableCCA()              enableCCA(false)
 // Set PATABLE single byte
 #define setTxPowerAmp(setting)    paTableByte = setting
 // PATABLE values
@@ -299,6 +295,24 @@ class CC430RADIO
      * @return Amount of bytes received
      */
     uint8_t receiveData(CCPACKET *packet);
+
+    /**
+     * enableAddressCheck
+     *
+     * Turn on/ff address check
+     *
+     * @param enable True if address check has to be enabled
+     */
+    void enableAddressCheck(bool enable=true);
+
+    /**
+     * enableCCA
+     *
+     * Turn on/ff CCA mechanism
+     *
+     * @param enable True if address check has to be enabled
+     */
+    void enableCCA(bool enable=true);
 };
 
 #endif

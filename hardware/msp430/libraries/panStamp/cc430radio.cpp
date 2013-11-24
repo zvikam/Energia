@@ -405,3 +405,33 @@ uint8_t CC430RADIO::receiveData(CCPACKET *packet)
   return packet->length;
 }
 
+/**
+ * enableAddressCheck
+ *
+ * Turn on/ff address check
+ *
+ * @param enable True if address check has to be enabled
+ */
+void CC430RADIO::enableAddressCheck(bool enable)
+{
+  if (enable)
+    WriteSingleReg(PKTCTRL1, 0x06);
+  else
+    WriteSingleReg(PKTCTRL1, 0x04);
+}
+
+/**
+ * enableCCA
+ *
+ * Turn on/ff CCA mechanism
+ *
+ * @param enable True if address check has to be enabled
+ */
+void CC430RADIO::enableCCA(bool enable)
+{
+  if (enable)
+    WriteSingleReg(MCSM1, CCDEF_MCSM1);
+  else
+    WriteSingleReg(MCSM1, 0);
+}
+

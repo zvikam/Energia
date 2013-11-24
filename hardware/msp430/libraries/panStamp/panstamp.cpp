@@ -228,6 +228,9 @@ void PANSTAMP::init()
   // Initialize MCU core
   core.init();
 
+  // Configure LED pin as output
+  PJDIR |= BIT1;
+
   // Initialize temperature sensor
   thermistor.init();
 
@@ -258,12 +261,8 @@ void PANSTAMP::reset()
   systemState = SYSTATE_RESTART;
   getRegister(REGI_SYSSTATE)->sendSwapStatus();
 
-  // Reset panStamp
-  #ifdef PANSTAMP_AVR
-  wdt_disable();  
-  wdt_enable(WDTO_15MS);
+  WDTCTL = 0;
   while (1) {}
-  #endif
 }
 
 /**

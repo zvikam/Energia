@@ -126,3 +126,24 @@ void REPEATER::saveTransaction(SWPACKET *packet)
   transactions[0].regAddr = packet->regAddr;    // Register address
 }
 
+/**
+ * start
+ *
+ * Start repeater
+ */
+void REPEATER::start(void)
+{
+  enabled = true;
+}
+
+/**
+ * stop
+ *
+ * Stop repeater
+ */
+void REPEATER::stop(void)
+{
+  enabled = false;
+}
+
+

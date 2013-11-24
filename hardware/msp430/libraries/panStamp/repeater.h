@@ -29,12 +29,6 @@
 #include "config.h"
 
 /**
- * Macros
- */
-#define start()     enabled = true
-#define stop()      enabled = false
-
-/**
  * Transaction
  */
 typedef struct
@@ -100,6 +94,20 @@ class REPEATER
      * Class constructor
      */
     REPEATER(void);
+
+    /**
+     * start
+     *
+     * Start repeater
+     */
+    void start(void);
+
+    /**
+     * stop
+     *
+     * Stop repeater
+     */
+    void stop(void);
 };
 
 #endif

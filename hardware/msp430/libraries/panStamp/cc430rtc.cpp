@@ -30,7 +30,7 @@
  * Macros
  */
 /**
- * RTC_D TIMER
+ * RTC_A TIMER
  */
 #define RTC_SET_ACLK_XT1()                 UCSCTL4 = SELA__XT1CLK | SELS__DCOCLKDIV | SELM__DCOCLKDIV
 #define RTC_SET_ACLK_VLO()                 UCSCTL4 = SELA__VLOCLK | SELS__DCOCLKDIV | SELM__DCOCLKDIV
@@ -54,6 +54,28 @@
 #define RTC_VLO_CYCLES_1SEC                10000UL
 
 
+#define RTC_ENABLE_ALARM()                 (RTCCTL0 |= RTCAIE)
+#define RTC_SET_CALENDAR_MODE()            (RTCCTL1 |= RTCMODE)
+
+#define RTC_SET_YEAR(year)                 RTCYEARH = year >> 8 ; RTCYEARL = year & 0xFF
+#define RTC_SET_MONTH(month)               (RTCMON = month)  // 1 to 12
+#define RTC_SET_DAY(day)                   (RTCDAY = day)    // 1 to 31
+#define RTC_SET_DOW(dow)                   (RTCDOW = dow)    // 0 to 6
+#define RTC_SET_HOUR(hour)                 (RTCHOUR = hour)  // 0 to 23
+#define RTC_SET_MIN(min)                   (RTCMIN = min)    // 0 to 59
+#define RTC_SET_SEC(sec)                   (RTCSEC = sec)    // 0 to 59
+
+#define RTC_SET_DAY_ALARM(day)             (RTCADAY |= (day & 0x1F))
+#define RTC_SET_DOW_ALARM(dow)             (RTCADOW |= (dow & 0x07))
+#define RTC_SET_HOUR_ALARM(hour)           (RTCAHOUR |= (hour & 0x1F))
+#define RTC_SET_MIN_ALARM(min)             (RTCAMIN |= (min & 0x3F))
+
+#define RTC_ENABLE_DAY_ALARM()             (RTCADAY |= 0x80)
+#define RTC_ENABLE_DOW_ALARM()             (RTCADOW |= 0x80)
+#define RTC_ENABLE_HOUR_ALARM()            (RTCAHOUR |= 0x80)
+#define RTC_ENABLE_MIN_ALARM()             (RTCAMIN |= 0x80)
+
+
 /**
  * rtcISR
  * 
@@ -63,7 +85,6 @@ __attribute__((interrupt(RTC_VECTOR)))
 void rtcISR(void)
 {
   RTC_ACK_ISR();
-//WDTCTL = WDTPW;                   // Enable WDT again
   __bic_SR_register_on_exit(LPM3_bits);  // clears the bits corresponding to LPM3 and exits the low power mode
   RTC_STOP_COUNTER();
   RTC_RESET_COUNTER();
@@ -79,12 +100,12 @@ void rtcISR(void)
  * @param time Sleeping time in seconds
  * @param ACLK source (RTCSRC_XT1 or RTCSRC_VLO)
  */
-void CC430RTC::sleep(unsigned int time, RTCSRC source) 
+void CC430RTC::sleep(uint16_t time, RTCSRC source) 
 {
   if (time == 0)
     return;
 
-  unsigned long ticks = 0xFFFFFFFF;
+  uint32_t ticks = 0xFFFFFFFF;
 
   switch(source)
   {
@@ -100,7 +121,7 @@ void CC430RTC::sleep(unsigned int time, RTCSRC source)
       break;
   }
 
-  WDTCTL = WDTPW+WDTHOLD;                   // Stop WDT
+  WDTCTL = WDTPW+WDTHOLD;             // Stop WDT
 
   RTC_SET_TICKS(ticks);               // Initialize 32-bit counter
   RTC_ISR_ENABLE();                   // Enable RTC interrupt
@@ -111,3 +132,70 @@ void CC430RTC::sleep(unsigned int time, RTCSRC source)
   enableWatchDog();                   // Enable WDT again
 }
 
+/**
+ * sleepUntil
+ * 
+ * Put panStamp into Power-down state until the RTC alarm is triggered
+ * Here the RTC module is used in calendar mode and hexadecimal format
+ * This function uses RTC connected to an external 32.768KHz crystal
+ * in order to exit (interrupt) from the power-down state
+ * 
+ * @param day Day of month (1 to 31)
+ * @param dow Day of week (0 to 6)
+ * @param hour Hour (0 to 23)
+ * @param min Minutes day (0 to 59)
+ */
+void CC430RTC::sleepUntil(char day, char dow, char hour, char min) 
+{
+  if ((day < 0) && (dow < 0) && (hour < 0) && (min < 0))
+    return;
+
+  RTC_SET_ACLK_XT1();                 // Connect ACLK to 32.768 KHz crystal
+
+  WDTCTL = WDTPW+WDTHOLD;             // Stop WDT
+
+  if (day > 0)
+  {
+    RTC_SET_DAY_ALARM(day);
+    RTC_ENABLE_DAY_ALARM();
+  }
+  else if (dow > 0)
+  {
+    RTC_SET_DOW_ALARM(dow);
+    RTC_ENABLE_DOW_ALARM();
+  }
+
+  if (hour > 0)
+  {
+    RTC_SET_HOUR_ALARM(hour);
+    RTC_ENABLE_HOUR_ALARM();
+  }
+
+  if (min > 0)
+  {
+    RTC_SET_MIN_ALARM(min);
+    RTC_ENABLE_MIN_ALARM();
+  }
+
+  RTC_SET_CALENDAR_MODE();            // RTC set to calendar mode
+  RTC_ENABLE_ALARM();                 // Enable RTC alarm
+  RTC_ISR_ENABLE();                   // Enable RTC interrupt
+
+  __bis_SR_register(LPM3_bits + GIE); // Enter LPM3 with interrupts
+
+  enableWatchDog();                   // Enable WDT again
+}
+
+/**
+ * setTime
+ *
+ * Set current date/time
+ *
+ * @param year Year (1 to 4095)
+ * @param mon Month (1 to 12)
+ * @param day Day of month (1 to 31)
+ * @param dow Day of week (0 to 6)
+ * @param hour Hour (0 to 23)
+ * @param min Minutes day (0 to 59)
+ * @param sec Seconds (0 to 59)
+ */
