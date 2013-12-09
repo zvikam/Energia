@@ -1,0 +1,32 @@
+#######################################
+# Syntax Coloring Map For OLED
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+FFTransform	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+FFT	KEYWORD2
+IFFT	KEYWORD2
+filter	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+FFT_REAL	LITERAL1                 
+FFT_COMPLEX	LITERAL1              
+FFTQ15	LITERAL1                   
+FFTQ31	LITERAL1                   
+FFT_BAD_PARAMS	LITERAL1           
+FFT_SUCCESS	LITERAL1              
+CONVERT_32_TO_16_MASK	LITERAL1    
+CONVERT_32_TO_16_SHIFT	LITERAL1   
+Q15_MULT_SHIFT	LITERAL1           
+ENABLE_SCALE	LITERAL1
+DISABLE_SCALE	LITERAL1

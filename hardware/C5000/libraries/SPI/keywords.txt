@@ -1,0 +1,35 @@
+#######################################
+# Syntax Coloring Map For SPI
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SPI_Class	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+end	KEYWORD2
+setClockDivider	KEYWORD2
+setDataMode	KEYWORD2
+setLoopBackMode	KEYWORD2
+setBitOrder	KEYWORD2
+transfer	KEYWORD2
+write	KEYWORD2
+read	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+SPI_CLK_DIV	LITERAL1
+SPI_FRAME_LENGTH	LITERAL1
+SPI_MODE0	LITERAL1
+SPI_MODE1	LITERAL1
+SPI_MODE2	LITERAL1
+SPI_MODE3	LITERAL1
+LSBFIRST	LITERAL1
+MSBFIRST	LITERAL1

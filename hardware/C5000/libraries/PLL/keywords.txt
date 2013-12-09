@@ -1,0 +1,21 @@
+#######################################
+# Syntax Coloring Map For PLL
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+PLL_Class	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+configure	KEYWORD2
+getConfigure	KEYWORD2
+getSystemClock	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

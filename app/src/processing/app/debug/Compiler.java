@@ -84,7 +84,7 @@ public class Compiler implements MessageConsumer {
       throw re;
     }
     String corePath;
-    
+
     if (core.indexOf(':') == -1) {
       Target t = Base.getTarget();
       File coreFolder = new File(new File(t.getFolder(), "cores"), core);
@@ -98,7 +98,7 @@ public class Compiler implements MessageConsumer {
 
     String variant = boardPreferences.get("build.variant");
     String variantPath = null;
-    
+
     if (variant != null) {
       if (variant.indexOf(':') == -1) {
 	Target t = Base.getTarget();
@@ -124,12 +124,18 @@ public class Compiler implements MessageConsumer {
      includePaths.add(file.getPath());
    }
 
+   String arch = Base.getArch();
    // 1. compile the sketch (already in the buildPath)
+   String asmExt = "S";
+   if(arch == "C5000")
+   {
+	   asmExt = "asm";
+   }
 
    sketch.setCompilingProgress(30);
    objectFiles.addAll(
      compileFiles(basePath, buildPath, includePaths,
-               findFilesInPath(buildPath, "S", false),
+               findFilesInPath(buildPath, asmExt, false),
                findFilesInPath(buildPath, "c", false),
                findFilesInPath(buildPath, "cpp", false),
                boardPreferences));
@@ -146,7 +152,7 @@ public class Compiler implements MessageConsumer {
      includePaths.add(utilityFolder.getAbsolutePath());
      objectFiles.addAll(
        compileFiles(basePath, outputFolder.getAbsolutePath(), includePaths,
-               findFilesInFolder(libraryFolder, "S", false),
+               findFilesInFolder(libraryFolder, asmExt, false),
                findFilesInFolder(libraryFolder, "c", false),
                findFilesInFolder(libraryFolder, "cpp", false),
                boardPreferences));
@@ -154,7 +160,7 @@ public class Compiler implements MessageConsumer {
      createFolder(outputFolder);
      objectFiles.addAll(
        compileFiles(basePath, outputFolder.getAbsolutePath(), includePaths,
-               findFilesInFolder(utilityFolder, "S", false),
+               findFilesInFolder(utilityFolder, asmExt, false),
                findFilesInFolder(utilityFolder, "c", false),
                findFilesInFolder(utilityFolder, "cpp", false),
                boardPreferences));
@@ -171,13 +177,18 @@ public class Compiler implements MessageConsumer {
   if (variantPath != null) includePaths.add(variantPath);
   List<File> coreObjectFiles =
     compileFiles(basePath, buildPath, includePaths,
-              findFilesInPath(corePath, "S", true),
+              findFilesInPath(corePath, asmExt, true),
               findFilesInPath(corePath, "c", true),
               findFilesInPath(corePath, "cpp", true),
               boardPreferences);
 
-  String arch = Base.getArch();
-  String runtimeLibraryName = buildPath + File.separator + "core.a";
+
+  String libFormat = ".a";
+  if(arch == "C5000")
+  {
+	  libFormat = ".lib";
+  }
+  String runtimeLibraryName = buildPath + File.separator + "core" + libFormat;
   List baseCommandAR;
   if(arch == "msp430")  {
     baseCommandAR = new ArrayList(Arrays.asList(new String[] {
@@ -186,24 +197,49 @@ public class Compiler implements MessageConsumer {
       runtimeLibraryName
     }));
     } else if(arch == "lm4f") {
-      baseCommandAR = new ArrayList(Arrays.asList(new String[] { 
+      baseCommandAR = new ArrayList(Arrays.asList(new String[] {
         basePath + "arm-none-eabi-ar",
         "rcs",
         runtimeLibraryName
-    }));  	
-    }else {
-      baseCommandAR = new ArrayList(Arrays.asList(new String[] {
-        basePath + "avr-ar",
-        "rcs",
-        runtimeLibraryName
     }));
+    } else if(arch == "C5000") {
+	    baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+	      basePath + "ar55",
+	      "-r",	//was "r" a == append r == replace
+	      runtimeLibraryName
+	    }));
+    }else {
+	      baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+	        basePath + "avr-ar",
+	        "rcs",
+	        runtimeLibraryName
+	    }));
+	  }
+  String mainCppFullPath = buildPath  + File.separator + "main.cpp.obj";
+  if(arch == "C5000") {
+	  for(File file : coreObjectFiles) {
+	     System.out.println(file.getName());
+	     if (file.getName() != "main.cpp.obj")
+	     {
+		     List commandAR = new ArrayList(baseCommandAR);
+		     commandAR.add(file.getAbsolutePath());
+		     execAsynchronously(commandAR);
+	     }
+	     else
+	     {
+	    	 mainCppFullPath = file.getAbsolutePath();
+	     }
+	   }
+	  System.out.println(mainCppFullPath);
   }
-
-  for(File file : coreObjectFiles) {
-     List commandAR = new ArrayList(baseCommandAR);
-     commandAR.add(file.getAbsolutePath());
-     execAsynchronously(commandAR);
-   }
+  else
+  {
+	  for(File file : coreObjectFiles) {
+		     List commandAR = new ArrayList(baseCommandAR);
+		     commandAR.add(file.getAbsolutePath());
+		     execAsynchronously(commandAR);
+		   }
+  }
 
     // 4. link it all together into the .elf file
     // For atmega2560, need --relax linker option to link larger
@@ -215,18 +251,18 @@ public class Compiler implements MessageConsumer {
     }
     sketch.setCompilingProgress(60);
     List baseCommandLinker;
-    if (arch == "msp430") { 
+    if (arch == "msp430") {
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "msp430-gcc",
         "-Os",
         // msp430 linker has an issue with main residing in an archive, cora.a in this case.
         // -u,main works around this by forcing the linker to find a definition for main.
-        "-Wl,-gc-sections,-u,main", 
+        "-Wl,-gc-sections,-u,main",
         "-mmcu=" + boardPreferences.get("build.mcu"),
         "-o",
         buildPath + File.separator + primaryClassName + ".elf"
       }));
-    }else if (arch == "lm4f") { 
+    }else if (arch == "lm4f") {
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "arm-none-eabi-g++",
         "-Os",
@@ -239,6 +275,27 @@ public class Compiler implements MessageConsumer {
         "-o",
         buildPath + File.separator + primaryClassName + ".elf",
       }));
+    } else if (arch == "C5000") {
+//        List objects = new ArrayList(baseCommandAR);
+        baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
+        basePath + "cl55", "-v" + boardPreferences.get("build.mcu"), "--memory_model=large","-O2","-g","--define=REV3","--diag_warning=225","--ptrdiff_size=16",
+        "-z", "-c", "-mg"}));
+        for (File file : objectFiles) {
+    	      baseCommandLinker.add(file.getAbsolutePath());
+    	    }
+        baseCommandLinker.add(mainCppFullPath);
+        baseCommandLinker.add("-o" + buildPath + File.separator + primaryClassName + ".out");
+        baseCommandLinker.add("-l" + runtimeLibraryName); //RTS library
+
+        String commonLibPath = variantPath;
+        int pos = commonLibPath.lastIndexOf(boardPreferences.get("build.variant"));
+        commonLibPath = commonLibPath.substring(0, pos);
+
+        baseCommandLinker.add("-l" + variantPath + File.separator + "bsl.lib"); //CSL library
+		baseCommandLinker.add("-l" + commonLibPath + "atafs_bios_drv_lib.lib"); //ATAFS library
+		baseCommandLinker.add("-l" + commonLibPath + "55xdspx_r3.lib"); //DSP library
+        baseCommandLinker.add("-l" + commonLibPath + "c55xx.cmd"); //c5x command file
+        baseCommandLinker.add("-i" + basePath);
     } else {
       baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-gcc",
@@ -249,19 +306,30 @@ public class Compiler implements MessageConsumer {
         buildPath + File.separator + primaryClassName + ".elf"
         }));
     }
+    if (arch == "C5000")
+    {
+        //baseCommandLinker.add("linkx.cmd")
+    	//do nothing!
 
-    for (File file : objectFiles) {
-      baseCommandLinker.add(file.getAbsolutePath());
+  	    //baseCommandLinker.add(runtimeLibraryName);
+  	    //baseCommandLinker.add("-L" + buildPath);
+  	    //baseCommandLinker.add("-lm");
     }
+    else
+    {
+	    for (File file : objectFiles) {
+	      baseCommandLinker.add(file.getAbsolutePath());
+	    }
 
-    baseCommandLinker.add(runtimeLibraryName);
-    baseCommandLinker.add("-L" + buildPath);
-    if(arch == "lm4f"){
-      baseCommandLinker.add("-lm");
-      baseCommandLinker.add("-lc");
-      baseCommandLinker.add("-lgcc");
-    } else {
-      baseCommandLinker.add("-lm");
+	    baseCommandLinker.add(runtimeLibraryName);
+	    baseCommandLinker.add("-L" + buildPath);
+       if(arch == "lm4f"){
+         baseCommandLinker.add("-lm");
+         baseCommandLinker.add("-lc");
+         baseCommandLinker.add("-lgcc");
+       } else {
+           baseCommandLinker.add("-lm");
+       }
     }
     execAsynchronously(baseCommandLinker);
 
@@ -277,6 +345,15 @@ public class Compiler implements MessageConsumer {
         basePath + "arm-none-eabi-objcopy",
         "-O",
       }));
+    } else if (arch == "C5000") {
+    	baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
+    		      basePath + "hex55",
+    		      "-boot",
+    		      "-v5505",
+    		      "-b",
+    		      "-o",
+    		      buildPath + File.separator + "bootimg.bin",
+    		      buildPath + File.separator + primaryClassName + ".out"}));
     } else {
       baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-objcopy",
@@ -287,8 +364,10 @@ public class Compiler implements MessageConsumer {
     }
     List commandObjcopy;
     if ((arch == "msp430") || (arch == "lm4f")) {
-      //nothing 
-    } else {
+      //nothing
+    } else if (arch == "C5000") {
+        //nothing
+      } else {
         // 5. extract EEPROM data (from EEMEM directive) to .eep file.
       sketch.setCompilingProgress(70);
       commandObjcopy = new ArrayList(baseCommandObjcopy);
@@ -310,41 +389,54 @@ public class Compiler implements MessageConsumer {
 	  	commandObjcopy.add(2, "binary");
     	commandObjcopy.add(buildPath + File.separator + primaryClassName + ".elf");
     	commandObjcopy.add(buildPath + File.separator + primaryClassName + ".bin");
-    }else {
+    } else if(arch == "C5000") {
+        //nothing
+	} else {
 	    commandObjcopy.add(2, "ihex");
 	    commandObjcopy.add(".eeprom"); // remove eeprom data
 	  	commandObjcopy.add(buildPath + File.separator + primaryClassName + ".elf");
 	    commandObjcopy.add(buildPath + File.separator + primaryClassName + ".hex");
     }
 	execAsynchronously(commandObjcopy);
-    
+
     sketch.setCompilingProgress(90);
-   
+
     return true;
   }
 
 
   private List<File> compileFiles(String basePath,
                                   String buildPath, List<File> includePaths,
-                                  List<File> sSources, 
+                                  List<File> sSources,
                                   List<File> cSources, List<File> cppSources,
                                   Map<String, String> boardPreferences)
     throws RunnerException {
 
     List<File> objectPaths = new ArrayList<File>();
-    
+
+    String arch = Base.getArch();
+
+	String objectExtension = ".o";
+    String dependExtension = ".d";
+
+    if (arch == "C5000") {
+    	objectExtension = ".obj";
+        dependExtension = ".d";
+    }
+
+
     for (File file : sSources) {
-      String objectPath = buildPath + File.separator + file.getName() + ".o";
+      String objectPath = buildPath + File.separator + file.getName() + objectExtension;
       objectPaths.add(new File(objectPath));
       execAsynchronously(getCommandCompilerS(basePath, includePaths,
                                              file.getAbsolutePath(),
                                              objectPath,
                                              boardPreferences));
     }
- 		
+
     for (File file : cSources) {
-        String objectPath = buildPath + File.separator + file.getName() + ".o";
-        String dependPath = buildPath + File.separator + file.getName() + ".d";
+        String objectPath = buildPath + File.separator + file.getName() + objectExtension;
+        String dependPath = buildPath + File.separator + file.getName() + dependExtension;
         File objectFile = new File(objectPath);
         File dependFile = new File(dependPath);
         objectPaths.add(objectFile);
@@ -356,8 +448,8 @@ public class Compiler implements MessageConsumer {
     }
 
     for (File file : cppSources) {
-        String objectPath = buildPath + File.separator + file.getName() + ".o";
-        String dependPath = buildPath + File.separator + file.getName() + ".d";
+        String objectPath = buildPath + File.separator + file.getName() + objectExtension;
+        String dependPath = buildPath + File.separator + file.getName() + dependExtension;
         File objectFile = new File(objectPath);
         File dependFile = new File(dependPath);
         objectPaths.add(objectFile);
@@ -367,7 +459,7 @@ public class Compiler implements MessageConsumer {
                                                  objectPath,
                                                  boardPreferences));
     }
-    
+
     return objectPaths;
   }
 
@@ -444,7 +536,7 @@ public class Compiler implements MessageConsumer {
     String[] command = new String[commandList.size()];
     commandList.toArray(command);
     int result = 0;
-    
+
     if (verbose || Preferences.getBoolean("build.verbose")) {
       for(int j = 0; j < command.length; j++) {
         System.out.print(command[j] + " ");
@@ -456,7 +548,7 @@ public class Compiler implements MessageConsumer {
     secondErrorFound = false;
 
     Process process;
-    
+
     try {
       process = Runtime.getRuntime().exec(command);
     } catch (IOException e) {
@@ -522,7 +614,7 @@ public class Compiler implements MessageConsumer {
         s = s.substring(0, i) + s.substring(i + (buildPath + File.separator).length());
       }
     }
-  
+
     // look for error line, which contains file name, line number,
     // and at least the first line of the error message
     String errorFormat = "([\\w\\d_]+.\\w+):(\\d+):\\s*error:\\s*(.*)\\s*";
@@ -532,46 +624,46 @@ public class Compiler implements MessageConsumer {
 //      exception = sketch.placeException(pieces[3], pieces[1], PApplet.parseInt(pieces[2]) - 1);
 //      if (exception != null) exception.hideStackTrace();
 //    }
-    
+
     if (pieces != null) {
       String error = pieces[3], msg = "";
-      
+
       if (pieces[3].trim().equals("SPI.h: No such file or directory")) {
         error = _("Please import the SPI library from the Sketch > Import Library menu.");
         msg = _("\nAs of Arduino 0019, the Ethernet library depends on the SPI library." +
               "\nYou appear to be using it or another library that depends on the SPI library.\n\n");
       }
-      
+
       if (pieces[3].trim().equals("'BYTE' was not declared in this scope")) {
         error = _("The 'BYTE' keyword is no longer supported.");
         msg = _("\nAs of Arduino 1.0, the 'BYTE' keyword is no longer supported." +
               "\nPlease use Serial.write() instead.\n\n");
       }
-      
+
       if (pieces[3].trim().equals("no matching function for call to 'Server::Server(int)'")) {
         error = _("The Server class has been renamed EthernetServer.");
         msg = _("\nAs of Arduino 1.0, the Server class in the Ethernet library " +
               "has been renamed to EthernetServer.\n\n");
       }
-      
+
       if (pieces[3].trim().equals("no matching function for call to 'Client::Client(byte [4], int)'")) {
         error = _("The Client class has been renamed EthernetClient.");
         msg = _("\nAs of Arduino 1.0, the Client class in the Ethernet library " +
               "has been renamed to EthernetClient.\n\n");
       }
-      
+
       if (pieces[3].trim().equals("'Udp' was not declared in this scope")) {
         error = _("The Udp class has been renamed EthernetUdp.");
         msg = _("\nAs of Arduino 1.0, the Udp class in the Ethernet library " +
               "has been renamed to EthernetClient.\n\n");
       }
-      
+
       if (pieces[3].trim().equals("'class TwoWire' has no member named 'send'")) {
         error = _("Wire.send() has been renamed Wire.write().");
         msg = _("\nAs of Arduino 1.0, the Wire.send() function was renamed " +
               "to Wire.write() for consistency with other libraries.\n\n");
       }
-      
+
       if (pieces[3].trim().equals("'class TwoWire' has no member named 'receive'")) {
         error = _("Wire.receive() has been renamed Wire.read().");
         msg = _("\nAs of Arduino 1.0, the Wire.receive() function was renamed " +
@@ -593,13 +685,13 @@ public class Compiler implements MessageConsumer {
         int lineNum = e.getCodeLine() + 1;
         s = fileName + ":" + lineNum + ": error: " + pieces[3] + msg;
       }
-            
+
       if (exception == null && e != null) {
         exception = e;
         exception.hideStackTrace();
-      }      
+      }
     }
-    
+
     System.err.print(s);
   }
 
@@ -608,9 +700,9 @@ public class Compiler implements MessageConsumer {
   static private List getCommandCompilerS(String basePath, List includePaths,
     String sourceName, String objectName, Map<String, String> boardPreferences) {
     String arch = Base.getArch();
-    
+
     List baseCommandCompiler;
-    
+
     if (arch == "msp430") {
     	//as per
     	//http://mspgcc.sourceforge.net/manual/x1522.html
@@ -637,7 +729,17 @@ public class Compiler implements MessageConsumer {
           "-DARDUINO=" + Base.REVISION,
           "-DENERGIA=" + Base.EREVISION,
         }));
-    } else {
+    } else if (arch == "C5000") {
+    	//as per
+    	//http://mspgcc.sourceforge.net/manual/x1522.html
+        baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
+          basePath + "cl55", "--memory_model=large","--define=REV3","--diag_warning=225","--ptrdiff_size=16",
+          "-mg", //algebraic assembly
+          "-c", // compile, don't link
+          "-g", // include debugging info (so errors include line numbers)
+          "-v" + boardPreferences.get("build.mcu"),
+        }));
+    } else{
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
            basePath + "avr-gcc",
           "-c", // compile, don't link
@@ -648,18 +750,35 @@ public class Compiler implements MessageConsumer {
           "-DARDUINO=" + Base.REVISION,
         }));
     }
-    
+
     for (int i = 0; i < includePaths.size(); i++) {
-      baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+      //baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+    	if(arch == "C5000")
+        {
+    		//System.out.println("hello world.");
+    		baseCommandCompiler.add("-I" + (String) includePaths.get(i) + "");
+        }
+        else
+        {
+        	baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+        }
     }
 
     baseCommandCompiler.add(sourceName);
-    baseCommandCompiler.add("-o"+ objectName);
+    if(arch == "C5000")
+    {
+    	baseCommandCompiler.add("--output_file="+ objectName);
+    }
+    else
+    {
+    	baseCommandCompiler.add("-o"+ objectName);
+    }
+
 
     return baseCommandCompiler;
   }
 
-  
+
   static private List getCommandCompilerC(String basePath, List includePaths,
     String sourceName, String objectName, Map<String, String> boardPreferences) {
 	 String arch = Base.getArch();
@@ -696,6 +815,23 @@ public class Compiler implements MessageConsumer {
         "-DARDUINO=" + Base.REVISION,
         "-DENERGIA=" + Base.EREVISION,
       }));
+      } else if (arch == "C5000") {
+          baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
+        	        basePath + "cl55", "--memory_model=large","--define=REV3","--diag_warning=225","--ptrdiff_size=16",
+                    //"-fg", //force compilation as C++
+        	        "-c", // compile, don't link
+        	        "-mg",
+        	        "-mo",
+        	        "-g", // include debugging info (so errors include line numbers)
+        	        "-O3", // optimize for size
+        	        Preferences.getBoolean("build.verbose") ? "-pdv" : "-pdw", // show warnings if verbose
+        	        //"-ffunction-sections", // place each function in its own section
+        	        //"-fdata-sections",
+        	        "-v" + boardPreferences.get("build.mcu"),
+        	        //"-DF_CPU=" + boardPreferences.get("build.f_cpu"),
+        	        //"-DARDUINO=" + Base.REVISION,
+        	        //"-DENERGIA=" + Base.EREVISION,
+        	      }));
       }else { // default to avr
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-gcc",
@@ -711,26 +847,43 @@ public class Compiler implements MessageConsumer {
         "-DARDUINO=" + Base.REVISION,
         }));
     }
-		
+
     for (int i = 0; i < includePaths.size(); i++) {
-      baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+      //baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+    	if(arch == "C5000")
+        {
+    		baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+        }
+        else
+        {
+        	baseCommandCompiler.add("-I" + (String) includePaths.get(i));
+        }
     }
 
     baseCommandCompiler.add(sourceName);
-    baseCommandCompiler.add("-o");
-    baseCommandCompiler.add(objectName);
+    //baseCommandCompiler.add("-o");
+    if(arch == "C5000")
+    {
+    	baseCommandCompiler.add("--output_file="+ objectName);
+    }
+    else
+    {
+    	baseCommandCompiler.add("-o");
+    	baseCommandCompiler.add(objectName);
+    }
+
 
     return baseCommandCompiler;
   }
-	
-	
+
+
   static private List getCommandCompilerCPP(String basePath,
     List includePaths, String sourceName, String objectName,
     Map<String, String> boardPreferences) {
-    
+
     String arch = Base.getArch();
     List baseCommandCompilerCPP;
-    if (arch == "msp430") {  
+    if (arch == "msp430") {
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
         basePath + "msp430-g++",
         "-c", // compile, don't link
@@ -745,7 +898,7 @@ public class Compiler implements MessageConsumer {
         "-DARDUINO=" + Base.REVISION,
         "-DENERGIA=" + Base.EREVISION,
       }));
-    } 
+    }
     else if (arch == "lm4f") {
         baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
           basePath + "arm-none-eabi-g++",
@@ -764,7 +917,23 @@ public class Compiler implements MessageConsumer {
           "-DARDUINO=" + Base.REVISION,
           "-DENERGIA=" + Base.EREVISION,
         }));
-    } else { // default to avr
+    } else if (arch == "C5000") {
+        baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
+                basePath + "cl55", "--memory_model=large","--define=REV3","--diag_warning=225","--ptrdiff_size=16",
+                "-c", // compile, don't link
+                "-mg",
+                "-mo",
+                "-g", // include debugging info (so errors include line numbers)
+				//"-fr",
+                "-O3", // optimize for size
+                Preferences.getBoolean("build.verbose") ? "-pdv" : "-pdw", // show warnings if verbose
+                //"-ffunction-sections", // place each function in its own section
+                "-v" + boardPreferences.get("build.mcu"),
+                //"-DF_CPU=" + boardPreferences.get("build.f_cpu"),
+                //"-DARDUINO=" + Base.REVISION,
+                //"-DENERGIA=" + Base.EREVISION,
+              }));
+            } else { // default to avr
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-g++",
         "-c", // compile, don't link
@@ -779,15 +948,32 @@ public class Compiler implements MessageConsumer {
         "-MMD", // output dependancy info
         "-DARDUINO=" + Base.REVISION,
       }));
-    } 
+    }
 
     for (int i = 0; i < includePaths.size(); i++) {
-      baseCommandCompilerCPP.add("-I" + (String) includePaths.get(i));
+      //baseCommandCompilerCPP.add("-I" + (String) includePaths.get(i));
+    	if(arch == "C5000")
+        {
+    		baseCommandCompilerCPP.add("-I" + (String) includePaths.get(i));
+        }
+        else
+        {
+        	baseCommandCompilerCPP.add("-I" + (String) includePaths.get(i));
+        }
     }
 
     baseCommandCompilerCPP.add(sourceName);
-    baseCommandCompilerCPP.add("-o");
-    baseCommandCompilerCPP.add(objectName);
+    //baseCommandCompilerCPP.add("-o");
+    if(arch == "C5000")
+    {
+    	baseCommandCompilerCPP.add("--output_file=" + objectName);
+    }
+    else
+    {
+    	baseCommandCompilerCPP.add("-o");
+    	baseCommandCompilerCPP.add(objectName);
+    }
+
 
     return baseCommandCompilerCPP;
   }
@@ -813,32 +999,32 @@ public class Compiler implements MessageConsumer {
         return name.endsWith(".h");
       }
     };
-    
+
     return (new File(path)).list(onlyHFiles);
   }
-  
+
   static public ArrayList<File> findFilesInPath(String path, String extension,
                                                 boolean recurse) {
     return findFilesInFolder(new File(path), extension, recurse);
   }
-  
+
   static public ArrayList<File> findFilesInFolder(File folder, String extension,
                                                   boolean recurse) {
     ArrayList<File> files = new ArrayList<File>();
-    
+
     if (folder.listFiles() == null) return files;
-    
+
     for (File file : folder.listFiles()) {
       if (file.getName().startsWith(".")) continue; // skip hidden files
-      
+
       if (file.getName().endsWith("." + extension))
         files.add(file);
-        
+
       if (recurse && file.isDirectory()) {
         files.addAll(findFilesInFolder(file, extension, true));
       }
     }
-    
+
     return files;
   }
 }

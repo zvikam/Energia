@@ -1,0 +1,22 @@
+#######################################
+# Syntax Coloring Map For AnalogReadWrite
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+analogRead	KEYWORD2
+analogWrite	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+A0		LITERAL1
+A1		LITERAL1
+A2		LITERAL1
+A3		LITERAL1         

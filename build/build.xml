@@ -229,6 +229,14 @@
       <arg value="macosx/work/Energia.app/Contents/Resources/Java/hardware" />
       <arg value="macosx/dist/lm4f_tools.zip" />
     </exec>
+    <!-- Unzip C5000 tools -->
+    <exec executable="unzip">
+      <arg value="-q" />
+      <arg value="-n" />
+      <arg value="-d" />
+      <arg value="macosx/work/Energia.app/Contents/Resources/Java/hardware" />
+      <arg value="macosx/dist/C5000_tools.zip" />
+    </exec>
     <copy tofile="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/lm4f/bin/lm4flash"
           file="macosx/dist/tools/lm4flash"
           overwrite="true"
@@ -253,6 +261,7 @@
     <chmod file="macosx/work/Energia.app/Contents/MacOS/JavaApplicationStub" perm="+x" />
 <!--
     <chmod perm="+x">
+      <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/C5000/bin" includes="**/*" />
       <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/avr/bin" includes="**/*" />
       <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr/bin" includes="**/*" />
       <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr-3/bin" includes="**/*" />
@@ -297,6 +306,7 @@
     <chmod file="macosx/working_dir/Energia.app/Contents/MacOS/JavaApplicationStub" perm="+x" />
 <!--
     <chmod perm="+x">
+      <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/C5000/bin" includes="**/*" />
       <fileset dir="macosx/working_dir/Energia.app/Contents/Resources/Java/hardware/tools/avr/bin" includes="**/*" />
       <fileset dir="macosx/working_dir/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr/bin" includes="**/*" />
       <fileset dir="macosx/working_dir/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr-3/bin" includes="**/*" />
@@ -540,6 +550,9 @@
     <unzip dest="windows/work/hardware" src="windows/msp430_tools.zip" overwrite="false"/>
 
     <unzip dest="windows/work/hardware" src="windows/lm4f_tools.zip" overwrite="false"/>
+
+    <unzip dest="windows/work/hardware" src="windows/C5000_tools.zip" overwrite="false"/>
+    
     <copy tofile="windows/work/hardware/tools/lm4f/bin/lm4flash.exe"
           file="windows/dist/tools/lm4flash.exe"
           overwrite="true"

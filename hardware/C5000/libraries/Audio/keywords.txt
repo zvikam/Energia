@@ -1,0 +1,25 @@
+#######################################
+# Syntax Coloring Map For Audio
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+AudioC	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+Audio	KEYWORD2
+close	KEYWORD2
+attachIntr	KEYWORD2
+detachIntr	KEYWORD2
+read	KEYWORD2
+write	KEYWORD2
+isrDma	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

@@ -1,0 +1,29 @@
+##############################################################
+c5000s.name=C5517 - All Modes
+c5000s.upload.protocol=NULL
+c5000s.upload.maximum_size=8192
+c5000s.bootloader.lock_bits=NULL
+c5000s.build.mcu=core:3
+c5000s.build.f_cpu=1000000L
+c5000s.build.core=c5000
+c5000s.build.variant=c5517
+
+##############################################################
+c5535sh.name=C5535 - Shield Mode
+c5535sh.upload.protocol=NULL
+c5535sh.upload.maximum_size=8192
+c5535sh.bootloader.lock_bits=NULL
+c5535sh.build.mcu=core:3
+c5535sh.build.f_cpu=1000000L
+c5535sh.build.core=c5000
+c5535sh.build.variant=c5535_Shield
+
+##############################################################
+c5535st.name=C5535 - Standalone Mode
+c5535st.upload.protocol=NULL
+c5535st.upload.maximum_size=8192
+c5535st.bootloader.lock_bits=NULL
+c5535st.build.mcu=core:3
+c5535st.build.f_cpu=1000000L
+c5535st.build.core=c5000
+c5535st.build.variant=c5535_Standalone
