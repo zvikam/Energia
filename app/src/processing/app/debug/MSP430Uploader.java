@@ -38,6 +38,7 @@ import processing.app.Base;
 import processing.app.Preferences;
 import processing.app.Serial;
 import processing.app.SerialException;
+import processing.app.SerialNotFoundException;
 import processing.app.Editor;
 import javax.swing.JOptionPane;
 
@@ -62,14 +63,19 @@ public class MSP430Uploader extends Uploader{
     String protocol = boardPreferences.get("upload.protocol");
 
     if (protocol.equals("msp430-gdb")) {
-      boolean ret = gdbloader(buildPath, className);
-	    if (ret == false) {
-		    JOptionPane.showMessageDialog(editor,
-            "Unable to upload new firmware to the target board\n"
-            + "Please check connections and serial port", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+      try {
+        boolean ret = gdbloader(buildPath, className);
+	      if (ret == false) {
+		      JOptionPane.showMessageDialog(editor,
+              "Unable to upload new firmware to the target board\n"
+              + "Please check connections on your target board", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+          return ret;
+        }
+      } catch (SerialNotFoundException e) {
+		      JOptionPane.showMessageDialog(editor,
+              "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+          return false;
       }
-
-      return ret;
     }
 
 		Target target = Base.getTarget();
@@ -157,8 +163,11 @@ public class MSP430Uploader extends Uploader{
 		return executeUploadCommand(commandDownloader);
 	}
 
-	public boolean gdbloader(String buildPath, String className) throws RunnerException {
+	public boolean gdbloader(String buildPath, String className) throws RunnerException, SerialNotFoundException {
+
     String gdbBin, sysPrompt;
+    boolean ret = false;
+
 		if ( Base.isLinux()) {
       gdbBin = Base.getMSP430BasePath() + "msp430-gdb";
       sysPrompt = "/bin/bash";
@@ -173,7 +182,22 @@ public class MSP430Uploader extends Uploader{
 		}
 
     try {
-      System.out.println("SERIAL PORT = " + Preferences.get("serial.port"));
+      Serial serialPort = new Serial();
+      byte[] readBuffer;
+      while(serialPort.available() > 0) {
+        readBuffer = serialPort.readBytes();
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {}
+      }
+
+      serialPort.setDTR(false);
+      serialPort.setRTS(false);
+
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {}
+
       String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
       "' -ex 'set debug remote 0' " + buildPath + File.separator + className + ".elf" +
       " -ex 'erase' -ex 'load' -ex 'quit'";
@@ -196,12 +220,19 @@ public class MSP430Uploader extends Uploader{
 
         process.waitFor();
         process.destroy();
+
+        ret = true;
+
+        serialPort.setDTR(true);
+        serialPort.setRTS(true);
       }
 
+    } catch (SerialNotFoundException e) {
+      throw e;
     } catch (Exception e) {
         e.printStackTrace();
-    }
-
-    return true;
+    } finally {
+      return ret;
+    }    
 	}
 }
