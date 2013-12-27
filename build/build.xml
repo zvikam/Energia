@@ -177,7 +177,7 @@
     </echo>
     <fail message="wrong platform (${os.name})" />
   </target>
-  
+
   <target name="macosx-build" if="macosx" depends="revision-check, macosx-checkos, subprojects-build" description="Build Mac OS X version">
     <mkdir dir="macosx/work" />
     
@@ -221,22 +221,13 @@
       <arg value="macosx/work/Energia.app/Contents/Resources/Java/hardware" />
       <arg value="macosx/dist/tools-msp430.zip" />
     </exec>
-    <!-- Unzip lm4f tools -->
-    <exec executable="unzip">
-      <arg value="-q" />
-      <arg value="-n" />
-      <arg value="-d" />
-      <arg value="macosx/work/Energia.app/Contents/Resources/Java/hardware" />
-      <arg value="macosx/dist/lm4f_tools.zip" />
+
+    <!-- Unzip arm tools -->
+    <exec executable="tar" dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools">
+      <arg value="-xjf"/>
+      <arg value="${user.dir}/macosx/dist/arm_tools_mac.tar.bz2"/>
     </exec>
-    <!-- Unzip C5000 tools -->
-    <exec executable="unzip">
-      <arg value="-q" />
-      <arg value="-n" />
-      <arg value="-d" />
-      <arg value="macosx/work/Energia.app/Contents/Resources/Java/hardware" />
-      <arg value="macosx/dist/C5000_tools.zip" />
-    </exec>
+
     <copy tofile="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/lm4f/bin/lm4flash"
           file="macosx/dist/tools/lm4flash"
           overwrite="true"
@@ -423,7 +414,22 @@
   <target name="linux64-build" depends="linux-build" description="Build linux (64-bit) version">
     <!-- <copy tofile="linux/work/hardware/tools/avrdude" file="linux/dist/tools/avrdude64" overwrite="true" /> -->
     <copy tofile="linux/work/lib/librxtxSerial.so" file="linux/dist/lib/librxtxSerial64.so" overwrite="true" />
-
+  	<exec executable="tar" dir="linux/work/hardware">
+      <arg value="-xjf"/>
+      <arg value="../../msp430_tools_linux64.tar.bz2"/>
+    </exec>
+  	<!-- Unzip lm4f tools -->
+  	<exec executable="tar" dir="linux/work/hardware">
+      <arg value="-xjf"/>
+      <arg value="../../lm4f_tools_linux64.tar.bz2"/>
+    </exec>
+<!--
+    <copy tofile="linux/work/hardware/tools/lm4f/bin/lm4flash"
+          file="linux/dist/tools/lm4flash"
+          overwrite="true"
+        />
+    <chmod perm="755" file="linux/work/hardware/tools/lm4f/bin/lm4flash" />
+-->
     <!-- <chmod perm="755" file="linux/work/hardware/tools/avrdude" /> -->
 
     <!-- Unzip AVR tools
@@ -550,9 +556,6 @@
     <unzip dest="windows/work/hardware" src="windows/msp430_tools.zip" overwrite="false"/>
 
     <unzip dest="windows/work/hardware" src="windows/lm4f_tools.zip" overwrite="false"/>
-
-    <unzip dest="windows/work/hardware" src="windows/C5000_tools.zip" overwrite="false"/>
-    
     <copy tofile="windows/work/hardware/tools/lm4f/bin/lm4flash.exe"
           file="windows/dist/tools/lm4flash.exe"
           overwrite="true"

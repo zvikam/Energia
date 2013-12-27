@@ -66,7 +66,7 @@ public abstract class Uploader implements MessageConsumer  {
   public Uploader() {
   }
 
-  public abstract boolean uploadUsingPreferences(String buildPath, String className, boolean usingProgrammer)
+public abstract boolean uploadUsingPreferences(String buildPath, String className, boolean usingProgrammer)
     throws RunnerException, SerialException;
   
   public abstract boolean burnBootloader() throws RunnerException;
@@ -105,6 +105,7 @@ public abstract class Uploader implements MessageConsumer  {
   protected boolean executeUploadCommand(Collection commandDownloader) 
     throws RunnerException
   {
+	exception = null;
     firstErrorFound = false;  // haven't found any errors yet
     secondErrorFound = false;
     notFoundError = false;
@@ -122,7 +123,20 @@ public abstract class Uploader implements MessageConsumer  {
         }
         System.out.println();
       }
-      Process process = Runtime.getRuntime().exec(commandArray);
+
+      Process process;
+
+      if (Base.isMacOS()) {
+        String envp[] = { "DYLD_LIBRARY_PATH=" + Base.getHardwarePath() + "/tools/msp430/mspdebug" };
+        process = Runtime.getRuntime().exec(commandArray, envp);
+      } else if(Base.isLinux()) {
+        String envp[] = { "LD_LIBRARY_PATH=" + Base.getHardwarePath() + "/tools/msp430/bin" };
+        process = Runtime.getRuntime().exec(commandArray, envp);
+
+      } else {
+        process = Runtime.getRuntime().exec(commandArray);
+      }
+
       new MessageSiphon(process.getInputStream(), this);
       new MessageSiphon(process.getErrorStream(), this);
 
@@ -145,14 +159,7 @@ public abstract class Uploader implements MessageConsumer  {
         return false;
     } catch (Exception e) {
       String msg = e.getMessage();
-      if ((msg != null) && (msg.indexOf("uisp: not found") != -1) && (msg.indexOf("avrdude: not found") != -1)) {
-        //System.err.println("uisp is missing");
-        //JOptionPane.showMessageDialog(editor.base,
-        //                              "Could not find the compiler.\n" +
-        //                              "uisp is missing from your PATH,\n" +
-        //                              "see readme.txt for help.",
-        //                              "Compiler error",
-        //                              JOptionPane.ERROR_MESSAGE);
+      if ((msg != null) && ((msg.indexOf("update needed") != -1) || (msg.indexOf("update failed") != -1))) {
         return false;
       } else {
         e.printStackTrace();
@@ -175,6 +182,86 @@ public abstract class Uploader implements MessageConsumer  {
     return (result == 0); // ? true : false;      
 
   }
+  
+  protected boolean executeUploadCommand(String[] commands) 
+		    throws RunnerException
+		  {
+			exception = null;
+		    firstErrorFound = false;  // haven't found any errors yet
+		    secondErrorFound = false;
+		    notFoundError = false;
+		    int result=0; // pre-initialized to quiet a bogus warning from jikes
+		    
+		    String userdir = System.getProperty("user.dir") + File.separator;
+
+		    try {
+
+		      
+		      if (verbose || Preferences.getBoolean("upload.verbose")) {
+		        for(int i = 0; i < commands.length; i++) {
+		          System.out.print(commands[i] + " ");
+		        }
+		        System.out.println();
+		      }
+
+		      Process process;
+
+		      if (Base.isMacOS()) {
+		        String envp[] = { "DYLD_LIBRARY_PATH=" + Base.getHardwarePath() + "/tools/msp430/mspdebug" };
+		        process = Runtime.getRuntime().exec(commands, envp);
+		      } else if(Base.isLinux()) {
+		        String envp[] = { "LD_LIBRARY_PATH=" + Base.getHardwarePath() + "/tools/msp430/bin" };
+		        process = Runtime.getRuntime().exec(commands, envp);
+
+		      } else {
+		        process = Runtime.getRuntime().exec(commands);
+		      }
+
+		      new MessageSiphon(process.getInputStream(), this);
+		      new MessageSiphon(process.getErrorStream(), this);
+
+		      // wait for the process to finish.  if interrupted
+		      // before waitFor returns, continue waiting
+		      //
+		      boolean compiling = true;
+		      while (compiling) {
+		        try {
+		          result = process.waitFor();
+		          compiling = false;
+		        } catch (InterruptedException intExc) {
+		        }
+		      } 
+		      if(exception!=null) {
+		        exception.hideStackTrace();
+		        throw exception;   
+		      }
+		      if(result!=0)
+		        return false;
+		    } catch (Exception e) {
+		      String msg = e.getMessage();
+		      if ((msg != null) && ((msg.indexOf("update needed") != -1) || (msg.indexOf("update failed") != -1))) {
+		        return false;
+		      } else {
+		        e.printStackTrace();
+		        result = -1;
+		      }
+		    }
+		    //System.out.println("result2 is "+result);
+		    // if the result isn't a known, expected value it means that something
+		    // is fairly wrong, one possibility is that jikes has crashed.
+		    //
+		    if (exception != null) throw exception;
+
+		    if ((result != 0) && (result != 1 )) {
+		      exception = new RunnerException(SUPER_BADNESS);
+		      //editor.error(exception);
+		      //PdeBase.openURL(BUGS_URL);
+		      //throw new PdeException(SUPER_BADNESS);
+		    }
+
+		    return (result == 0); // ? true : false;      
+
+		  }
 
   boolean firstErrorFound;
   boolean secondErrorFound;
@@ -213,6 +300,14 @@ public abstract class Uploader implements MessageConsumer  {
       exception = new RunnerException(_("Wrong microcontroller found.  Did you select the right board from the Tools > Board menu?"));
       return;
     }
+    if (s.indexOf("--allow-fw-update") != -1) {
+    	exception = new RunnerException(_("update needed"));
+    }
+
+    if (s.indexOf("Update failed") != -1) {
+    	exception = new RunnerException(_("update failed"));
+    }
+
   }
 
 

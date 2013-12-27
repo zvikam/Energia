@@ -43,9 +43,9 @@ import static processing.app.I18n._;
  */
 public class Base {
   public static final int REVISION = 101;
-  public static final int EREVISION = 9;
+  public static final int EREVISION = 11;
   /** This might be replaced by main() if there's a lib/version.txt file. */
-  static String VERSION_NAME = "0101E0009";
+  static String VERSION_NAME = "0101E0011";
   /** Set true if this a proper release rather than a numbered revision. */
   static public boolean RELEASE = false;
 
@@ -68,6 +68,7 @@ public class Base {
     archMap.put("arduino", "avr");
     archMap.put("msp430", "msp430");
     archMap.put("lm4f", "lm4f");
+    archMap.put("c2000", "c2000");
     archMap.put("C5000", "C5000");
   }
   static Platform platform;
@@ -254,7 +255,9 @@ public class Base {
     	targetLibDir = "hardware/msp430/";
     else if (Preferences.get("target").equals("lm4f"))
     	targetLibDir = "hardware/lm4f/";
-    else if(Preferences.get("target").equals("C5000"))
+    else if (Preferences.get("target").equals("c2000"))
+    	targetLibDir = "hardware/c2000/";
+    else if (Preferences.get("target").equals("C5000"))
     	targetLibDir = "hardware/C5000/";
     librariesFolder = getContentFile(targetLibDir + "libraries");
     toolsFolder = getContentFile("tools");
@@ -1096,7 +1099,9 @@ public class Base {
             		  targetLibDir = "hardware/msp430/";
             	  else if(n.equals("lm4f"))
             		  targetLibDir = "hardware/lm4f/";
-            	  else if(n.equals("C5000"))
+				  else if(n.equals("c2000"))
+            		  targetLibDir = "hardware/c2000/";
+				  else if(n.equals("C5000"))
             		  targetLibDir = "hardware/C5000/";
             	  librariesFolder = getContentFile(targetLibDir + "libraries");
             	  onArchChanged();
@@ -1121,6 +1126,7 @@ public class Base {
   }
 
 
+/*
   public void rebuildProgrammerMenu(JMenu menu) {
     //System.out.println("rebuilding programmer menu");
     menu.removeAll();
@@ -1147,7 +1153,7 @@ public class Base {
       }
     }
   }
-
+*/
 
   /**
    * Scan a folder recursively, and add any sketches found to the menu
@@ -1359,9 +1365,19 @@ public class Base {
     Arrays.sort(list, String.CASE_INSENSITIVE_ORDER);
 
     for (String target : list) {
-      File subfolder = new File(folder, target);
-      targetsTable.put(target, new Target(target, subfolder));
+
+    	//Check to ensure compiler is installed before displaying C2000 Support
+    	if(target.equals("c2000")){
+    		if(Base.getC2000BasePath() != ""){
+      	      File subfolder = new File(folder, target);
+      	      targetsTable.put(target, new Target(target, subfolder));
+    		}
+    	}else{
+    	      File subfolder = new File(folder, target);
+    	      targetsTable.put(target, new Target(target, subfolder));
+    	}
     }
+
   }
 
 
@@ -1654,6 +1670,19 @@ public class Base {
 	    }
 	    return path;
 	  }
+
+
+  //TODO: check tools path
+  static public String getC2000BasePath() {
+	    String path = getHardwarePath() + File.separator + "tools" +
+	                  File.separator + "c2000" + File.separator + "bin" + File.separator;
+
+	    if (Base.isLinux() || !(new File(path)).exists()) {
+	      return "";  // use msp430-gcc and mspdebug in PATH instead of platform version
+	    }
+	    return path;
+	  }
+
   static public String getC5000BasePath() {
 	    String path = getHardwarePath() + File.separator + "tools" +
 	                  File.separator + "C5000" + File.separator + "bin" + File.separator;
@@ -1720,6 +1749,10 @@ public class Base {
     	  String hwPath = getLM4FBasePath();
     	  return hwPath;
       }
+      else if (getArch() == "c2000") {
+          String hwPath = getC2000BasePath();
+          return hwPath;
+      }
       else if (getArch() == "C5000") {
     	  String hwPath = getC5000BasePath();
     	  return hwPath;
@@ -1729,9 +1762,9 @@ public class Base {
           + getArch() + File.separator + "bin" + File.separator;
       }
     } else if (Base.isWindows()) {
-      String ret = toShortPath(getHardwarePath() + File.separator + "tools"
+      String ret = getHardwarePath() + File.separator + "tools"
           + File.separator + getArch() + File.separator + "bin"
-          + File.separator);
+          + File.separator;
       return ret;
     } else {
       return getHardwarePath() + File.separator + "tools" + File.separator
