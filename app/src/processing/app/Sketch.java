@@ -1594,11 +1594,11 @@ public class Sketch {
 	String destPath;
 	int    lastIndex;
 
-	srcPath = new String(tempBuildFolder.getAbsolutePath() + "\\bootimg.bin");
+	srcPath = new String(tempBuildFolder.getAbsolutePath() + File.separator + "bootimg.bin");
 
 	destPath = new String(primaryFile.getAbsolutePath());
-	lastIndex = destPath.lastIndexOf("\\");
-	destPath = destPath.substring(0, lastIndex + 1) + "\\bootimg.bin";
+	lastIndex = destPath.lastIndexOf(File.separator);
+	destPath = destPath.substring(0, lastIndex + 1) + "bootimg.bin";
 
     // compile the program. errors will happen as a RunnerException
     // that will bubble up to whomever called build().

@@ -77,46 +77,46 @@ static CSL_Status analog_SarInit(CSL_SarHandleObj *SarHandle,
     CSL_SarChSetup   param;
 
     status = SAR_init();
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (status);
     }
 
     status = SAR_chanOpen(SarHandle, chanNo);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (status);
     }
 
     status = SAR_chanInit(SarHandle);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (status);
     }
 
-    param.OpMode = CSL_SAR_POLLING;
-    param.MultiCh = CSL_SAR_NO_DISCHARGE;
+    param.OpMode     = CSL_SAR_POLLING;
+    param.MultiCh    = CSL_SAR_NO_DISCHARGE;
     param.RefVoltage = CSL_SAR_REF_VIN;
-    param.SysClkDiv = 0x0b ;
-    status = SAR_chanSetup(SarHandle,&param);
-    if (status != CSL_SOK)
+    param.SysClkDiv  = 0x0B ;
+    status = SAR_chanSetup(SarHandle, &param);
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (status);
     }
 
     status = SAR_chanCycSet(SarHandle, CSL_SAR_SINGLE_CONVERSION);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (status);
     }
 
     status = setSarA2DMeasParam(SarHandle, CSL_KEYPAD_MEAS, chanNo);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
     }
@@ -160,14 +160,14 @@ int analogRead (int pinNumber)
     }
 
     status = analog_SarInit(SarHandle, chanNo);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         return (-1);
     }
 
-    /* start the conversion */
+    /* Start the conversion */
     status = SAR_startConversion(SarHandle);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (-1);
@@ -177,21 +177,21 @@ int analogRead (int pinNumber)
 	while(CSL_SAR_DATA_AVAILABLE != SAR_getStatus(SarHandle,&status));
 
 	status = SAR_readData(SarHandle, (Uint16 *)&retAdcData);
-	if (status != CSL_SOK)
+	if (CSL_SOK != status)
 	{
 		analogRW_handleErrors(status);
 		return (-1);
 	}
 
     status = SAR_chanClose(SarHandle);
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (-1);
     }
 
     status = SAR_deInit();
-    if (status != CSL_SOK)
+    if (CSL_SOK != status)
     {
         analogRW_handleErrors(status);
         return (-1);

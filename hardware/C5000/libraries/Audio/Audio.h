@@ -59,91 +59,105 @@ extern "C" {
 /** DMA right write channel */
 #define DMA_CHAN_WriteR        (CSL_DMA_CHAN7)
 
+#define SAMPLING_RATE_8_KHZ  (8000u)  /**< Sampling Rate as 8 kHz  */
+#define SAMPLING_RATE_11_KHZ (11025u) /**< Sampling Rate as 11 kHz */
+#define SAMPLING_RATE_12_KHZ (12000u) /**< Sampling Rate as 12 kHz */
+#define SAMPLING_RATE_16_KHZ (16000u) /**< Sampling Rate as 16 kHz */
+#define SAMPLING_RATE_22_KHZ (22050u) /**< Sampling Rate as 22 kHz */
+#define SAMPLING_RATE_24_KHZ (24000u) /**< Sampling Rate as 24 kHz */
+#define SAMPLING_RATE_32_KHZ (32000u) /**< Sampling Rate as 32 kHz */
+#define SAMPLING_RATE_44_KHZ (44100u) /**< Sampling Rate as 44 kHz */
+#define SAMPLING_RATE_48_KHZ (48000u) /**< Sampling Rate as 48 kHz */
+
+#define CHANNEL_MONO   (1)  /**< Macro to indicate the Channel type as Mono   */
+#define CHANNEL_STEREO (2)  /**< Macro to indicate the Channel type as Stereo */
+
 /**
   * \brief Audio Class
   *
   * Contains prototypes for functions in Audio library
   *
   * Address of audio data buffers is stored in the below pointers
-  *	audioInLeft - Holds the adress of Audio input (read from codec) data
-  *	              buffers for left channel
-  *	audioInRight - Holds the adress of Audio input (read from codec) data
-  *	              buffers for right channel
-  *	audioOutLeft - Holds the adress of Audio output (write to codec) data
-  *	              buffers for left channel
-  *	audioInRight - Holds the adress of Audio output (write to codec) data
-  *	              buffers for right channel
+  *    audioInLeft - Holds the adress of Audio input (read from codec) data
+  *                  buffers for left channel
+  *    audioInRight - Holds the adress of Audio input (read from codec) data
+  *                  buffers for right channel
+  *    audioOutLeft - Holds the adress of Audio output (write to codec) data
+  *                  buffers for left channel
+  *    audioInRight - Holds the adress of Audio output (write to codec) data
+  *                  buffers for right channel
   *
-  *	All the components described above are array of two pointers pointing
-  *	to the two data buffers of given audio channel. When one data buffer
-  *	is being used by audio module, other buffer can be used for data
-  *	processing.
+  *    All the components described above are array of two pointers pointing
+  *    to the two data buffers of given audio channel. When one data buffer
+  *    is being used by audio module, other buffer can be used for data
+  *    processing.
   *
-  *	Index of the buffers being used by audio module are indicated by
-  *	activeInBuf - Index of the buffer being used for audio input
-  *	              audioInLeft[activeInBuf] indcates left channel buffer
-  *	              audioInRight[activeInBuf] indcates right channel buffer
-  *	activeOutBuf - Index of the buffer being used for audio output
-  *	              audioOutLeft[activeOutBuf] indcates left channel buffer
-  *	              audioOutRight[activeOutBuf] indcates right channel buffer
+  *    Index of the buffers being used by audio module are indicated by
+  *    activeInBuf - Index of the buffer being used for audio input
+  *                  audioInLeft[activeInBuf] indcates left channel buffer
+  *                  audioInRight[activeInBuf] indcates right channel buffer
+  *    activeOutBuf - Index of the buffer being used for audio output
+  *                  audioOutLeft[activeOutBuf] indcates left channel buffer
+  *                  audioOutRight[activeOutBuf] indcates right channel buffer
   *
-  *	Data read from codec can accessed using the data buffer pointers
-  *	'audioInLeft', audioInRight and index 'activeInBuf'
+  *    Data read from codec can accessed using the data buffer pointers
+  *    'audioInLeft', audioInRight and index 'activeInBuf'
   *
-  *	When Audio library is configured to operate with same data buffers
-  *	for read and write operation (initialized using Audio(void)),
-  *	audioInLeft and audioOutLeft points to same buffers and audioInRight
-  *	and audioInRight points to same buffers.
+  *    When Audio library is configured to operate with same data buffers
+  *    for read and write operation (initialized using Audio(void)),
+  *    audioInLeft and audioOutLeft points to same buffers and audioInRight
+  *    and audioInRight points to same buffers.
   *
-  *	When Audio library is configured to operate with independent data
-  *	buffers for read and write operation (initialized using Audio(int process)),
-  *	applications need to take care of copying the data from audio input
-  *	buffers (audioInLeftxx) to audio output buffers (audioOutxx) in DMA ISR.
+  *    When Audio library is configured to operate with independent data
+  *    buffers for read and write operation (initialized using Audio(int process)),
+  *    applications need to take care of copying the data from audio input
+  *    buffers (audioInLeftxx) to audio output buffers (audioOutxx) in DMA ISR.
   *
   */
 class AudioClass {
-		static int isInitialized;
-		int init();
-		int I2SDmaReadLeft(void);
-		int I2SDmaReadRight(void);
-		int I2SDmaWriteLeft(void);
-		int I2SDmaWriteRight(void);
+        static int isInitialized;
+        int init();
+        int I2SDmaReadLeft(void);
+        int I2SDmaReadRight(void);
+        int I2SDmaWriteLeft(void);
+        int I2SDmaWriteRight(void);
 
-	public:
-		int Audio(void);
-		int Audio(int process);
+    public:
+        int Audio(void);
+        int Audio(int process);
         /** Audio input - left channel */
-		Uint16 *audioInLeft[2];
+        Uint16 *audioInLeft[2];
         /** Audio input - right channel */
-		Uint16 *audioInRight[2];
+        Uint16 *audioInRight[2];
         /** Audio output - left channel */
-		Uint16 *audioOutLeft[2];
+        Uint16 *audioOutLeft[2];
         /** Audio output - right channel */
-		Uint16 *audioOutRight[2];
+        Uint16 *audioOutRight[2];
         /** Active input buffer */
-		unsigned short activeInBuf;
+        unsigned short activeInBuf;
         /** Active output buffer */
-		unsigned short activeOutBuf;
+        unsigned short activeOutBuf;
         /** Left sample */
-		int sampleLeft;
+        int sampleLeft;
         /** Right sample */
-		int sampleRight;
-		int  close();
-	    void attachIntr(INTERRUPT_IsrPtr function);
-	    void detachIntr(void);
-		int  read(void);
-		int  write(void);
-		void isrDma(void);
-		int setInputGain(int lgain, int rgain);
-		int setOutputVolume(int volume);
-		int setOutputVolume(int lvolume, int rvolume);
-		int audioMute(void);
-		int audioUnmute(void);
+        int sampleRight;
+        int  close();
+        void attachIntr(void *function);
+        void detachIntr(void);
+        int  read(void);
+        int  write(void);
+        void isrDma(void);
+        int setInputGain(int lgain, int rgain);
+        int setOutputVolume(int volume);
+        int setOutputVolume(int lvolume, int rvolume);
+        int audioMute(void);
+        int audioUnmute(void);
+        int setSamplingRate(long);
 
-		int HPL_RConF_Routing(int left);
-		int HPR_RConF_Routing(int left, int right);
-		int LOL_RConF_Routing(int left, int right);
-		int LOR_RConF_Routing(int right);
+        int HPL_RConF_Routing(int left);
+        int HPR_RConF_Routing(int left, int right);
+        int LOL_RConF_Routing(int left, int right);
+        int LOR_RConF_Routing(int right);
 };
 
 extern AudioClass AudioC;

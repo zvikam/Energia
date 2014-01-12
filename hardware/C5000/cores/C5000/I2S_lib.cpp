@@ -51,7 +51,8 @@
 
 
 /**
- * Class identifier declaration
+ * Global Class object, that can be used by User Applications to access I2S
+ * module
  */
 I2SClass I2S;
 
@@ -93,7 +94,7 @@ int I2SClass::init(void)
     }
 	else
     {
-		/* Configure I2S signals to multiplexed parallel port pins using EBSR */
+		/* Configure I2S signals, multiplexed parallel port pins using EBSR */
 		status = SYS_setEBSR(CSL_EBSR_FIELD_PPMODE, CSL_EBSR_PPMODE_1);
 		if(status != CSL_SOK)
 		{
@@ -132,7 +133,7 @@ int I2SClass::init(void)
 		}
 	}
 
-	return status;
+	return (status);
 }
 
 /** ===========================================================================
@@ -184,13 +185,14 @@ int I2SClass::close(void)
 {
     CSL_Status status;
 
+    /* Disable I2S module */
     status = I2S_transEnable(hI2s, FALSE);
 	if(status == CSL_SOK)
 	{
 	    status = I2S_close(hI2s);
 	}
 
-	return status;
+	return (status);
 }
 
 /** ===========================================================================

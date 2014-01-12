@@ -183,6 +183,13 @@ public class Compiler implements MessageConsumer {
    // collecting them into the core.a library file.
 
    sketch.setCompilingProgress(50);
+
+   String runtimeLibraryName;
+   List baseCommandAR = new ArrayList();
+   String mainCppFullPath = new String();;
+
+if(arch != "C5000")
+{
   includePaths.clear();
   includePaths.add(corePath);  // include path for core only
   if (rtsIncPath != null) includePaths.add(rtsIncPath);
@@ -194,14 +201,7 @@ public class Compiler implements MessageConsumer {
               findFilesInPath(corePath, "cpp", true),
               boardPreferences);
 
-
-  String libFormat = ".a";
-  if(arch == "C5000")
-  {
-	  libFormat = ".lib";
-  }
-  String runtimeLibraryName = buildPath + File.separator + "core" + libFormat;
-  List baseCommandAR;
+  runtimeLibraryName = buildPath + File.separator + "core.a";
   if(arch == "msp430")  {
     baseCommandAR = new ArrayList(Arrays.asList(new String[] {
       basePath + "msp430-ar",
@@ -220,12 +220,6 @@ public class Compiler implements MessageConsumer {
 	    "r",
 	    runtimeLibraryName
     }));
-    } else if(arch == "C5000") {
-	    baseCommandAR = new ArrayList(Arrays.asList(new String[] {
-	      basePath + "ar55",
-	      "-r",	//was "r" a == append r == replace
-	      runtimeLibraryName
-	    }));
     }else {
       baseCommandAR = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-ar",
@@ -233,25 +227,6 @@ public class Compiler implements MessageConsumer {
         runtimeLibraryName
     }));
     }
-  String mainCppFullPath = buildPath  + File.separator + "main.cpp.obj";
-  if(arch == "C5000") {
-	  for(File file : coreObjectFiles) {
-	     System.out.println(file.getName());
-	     if (file.getName() != "main.cpp.obj")
-	     {
-		     List commandAR = new ArrayList(baseCommandAR);
-		     commandAR.add(file.getAbsolutePath());
-		     execAsynchronously(commandAR);
-	     }
-	     else
-	     {
-	    	 mainCppFullPath = file.getAbsolutePath();
-	     }
-	   }
-	  System.out.println(mainCppFullPath);
-  }
-  else
-  {
 //  if(arch != "c2000"){
 	  for(File file : coreObjectFiles) {
 	     List commandAR = new ArrayList(baseCommandAR);
@@ -259,7 +234,27 @@ public class Compiler implements MessageConsumer {
 	     execAsynchronously(commandAR);
 	   }
 //  }
-  }
+}
+else
+{
+	if (true == Base.getCompileCoreLibrary()){
+		compileLibrary();
+	}
+	else{
+		mainCppFullPath = corePath + File.separator + "main.cpp";
+		File file = new File(mainCppFullPath);
+		String objectPath = buildPath + File.separator + "main.cpp.obj";
+
+		execAsynchronously(getCommandCompilerCPP(basePath,
+												 includePaths,
+												 file.getAbsolutePath(),
+												 objectPath,
+												 boardPreferences));
+	}
+
+  	runtimeLibraryName = variantPath + File.separator + "core.lib";
+  	mainCppFullPath = buildPath + File.separator + "main.cpp.obj";
+}
 
     // 4. link it all together into the .elf file
     // For atmega2560, need --relax linker option to link larger
@@ -483,6 +478,82 @@ public class Compiler implements MessageConsumer {
     return true;
   }
 
+  public void compileLibrary() throws RunnerException {
+		List includePaths = new ArrayList();
+		String basePath = Base.getBasePath();
+  		String corePath = Base.getHardwarePath() + File.separator + "C5000" + File.separator +
+                    "cores" + File.separator + "C5000" + File.separator;
+
+		buildPath = Base.getBuildFolder().getAbsolutePath();
+		Map<String, String> boardPreferences = Base.getBoardPreferences();
+		String variant = boardPreferences.get("build.variant");
+		String arch = Base.getArch();
+		String variantPath = null;
+
+		if (variant != null) {
+		  if (variant.indexOf(':') == -1) {
+			Target t = Base.getTarget();
+			File variantFolder = new File(new File(t.getFolder(), "variants"), variant);
+			variantPath = variantFolder.getAbsolutePath();
+		  }
+		}
+
+	  includePaths.clear();
+	  includePaths.add(corePath);  // include path for core only
+
+	  if (variantPath != null) includePaths.add(variantPath);
+	  List<File> coreObjectFiles =
+		compileFiles(basePath, buildPath, includePaths,
+				  findFilesInPath(corePath, "asm", true),
+				  findFilesInPath(corePath, "c", true),
+				  findFilesInPath(corePath, "cpp", true),
+				  boardPreferences);
+
+		  String runtimeLibraryName = variantPath + File.separator + "core.lib";
+		  List baseCommandAR;
+		  if(arch == "msp430")  {
+			baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+			  basePath + "msp430-ar",
+			  "rcs",
+			  runtimeLibraryName
+			}));
+			} else if(arch == "lm4f") {
+			  baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+				basePath + "arm-none-eabi-ar",
+				"rcs",
+				runtimeLibraryName
+			}));
+			} else  if(arch == "c2000"){
+			  baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+				basePath + "ar2000",
+				"r",
+				runtimeLibraryName
+			}));
+			} else if(arch == "C5000") {
+				baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+				  basePath + "ar55",
+				  "-r",	//was "r" a == append r == replace
+				  runtimeLibraryName
+				}));
+			}else {
+			  baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+				basePath + "avr-ar",
+				"rcs",
+				runtimeLibraryName
+			}));
+			}
+
+		  if(arch == "C5000") {
+			  for(File file : coreObjectFiles) {
+				 if (!(file.getName().equals("main.cpp.obj"))){
+					 System.out.println(file.getName());
+					 List commandAR = new ArrayList(baseCommandAR);
+					 commandAR.add(file.getAbsolutePath());
+					 execAsynchronously(commandAR);
+				 }
+			   }
+		  }
+  }
 
   private List<File> compileFiles(String basePath,
                                   String buildPath, List<File> includePaths,
@@ -860,7 +931,6 @@ public class Compiler implements MessageConsumer {
     	}
     	else if(arch == "C5000")
         {
-    		//System.out.println("hello world.");
     		baseCommandCompiler.add("-I" + (String) includePaths.get(i) + "");
         }
     	else{

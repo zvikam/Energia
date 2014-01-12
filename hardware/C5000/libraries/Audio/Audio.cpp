@@ -68,6 +68,159 @@ Uint16 i2sDmaRightBuff2[2][I2S_DMA_BUF_LEN];
 /** Defining the static variables */
 int AudioClass::isInitialized = 0;
 
+/** CODEC configurations to set Sampling Rate as 8KHz */
+static const Uint16 CodecConfig_SamplingRate_8k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0xA1},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x06},     // D (MSB) value
+    {8,  0x90},     // D (LSB) value
+    {11, 0x86},     // NDAC value
+    {12, 0x87},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x86},     // NADC value
+    {19, 0x87},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x9C},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 11.05KHz */
+static const Uint16 CodecConfig_SamplingRate_11k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0xA1},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x02},     // D (MSB) value
+    {8,  0x30},     // D (LSB) value
+    {11, 0x85},     // NDAC value
+    {12, 0x86},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x85},     // NADC value
+    {19, 0x86},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x98},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 12KHz */
+static const Uint16 CodecConfig_SamplingRate_12k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x06},     // D (MSB) value
+    {8,  0x90},     // D (LSB) value
+    {11, 0x87},     // NDAC value
+    {12, 0x88},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x87},     // NADC value
+    {19, 0x88},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0xA0},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 16KHz */
+static const Uint16 CodecConfig_SamplingRate_16k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x06},     // D (MSB) value
+    {8,  0x90},     // D (LSB) value
+    {11, 0x86},     // NDAC value
+    {12, 0x87},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x86},     // NADC value
+    {19, 0x87},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x9C},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 22.05KHz */
+static const Uint16 CodecConfig_SamplingRate_22k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x02},     // D (MSB) value
+    {8,  0x30},     // D (LSB) value
+    {11, 0x85},     // NDAC value
+    {12, 0x86},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x85},     // NADC value
+    {19, 0x86},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x98},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 24KHz */
+static const Uint16 CodecConfig_SamplingRate_24k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x06},     // D (MSB) value
+    {8,  0x90},     // D (LSB) value
+    {11, 0x84},     // NDAC value
+    {12, 0x87},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x84},     // NADC value
+    {19, 0x87},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x9C},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 32KHz */
+static const Uint16 CodecConfig_SamplingRate_32k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x06},     // D (MSB) value
+    {8,  0x90},     // D (LSB) value
+    {11, 0x83},     // NDAC value
+    {12, 0x87},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x83},     // NADC value
+    {19, 0x87},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x9C},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 44.1KHz */
+static const Uint16 CodecConfig_SamplingRate_44k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x02},     // D (MSB) value
+    {8,  0x30},     // D (LSB) value
+    {11, 0x85},     // NDAC value
+    {12, 0x83},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x85},     // NADC value
+    {19, 0x83},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x8C},     // BCLK value
+};
+
+/** CODEC configurations to set Sampling Rate as 48KHz */
+static const Uint16 CodecConfig_SamplingRate_48k[][2] = {
+    {0,  0x00},     // Select Page 0
+    {5,  0x91},     // p & r values
+    {6,  0x07},     // j value
+    {7,  0x06},     // D (MSB) value
+    {8,  0x90},     // D (LSB) value
+    {11, 0x82},     // NDAC value
+    {12, 0x87},     // MDAC value
+    {13, 0x00},     // DOSR (MSB) value
+    {14, 0x80},     // DPSR (LSB) value
+    {18, 0x82},     // NADC value
+    {19, 0x87},     // MADC value
+    {20, 0x80},     // AOSR (LSB) value
+    {30, 0x9C},     // BCLK value
+};
+
 /** ===========================================================================
  *   @n@b writeI2C
  *
@@ -93,34 +246,34 @@ static int writeI2C(Uint16 address, Uint16 *data, Uint16 quantity)
 {
     CSL_Status status;
 
-	if((data != NULL)  && (quantity != 0))
-	{
-	    status = Wire.beginTransmission(address);
-		if(status == CSL_SOK)
-		{
-		    status = Wire.write((unsigned int*)data, (unsigned int)quantity);
-	        if(status == quantity)
-			{
-			    status = Wire.endTransmission();
-			}
-			else
-			{
-			    status = CSL_ESYS_FAIL;
-			}
-		}
-		else
-		{
-		    status = CSL_ESYS_FAIL;
-		}
+    if ((data != NULL)  && (quantity != 0))
+    {
+        status = Wire.beginTransmission(address);
+        if (status == CSL_SOK)
+        {
+            status = Wire.write((unsigned int*)data, (unsigned int)quantity);
+            if (status == quantity)
+            {
+                status = Wire.endTransmission();
+            }
+            else
+            {
+                status = CSL_ESYS_FAIL;
+            }
+        }
+        else
+        {
+            status = CSL_ESYS_FAIL;
+        }
     }
-	else
-	{
-	    status = CSL_ESYS_INVPARAMS;
-	}
+    else
+    {
+        status = CSL_ESYS_INVPARAMS;
+    }
 
-	csl_waitusec(0xFFF);
+    csl_waitusec(0xFFF);
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -151,7 +304,7 @@ static int rset( Uint16 regnum, Uint16 regval )
 
     status = writeI2C(I2C_CODEC_ADDR, cmd, 2);
 
-    return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -183,22 +336,23 @@ static int rset( Uint16 regnum, Uint16 regval )
  */
 int AudioClass::Audio(void)
 {
-	CSL_Status status;
+    CSL_Status status;
 
-	status = CSL_SOK;
+    status = CSL_SOK;
 
-	if(!this->isInitialized)
-	{
-		audioOutLeft[0] = &i2sDmaLeftBuff1[1][0];
-		audioOutLeft[1] = &i2sDmaLeftBuff1[0][0];
+    if (!this->isInitialized)
+    {
+		/* Initialize the DMA transfer buffers */
+        audioOutLeft[0] = &i2sDmaLeftBuff1[1][0];
+        audioOutLeft[1] = &i2sDmaLeftBuff1[0][0];
 
-		audioOutRight[0] = &i2sDmaRightBuff1[1][0];
-		audioOutRight[1] = &i2sDmaRightBuff1[0][0];
+        audioOutRight[0] = &i2sDmaRightBuff1[1][0];
+        audioOutRight[1] = &i2sDmaRightBuff1[0][0];
 
-		status = init();
-	}
+        status = init();
+    }
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -234,33 +388,34 @@ int AudioClass::Audio(void)
  */
 int AudioClass::Audio(int process)
 {
-	CSL_Status status;
+    CSL_Status status;
 
-	status = CSL_SOK;
+    status = CSL_SOK;
 
-	if(!this->isInitialized)
-	{
-		if(process == TRUE)
-		{
-			audioOutLeft[0] = &i2sDmaLeftBuff2[0][0];
-			audioOutLeft[1] = &i2sDmaLeftBuff2[1][0];
+    if (!this->isInitialized)
+    {
+		/* Initialize the DMA transfer buffers */
+        if (process == TRUE)
+        {
+            audioOutLeft[0] = &i2sDmaLeftBuff2[0][0];
+            audioOutLeft[1] = &i2sDmaLeftBuff2[1][0];
 
-			audioOutRight[0] = &i2sDmaRightBuff2[0][0];
-			audioOutRight[1] = &i2sDmaRightBuff2[1][0];
-		}
-		else
-		{
-			audioOutLeft[0] = &i2sDmaLeftBuff1[1][0];
-			audioOutLeft[1] = &i2sDmaLeftBuff1[0][0];
+            audioOutRight[0] = &i2sDmaRightBuff2[0][0];
+            audioOutRight[1] = &i2sDmaRightBuff2[1][0];
+        }
+        else
+        {
+            audioOutLeft[0] = &i2sDmaLeftBuff1[1][0];
+            audioOutLeft[1] = &i2sDmaLeftBuff1[0][0];
 
-			audioOutRight[0] = &i2sDmaRightBuff1[1][0];
-			audioOutRight[1] = &i2sDmaRightBuff1[0][0];
-		}
+            audioOutRight[0] = &i2sDmaRightBuff1[1][0];
+            audioOutRight[1] = &i2sDmaRightBuff1[0][0];
+        }
 
-		status = init();
-	}
+        status = init();
+    }
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -282,199 +437,200 @@ int AudioClass::Audio(int process)
 int AudioClass::init(void)
 {
     CSL_Status status;
-	Uint16     index;
+    Uint16     index;
 
     status = CSL_SOK;
 
-	DBG_MSG_PRINT("\n Audio Test!\n");
+    DBG_MSG_PRINT("\n Audio Module Initialization\n");
 
-	activeInBuf  = 0;
-	activeOutBuf = 0;
+    activeInBuf  = 0;
+    activeOutBuf = 0;
 
- 	audioInLeft[0] = &i2sDmaLeftBuff1[0][0];
- 	audioInLeft[1] = &i2sDmaLeftBuff1[1][0];
+    audioInLeft[0] = &i2sDmaLeftBuff1[0][0];
+    audioInLeft[1] = &i2sDmaLeftBuff1[1][0];
 
     audioInRight[0] = &i2sDmaRightBuff1[0][0];
     audioInRight[1] = &i2sDmaRightBuff1[1][0];
 
     //status = Wire.begin();  //Note; Wire init will be done in main.cpp
-	if(status == CSL_SOK)
-	{
-        /*	Software Reset */
-		rset(0, 0);			// Select Page 0
-		rset(1, 0x01);		// Software Reset
+    if (status == CSL_SOK)
+    {
+        /*    Software Reset */
+        rset(0, 0);         // Select Page 0
+        rset(1, 0x01);      // Software Reset
 
-		rset(0, 1);			// Select Page 1
+        rset(0, 1);         // Select Page 1
 
         /* Disable crude AVDD generation from DVDD */
-		rset(1, 0x08);
+        rset(1, 0x08);
 
-		rset(2, 0x01);	    // enable Analog LDO for C5535 eZdsp
+        rset(2, 0x01);      // enable Analog LDO for C5535 eZdsp
 
-/*	Clock and Interface Settings: Master Mode
- *	running off of 12 MHz MCLK
+/*    Clock and Interface Settings: Master Mode
+ *    running off of 12 MHz MCLK
  *  AIC3204 PLL is not used and turned off
  *  THIS IS NEEDED WHETHER RECORD OR PLAYBACK - DAC_MOD_CLK is routed to ADC_MOD_CLK */
 
-		rset(0, 0);			// Select Page 0
+        rset(0, 0);         // Select Page 0
 
-		rset(27,0x0D);      // BCLK and WCLK is set as op to AIC3204(Master)
-		rset(4, 0x03);      // codec_clkin <- MCLK
+        rset(27,0x0D);      // BCLK and WCLK is set as op to AIC3204(Master)
+        rset(4, 0x03);      // codec_clkin <- MCLK
 
-	    rset(5,  0x91);     // p & r values
-	    rset(6,  0x07);     // j value
-	    rset(7,  0x06);     // D (MSB) value
-	    rset(8,  0x90);     // D (LSB) value
-	    rset(11, 0x82);     // NDAC value
-	    rset(12, 0x87);     // MDAC value
-	    rset(13, 0x00);     // DOSR (MSB) value
-	    rset(14, 0x80);     // DPSR (LSB) value
-	    rset(18, 0x82);     // NADC value
-	    rset(19, 0x87);     // MADC value
-	    rset(20, 0x80);     // AOSR (LSB) value
-	    rset(30, 0x9C);     // BCLK value
+        rset(5,  0x91);     // p & r values
+        rset(6,  0x07);     // j value
+        rset(7,  0x06);     // D (MSB) value
+        rset(8,  0x90);     // D (LSB) value
+        rset(11, 0x82);     // NDAC value
+        rset(12, 0x87);     // MDAC value
+        rset(13, 0x00);     // DOSR (MSB) value
+        rset(14, 0x80);     // DPSR (LSB) value
+        rset(18, 0x82);     // NADC value
+        rset(19, 0x87);     // MADC value
+        rset(20, 0x80);     // AOSR (LSB) value
+        rset(30, 0x9C);     // BCLK value
 
         /* Configure DAC Channel */
         /* DISABLE DAC DURING RECORD */
-		rset(0, 1);			// Select Page 1
-		rset(20,0x25);      // 14Feb2012 - Added to avoid pop during the start-up
-		rset(10,0x00);      // 0.9 V Common mode and HPL/R are powered by AVDD not LDOIN (HPVDD)
-		//rset(3,0x08);       // Put LDAC in lowest power mode PTM_P1 (page 27 & 35 of AIC3204 datasheet)
-		//rset(4,0x08);       // Put RDAC in lowest power mode PTM_P1 (page 27 & 35 of AIC3204 datasheet)
-		rset(12,0x08);      // LDAC AFIR routed to HPL
-		rset(13,0x08);      // RDAC AFIR routed to HPR
+        rset(0, 1);         // Select Page 1
+        rset(20,0x25);      // 14Feb2012 - Added to avoid pop during the start-up
+        rset(10,0x00);      // 0.9 V Common mode and HPL/R are powered by AVDD not LDOIN (HPVDD)
+        //rset(3,0x08);     // Put LDAC in lowest power mode PTM_P1 (page 27 & 35 of AIC3204 datasheet)
+        //rset(4,0x08);     // Put RDAC in lowest power mode PTM_P1 (page 27 & 35 of AIC3204 datasheet)
+        rset(12,0x08);      // LDAC AFIR routed to HPL
+        rset(13,0x08);      // RDAC AFIR routed to HPR
 
         /* Route LDAC/RDAC to LOL/LOR */
-		rset(14, 0x08);
-		rset(15, 0x08);
+        rset(14, 0x08);
+        rset(15, 0x08);
 
-		rset(0, 0);			// Select Page 0
-		//rset(60,0x07);      // Put DACs in lowest power mode PRB_P7 (page 35 of AIC3204 datasheet)
-		rset(63,0xD4);      // Power up left,right data paths and set channel
+        rset(0, 0);         // Select Page 0
+        //rset(60,0x07);    // Put DACs in lowest power mode PRB_P7 (page 35 of AIC3204 datasheet)
+        rset(63,0xD4);      // Power up left,right data paths and set channel
 
-		rset(0, 1);			// Select Page 1
-		rset(16,0x00);      // Unmute HPL , 0dB gain
-		rset(17,0x00);      // Unmute HPR , 0dB gain
+        rset(0, 1);         // Select Page 1
+        rset(16,0x00);      // Unmute HPL , 0dB gain
+        rset(17,0x00);      // Unmute HPR , 0dB gain
         /* Unmute LOL/LOR driver, 0dB Gain */
-		rset(9, 0x3C);      // Power up HPL,HPR
+        rset(9, 0x3C);      // Power up HPL,HPR
 
-		rset(0, 0);			// Select Page 0
-		rset(64,0x02);      // Left and right DACs will have independent volume control
-		rset(65,0x00);      // Left DAC volume
+        rset(0, 0);         // Select Page 0
+        rset(64,0x02);      // Left and right DACs will have independent volume control
+        rset(65,0x00);      // Left DAC volume
 
-        /*	Configure ADC Channel */
+        /*    Configure ADC Channel */
         /*  DISABLE ADC DURING PLAYBACK */
 
-		rset(0, 0);			// Select Page 0
-		rset(20,0x80);      // AOSR for AOSR = 64 decimal or 0x0040 for decimation filters 1 to 6
-	                        // MADC is powered down and ADC_MOD_CLK <- DAC_MOD_CLK by default in  Pg 0 - Reg 19
+        rset(0, 0);         // Select Page 0
+        rset(20,0x80);      // AOSR for AOSR = 64 decimal or 0x0040 for decimation filters 1 to 6
+                            // MADC is powered down and ADC_MOD_CLK <- DAC_MOD_CLK by default in  Pg 0 - Reg 19
 
-	    /* PRB_P2 and PRB_R2 selected */
-		rset(61, 0x02);
+        /* PRB_P2 and PRB_R2 selected */
+        rset(61, 0x02);
 
-		rset(00, 0x01);		// Select Page 1
+        rset(00, 0x01);     // Select Page 1
 #if 1
-		rset(51, 0x48);     // power up Mic Bias using LDO-IN
-		rset(52, 0x30);     // Route IN2L to LEFT_P with 40K input impedance
-		rset(54, 0x40);     // Route CM1L to LEFT_M with 10K input impedance
-		rset(55, 0x30);     // Route IN2L to RIGHT_P with 40K input impedance
-		rset(57, 0x40);     // Route CM1R to RIGHT_M with 10K input impedance
+        rset(51, 0x48);     // power up Mic Bias using LDO-IN
+        rset(52, 0x30);     // Route IN2L to LEFT_P with 40K input impedance
+        rset(54, 0x40);     // Route CM1L to LEFT_M with 10K input impedance
+        rset(55, 0x30);     // Route IN2L to RIGHT_P with 40K input impedance
+        rset(57, 0x40);     // Route CM1R to RIGHT_M with 10K input impedance
 #else
-		rset(51, 0x68);     // power up micBIAS, micBIAS = 2.5V (CM = 0.9V)
-		rset(52, 0x10);     // Route IN2L to LEFT_P with 10K input impedance
-		rset(54, 0x40);     // Route CM1L to LEFT_M with 10K input impedance
-		rset(55, 0x01);     // Route IN2L to RIGHT_P with 10K input impedance
-		rset(57, 0x40);     // Route CM1R to RIGHT_M with 10K input impedance
+        rset(51, 0x68);     // power up micBIAS, micBIAS = 2.5V (CM = 0.9V)
+        rset(52, 0x10);     // Route IN2L to LEFT_P with 10K input impedance
+        rset(54, 0x40);     // Route CM1L to LEFT_M with 10K input impedance
+        rset(55, 0x01);     // Route IN2L to RIGHT_P with 10K input impedance
+        rset(57, 0x40);     // Route CM1R to RIGHT_M with 10K input impedance
 #endif
-		rset(59, 0x00);     // Unmute Left MICPGA, Gain selection of 0dB
-		rset(60, 0x00);     // Unmute Right MICPGA, Gain selection of 0dB
+        rset(59, 0x00);     // Unmute Left MICPGA, Gain selection of 0dB
+        rset(60, 0x00);     // Unmute Right MICPGA, Gain selection of 0dB
 
-		rset(0, 0);			// Select Page 0
-		rset(81, 0xC0);     // Power up LADC/RADC only
-		rset(82, 0x00);     // Unmute LADC/RADC only 0dB gain
-		csl_waitusec(300);
+        rset(0, 0);         // Select Page 0
+        rset(81, 0xC0);     // Power up LADC/RADC only
+        rset(82, 0x00);     // Unmute LADC/RADC only 0dB gain
 
-	    /* Initialize I2S */
-	    status = I2S.init();
-		if(status != CSL_SOK)
-		{
+        csl_waitusec(3000);
+
+        /* Initialize I2S */
+        status = I2S.init();
+        if (status != CSL_SOK)
+        {
         DBG_MSG_PRINT("\n I2S init failed \n");
-			return (CSL_ESYS_FAIL);
-		}
+            return (CSL_ESYS_FAIL);
+        }
 
-		/* Enable I2S */
+        /* Enable I2S */
         I2S.enable();
 
-		/* Initialize DMA buffers with zeroes */
-		for(index = 0; index < I2S_DMA_BUF_LEN; index++)
-		{
-			i2sDmaLeftBuff1[0][index] = 0;
-			i2sDmaRightBuff1[0][index] = 0;
+        /* Initialize DMA buffers with zeroes */
+        for(index = 0; index < I2S_DMA_BUF_LEN; index++)
+        {
+            i2sDmaLeftBuff1[0][index] = 0;
+            i2sDmaRightBuff1[0][index] = 0;
 
-			i2sDmaLeftBuff1[1][index] = 0;
-			i2sDmaRightBuff1[1][index] = 0;
+            i2sDmaLeftBuff1[1][index] = 0;
+            i2sDmaRightBuff1[1][index] = 0;
 
-			i2sDmaLeftBuff2[0][index] = 0;
-			i2sDmaRightBuff2[0][index] = 0;
+            i2sDmaLeftBuff2[0][index] = 0;
+            i2sDmaRightBuff2[0][index] = 0;
 
-			i2sDmaLeftBuff2[1][index] = 0;
-			i2sDmaRightBuff2[1][index] = 0;
-		}
-
-	    /* Initialize DMA */
-	    status = DMA.init();
-	    if(status != CSL_SOK)
-	    {
-            DBG_MSG_PRINT("\n DMA init failed");
-			return (CSL_ESYS_FAIL);
-		}
-
-	    /* Open DMA channels for read and write of Left and Right audio channels */
-	    status = DMA.openChannel(DMA_CHAN_ReadL);
-        if(status == CSL_SOK)
-		{
-		    status = DMA.openChannel(DMA_CHAN_ReadR);
-		    if(status == CSL_SOK)
-			{
-			    status = DMA.openChannel(DMA_CHAN_WriteL);
-				if(status == CSL_SOK)
-				{
-			        status = DMA.openChannel(DMA_CHAN_WriteR);
-					if(status == CSL_SOK)
-					{
-					    isInitialized = 1;
-					}
-					else
-					{
-                        DBG_MSG_PRINT("\n DMA open write right channel failed");
-						return (CSL_ESYS_FAIL);
-					}
-				}
-				else
-				{
-                    DBG_MSG_PRINT("\n DMA open write left channel failed");
-					return (CSL_ESYS_FAIL);
-				}
-			}
-			else
-			{
-                DBG_MSG_PRINT("\n DMA open read right channel failed");
-				return (CSL_ESYS_FAIL);
-			}
+            i2sDmaLeftBuff2[1][index] = 0;
+            i2sDmaRightBuff2[1][index] = 0;
         }
-		else
-		{
+
+        /* Initialize DMA */
+        status = DMA.init();
+        if (status != CSL_SOK)
+        {
+            DBG_MSG_PRINT("\n DMA init failed");
+            return (CSL_ESYS_FAIL);
+        }
+
+        /* Open DMA channels for read and write of Left and Right audio channels */
+        status = DMA.openChannel(DMA_CHAN_ReadL);
+        if (status == CSL_SOK)
+        {
+            status = DMA.openChannel(DMA_CHAN_ReadR);
+            if (status == CSL_SOK)
+            {
+                status = DMA.openChannel(DMA_CHAN_WriteL);
+                if (status == CSL_SOK)
+                {
+                    status = DMA.openChannel(DMA_CHAN_WriteR);
+                    if (status == CSL_SOK)
+                    {
+                        isInitialized = 1;
+                    }
+                    else
+                    {
+                        DBG_MSG_PRINT("\n DMA open write right channel failed");
+                        return (CSL_ESYS_FAIL);
+                    }
+                }
+                else
+                {
+                    DBG_MSG_PRINT("\n DMA open write left channel failed");
+                    return (CSL_ESYS_FAIL);
+                }
+            }
+            else
+            {
+                DBG_MSG_PRINT("\n DMA open read right channel failed");
+                return (CSL_ESYS_FAIL);
+            }
+        }
+        else
+        {
             DBG_MSG_PRINT("\n DMA open read left channel failed");
-			return (CSL_ESYS_FAIL);
-		}
+            return (CSL_ESYS_FAIL);
+        }
     }
     else
     {
         DBG_MSG_PRINT("\n DMA channel open failed \n");
-		return (CSL_ESYS_FAIL);
-	}
+        return (CSL_ESYS_FAIL);
+    }
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -500,7 +656,7 @@ int AudioClass::close(void)
     status = I2S.close();    // Disable I2S
     rset(1, 0x01);           // Reset codec
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -525,7 +681,11 @@ int AudioClass::I2SDmaReadLeft(void)
     CSL_Status    status;
     DMAConfig     dmaConfig;
 
-    /* Configure DMA channel4 for I2S2 left channel read */
+    /* Configure DMA channel for I2S2 left channel read
+     * DMA interrupt is disabled for this left channel, whereas interrupt is
+     * enabled for right channel. User can check the status of Right DMA channel
+     * to find out whether the Audio samples are received from the codec or not
+     */
     dmaConfig.enablePingPong   = 0;
     dmaConfig.enableAutoReload = 0;
     dmaConfig.burstLen         = DMA_BURST_1WORD;
@@ -540,9 +700,9 @@ int AudioClass::I2SDmaReadLeft(void)
     dmaConfig.srcAddr          = (unsigned short *)&CSL_I2S2_REGS->I2SRXLT0;
 #endif
 
-	status = DMA.configChannel(DMA_CHAN_ReadL, dmaConfig);
+    status = DMA.configChannel(DMA_CHAN_ReadL, dmaConfig);
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -566,7 +726,12 @@ int AudioClass::I2SDmaReadRight(void)
     CSL_Status      status;
     DMAConfig       dmaConfig;
 
-    /* Configure DMA ch1 for I2S right channel read */
+    /* Configure DMA ch1 for I2S right channel read
+     * DMA interrupt is disabled for the left channel, whereas interrupt is
+     * enabled for this right channel. User can check the status of Right DMA
+     * channel to find out whether the Audio samples are received from the codec
+     * or not
+     */
     dmaConfig.enablePingPong   = 0;
     dmaConfig.enableAutoReload = 0;
     dmaConfig.burstLen         = DMA_BURST_1WORD;
@@ -581,9 +746,9 @@ int AudioClass::I2SDmaReadRight(void)
     dmaConfig.srcAddr          = (unsigned short *)&CSL_I2S2_REGS->I2SRXRT0;
 #endif
 
-	status = DMA.configChannel(DMA_CHAN_ReadR, dmaConfig);
+    status = DMA.configChannel(DMA_CHAN_ReadR, dmaConfig);
 
-    return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -606,30 +771,30 @@ int AudioClass::read(void)
     CSL_Status status;
 
     status = AudioC.I2SDmaReadLeft();
-    if(status != CSL_SOK)
+    if (status != CSL_SOK)
     {
-		DBG_MSG_PRINT("\n DMA read left config failed !\n");
-		DBG_MSG_PRINT((long)status);
-	}
+        DBG_MSG_PRINT("\n DMA read left config failed !\n");
+        DBG_MSG_PRINT((long)status);
+    }
     status = AudioC.I2SDmaReadRight();
-    if(status != CSL_SOK)
+    if (status != CSL_SOK)
     {
-		DBG_MSG_PRINT("\n DMA read right config failed !\n");
-		DBG_MSG_PRINT((long)status);
-	}
-
-	status = DMA.start(DMA_CHAN_ReadL);
-    if(status != CSL_SOK)
-    {
-		DBG_MSG_PRINT("\n DMA read left start failed !\n");
-    }
-	status = DMA.start(DMA_CHAN_ReadR);
-    if(status != CSL_SOK)
-    {
-		DBG_MSG_PRINT("\n DMA read right start failed !\n");
+        DBG_MSG_PRINT("\n DMA read right config failed !\n");
+        DBG_MSG_PRINT((long)status);
     }
 
-	return status;
+    status = DMA.start(DMA_CHAN_ReadL);
+    if (status != CSL_SOK)
+    {
+        DBG_MSG_PRINT("\n DMA read left start failed !\n");
+    }
+    status = DMA.start(DMA_CHAN_ReadR);
+    if (status != CSL_SOK)
+    {
+        DBG_MSG_PRINT("\n DMA read right start failed !\n");
+    }
+
+    return (status);
 }
 
 /** ===========================================================================
@@ -653,14 +818,19 @@ int AudioClass::I2SDmaWriteLeft(void)
     CSL_Status      status;
     DMAConfig       dmaConfig;
 
-    /* Configure DMA channel4 for I2S2 left channel read */
+    /* Configure DMA channel4 for I2S2 left channel read
+     * DMA interrupt is disabled for this left channel, whereas interrupt is
+     * enabled for the right channel. User can check the status of Right DMA
+     * channel to find out whether the Audio samples are transmitted to the
+     * codec or not
+     */
     dmaConfig.enablePingPong   = 0;
     dmaConfig.enableAutoReload = 0;
     dmaConfig.burstLen         = DMA_BURST_1WORD;
     dmaConfig.dmaEvent         = DMA_EVENT_I2S2_TX;
     dmaConfig.enableDmaInt     = 0;
     dmaConfig.chanDir          = DMA_CHANNEL_DIRECTION_WRITE;
-    dmaConfig.dataLen          = I2S_DMA_BUF_LEN* 2;
+    dmaConfig.dataLen          = I2S_DMA_BUF_LEN * 2;
 #ifdef CHIP_C5517
     dmaConfig.destAddr         = (unsigned short *)&CSL_I2S2_REGS->I2STXLTL;
 #else
@@ -668,9 +838,9 @@ int AudioClass::I2SDmaWriteLeft(void)
 #endif
     dmaConfig.srcAddr          = audioOutLeft[activeOutBuf];
 
-	status = DMA.configChannel(DMA_CHAN_WriteL, dmaConfig);
+    status = DMA.configChannel(DMA_CHAN_WriteL, dmaConfig);
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -694,14 +864,19 @@ int AudioClass::I2SDmaWriteRight(void)
     CSL_Status      status;
     DMAConfig       dmaConfig;
 
-    /* Configure DMA ch1 for I2S right channel read */
+    /* Configure DMA ch1 for I2S right channel read
+     * DMA interrupt is disabled for the left channel, whereas interrupt is
+     * enabled for this right channel. User can check the status of Right DMA
+     * channel to find out whether the Audio samples are transmitted to the
+     * codec or not
+     */
     dmaConfig.enablePingPong   = 0;
     dmaConfig.enableAutoReload = 0;
     dmaConfig.burstLen         = DMA_BURST_1WORD;
     dmaConfig.dmaEvent         = DMA_EVENT_I2S2_TX;
     dmaConfig.enableDmaInt     = 1;
     dmaConfig.chanDir          = DMA_CHANNEL_DIRECTION_WRITE;
-    dmaConfig.dataLen          = I2S_DMA_BUF_LEN* 2;// * 2;
+    dmaConfig.dataLen          = I2S_DMA_BUF_LEN * 2;
 #ifdef CHIP_C5517
     dmaConfig.destAddr         = (unsigned short *)&CSL_I2S2_REGS->I2STXRTL;
 #else
@@ -709,9 +884,9 @@ int AudioClass::I2SDmaWriteRight(void)
 #endif
     dmaConfig.srcAddr          = audioOutRight[activeOutBuf];
 
-	status = DMA.configChannel(DMA_CHAN_WriteR, dmaConfig);
+    status = DMA.configChannel(DMA_CHAN_WriteR, dmaConfig);
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -734,28 +909,28 @@ int AudioClass::write(void)
     CSL_Status status;
 
     status = AudioC.I2SDmaWriteLeft();
-    if(status != CSL_SOK)
+    if (status != CSL_SOK)
     {
         DBG_MSG_PRINT("\n DMA write left config failed !\n");
-	}
+    }
     status = AudioC.I2SDmaWriteRight();
-    if(status != CSL_SOK)
+    if (status != CSL_SOK)
     {
-		DBG_MSG_PRINT("\n DMA write right config failed !\n");
+        DBG_MSG_PRINT("\n DMA write right config failed !\n");
     }
 
-	status = DMA.start(DMA_CHAN_WriteL);
-    if(status != CSL_SOK)
+    status = DMA.start(DMA_CHAN_WriteL);
+    if (status != CSL_SOK)
     {
-		DBG_MSG_PRINT("\n DMA write left start failed !\n");
+        DBG_MSG_PRINT("\n DMA write left start failed !\n");
     }
-	status = DMA.start(DMA_CHAN_WriteR);
-    if(status != CSL_SOK)
+    status = DMA.start(DMA_CHAN_WriteR);
+    if (status != CSL_SOK)
     {
-		DBG_MSG_PRINT("\n DMA write right start failed !\n");
+        DBG_MSG_PRINT("\n DMA write right start failed !\n");
     }
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -774,14 +949,14 @@ int AudioClass::write(void)
  *
  *  ===========================================================================
  */
-void AudioClass::attachIntr(INTERRUPT_IsrPtr function)
+void AudioClass::attachIntr(void *function)
 {
-    attachInterrupt(INTERRUPT_DMA, function, 0);
-	enableInterrupt(INTERRUPT_DMA);
+    attachInterrupt(INTERRUPT_DMA, (INTERRUPT_IsrPtr)function, 0);
+    enableInterrupt(INTERRUPT_DMA);
 
-	/* Start the Audio module */
-	read();
-	write();
+    /* Start the Audio module */
+    read();
+    write();
 }
 
 /** ===========================================================================
@@ -801,7 +976,7 @@ void AudioClass::attachIntr(INTERRUPT_IsrPtr function)
  */
 void AudioClass::detachIntr(void)
 {
-	disableInterrupt(INTERRUPT_DMA);
+    disableInterrupt(INTERRUPT_DMA);
     detachInterrupt(INTERRUPT_DMA);
 }
 
@@ -826,35 +1001,35 @@ void AudioClass::isrDma(void)
 
     /* Read the DMA interrupt */
     ifrValue = DMA.readInterruptStatus();
-    /* Clear HW interrupt status */
+    /* Clear DMA interrupt status */
     DMA.clearInterruptStatus(ifrValue);
 
     /* Reset interrupt value stored */
     DMA.resetInterruptStatus();
 
-	if((ifrValue >> DMA_CHAN_ReadR) & 0x01)
-	{
-		/* Configure DMA for Read left channel */
-		activeInBuf = (activeInBuf == FALSE)? TRUE: FALSE;
-		AudioC.I2SDmaReadLeft();
+    if ((ifrValue >> DMA_CHAN_ReadR) & 0x01)
+    {
+        /* Configure DMA for Read left channel */
+        activeInBuf = (activeInBuf == FALSE)? TRUE: FALSE;
+        AudioC.I2SDmaReadLeft();
 
         /* Configure DMA for Read right channel */
-		AudioC.I2SDmaReadRight();
+        AudioC.I2SDmaReadRight();
 
-		DMA.start(DMA_CHAN_ReadL);
-		DMA.start(DMA_CHAN_ReadR);
-	}
-	else if((ifrValue >> DMA_CHAN_WriteR) & 0x01)
-	{
-		/* Configure DMA for Write left channel */
-		activeOutBuf = (activeOutBuf == FALSE)? TRUE: FALSE;
-		AudioC.I2SDmaWriteLeft();
+        DMA.start(DMA_CHAN_ReadL);
+        DMA.start(DMA_CHAN_ReadR);
+    }
+    else if ((ifrValue >> DMA_CHAN_WriteR) & 0x01)
+    {
+        /* Configure DMA for Write left channel */
+        activeOutBuf = (activeOutBuf == FALSE)? TRUE: FALSE;
+        AudioC.I2SDmaWriteLeft();
 
         /* Configure DMA for Write right channel */
-		AudioC.I2SDmaWriteRight();
+        AudioC.I2SDmaWriteRight();
 
-    	DMA.start(DMA_CHAN_WriteL);
-		DMA.start(DMA_CHAN_WriteR);
+        DMA.start(DMA_CHAN_WriteL);
+        DMA.start(DMA_CHAN_WriteR);
     }
 }
 
@@ -884,37 +1059,37 @@ int AudioClass::setInputGain(int lgain, int rgain)
 {
     CSL_Status      status;
 
-	if((lgain >= 0) && (lgain <= 100) &&
-	   (rgain >= 0) && (rgain <= 100))
+    if ((lgain >= 0) && (lgain <= 100) &&
+       (rgain >= 0) && (rgain <= 100))
     {
         /* ADC gain register values will be in the range of 0 to 95(i.e. 0.0dB
            to 47.5dB respectively), hence multiply the lgain and rgain
            percentage values (range 0-100) by 0.95 to get the corresponding left
            and right ADC gain register values
-		*/
+        */
         lgain = lgain * 0.95;
-		rgain = rgain * 0.95;
+        rgain = rgain * 0.95;
     }
-	else
-	{
-		return (CSL_ESYS_FAIL);
-	}
+    else
+    {
+        return (CSL_ESYS_FAIL);
+    }
 
-	/* Select Page 1 */
+    /* Select Page 1 */
     status = rset(0, 1);
-	if(status == CSL_SOK)
-	{
-	    /* Write the gain registers */
-	    status = rset(59, lgain);
-	    if(status == CSL_SOK)
-	    {
-	        status = rset(60, rgain);
-		}
-	    /* Small delay to allow the gain change */
-	    delayMilliseconds(10);
-	}
+    if (status == CSL_SOK)
+    {
+        /* Write the gain registers */
+        status = rset(59, lgain);
+        if (status == CSL_SOK)
+        {
+            status = rset(60, rgain);
+        }
+        /* Small delay to allow the gain change */
+        delayMilliseconds(10);
+    }
 
-	return (status);
+    return (status);
 }
 
 /** ===========================================================================
@@ -942,9 +1117,9 @@ int AudioClass::setInputGain(int lgain, int rgain)
 int AudioClass::setOutputVolume(int volume)
 {
     CSL_Status      status;
-	float           vol;
+    float           vol;
 
-	/* DAC volume register values will be in the range of 0 to 48(for 0.0dB to
+    /* DAC volume register values will be in the range of 0 to 48(for 0.0dB to
        +24dB respectively) and 255 down to 129 (for -0.5dB to -63.5dB
        respectively). Hence the percentages will be in the range of 73% to 100%
        for 0.0dB to +24dB respectively and 0% to 72% for -0.5dB to -63.5dB
@@ -952,38 +1127,38 @@ int AudioClass::setOutputVolume(int volume)
        The range of DAC volume (left or right) register values consists of a
        total 176 values (i.e, 0-48: 49 nos and 129-255: 127 nos), hence divide
        the percentage with 0.568(i.e, 100/176 = 0.568).
-	*/
-	if((volume >= 0) && (volume <= 72))
-	{
-	    vol = 72 - volume;
-		vol = vol / 0.568;
-		vol = 255 - vol;
-	}
-	else if ((volume > 72) && (volume <= 100))
-	{
-	    vol = volume - 72;
-		vol = (vol / 0.568) - 1;
-	}
-	else
-	{
-		return (CSL_ESYS_FAIL);
+    */
+    if ((volume >= 0) && (volume <= 72))
+    {
+        vol = 72 - volume;
+        vol = vol / 0.568;
+        vol = 255 - vol;
+    }
+    else if ((volume > 72) && (volume <= 100))
+    {
+        vol = volume - 72;
+        vol = (vol / 0.568) - 1;
+    }
+    else
+    {
+        return (CSL_ESYS_FAIL);
     }
 
-	/* Select Page 0 */
+    /* Select Page 0 */
     status = rset(0, 0);
-	if(status == CSL_SOK)
-	{
-	    /* Left channel controlling both channels */
-	    status = rset(64, 2);
-	    if(status == CSL_SOK)
-	    {
-	        rset(65, (int)vol);
-		}
-	    /* Small delay to allow the gain change */
-	    delayMilliseconds(10);
-	}
+    if (status == CSL_SOK)
+    {
+        /* Left channel controlling both channels */
+        status = rset(64, 2);
+        if (status == CSL_SOK)
+        {
+            rset(65, (int)vol);
+        }
+        /* Small delay to allow the gain change */
+        delayMilliseconds(10);
+    }
 
-	return (status);
+    return (status);
 }
 
 /** ===========================================================================
@@ -1007,63 +1182,71 @@ int AudioClass::setOutputVolume(int volume)
 int AudioClass::setOutputVolume(int lvolume, int rvolume)
 {
     CSL_Status      status;
-	float           lvol;
-	float           rvol;
+    float           lvol;
+    float           rvol;
 
-	if((lvolume >= 0) && (lvolume <= 100) &&
-	   (rvolume >= 0) && (rvolume <= 100))
+    /* DAC volume register values will be in the range of 0 to 48(for 0.0dB to
+       +24dB respectively) and 255 down to 129 (for -0.5dB to -63.5dB
+       respectively). Hence the percentages will be in the range of 73% to 100%
+       for 0.0dB to +24dB respectively and 0% to 72% for -0.5dB to -63.5dB
+       respectively.
+       The range of DAC volume (left or right) register values consists of a
+       total 176 values (i.e, 0-48: 49 nos and 129-255: 127 nos), hence divide
+       the percentage with 0.568(i.e, 100/176 = 0.568).
+    */
+    if ((lvolume >= 0) && (lvolume <= 100) &&
+       (rvolume >= 0) && (rvolume <= 100))
     {
-		if(lvolume <= 72)
-		{
-			lvol = 72 - lvolume;
-			lvol = lvol / 0.568;
-			lvol = 255 - lvol;
-		}
-		else
-		{
-			lvol = lvolume - 72;
-			lvol = (lvol / 0.568) - 1;
-		}
+        if (lvolume <= 72)
+        {
+            lvol = 72 - lvolume;
+            lvol = lvol / 0.568;
+            lvol = 255 - lvol;
+        }
+        else
+        {
+            lvol = lvolume - 72;
+            lvol = (lvol / 0.568) - 1;
+        }
 
-		if(rvolume <= 72)
-		{
-			rvol = 72 - rvolume;
-			rvol = rvol / 0.568;
-			rvol = 255 - rvol;
-		}
-		else
-		{
-			rvol = rvolume - 72;
-			rvol = (rvol / 0.568) - 1;
-		}
+        if (rvolume <= 72)
+        {
+            rvol = 72 - rvolume;
+            rvol = rvol / 0.568;
+            rvol = 255 - rvol;
+        }
+        else
+        {
+            rvol = rvolume - 72;
+            rvol = (rvol / 0.568) - 1;
+        }
     }
-	else
-	{
-	    status = CSL_ESYS_FAIL;
+    else
+    {
+        status = CSL_ESYS_FAIL;
 
-		return (status);
-	}
+        return (status);
+    }
 
-	Serial.println(lvol);
-	Serial.println(rvol);
+    Serial.println(lvol);
+    Serial.println(rvol);
 
-	/* Select Page 0 */
+    /* Select Page 0 */
     status = rset(0, 0);
-	if(status == CSL_SOK)
-	{
-	 Serial.println("Inside 1");
-	    /* Left and right channels have independent control */
-	    status = rset(64, 0);
-	    if(status == CSL_SOK)
-	    {		Serial.println("Inside 2");
-	        rset(65, (int)lvol);
-			rset(66, (int)rvol);
-		}
-	    /* Small delay to allow the gain change */
-	    delayMilliseconds(10);
-	}
+    if (status == CSL_SOK)
+    {
+        /* Left and right channels have independent control */
+        status = rset(64, 0);
+        if (status == CSL_SOK)
+        {
+            rset(65, (int)lvol);
+            rset(66, (int)rvol);
+        }
+        /* Small delay to allow the gain change */
+        delayMilliseconds(10);
+    }
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -1086,18 +1269,18 @@ int AudioClass::audioMute(void)
 {
     CSL_Status      status;
 
-	/* Select Page 0 */
+    /* Select Page 0 */
     status = rset(0, 0);
-	if(status == CSL_SOK)
-	{
-	    /* Unmute audio */
-	    status = rset(64, 0x0C);
+    if (status == CSL_SOK)
+    {
+        /* Unmute audio */
+        status = rset(64, 0x0C);
 
-	    /* Small delay to allow the mute setting */
-	    delayMilliseconds(10);
-	}
+        /* Small delay to allow the mute setting */
+        delayMilliseconds(10);
+    }
 
-	return status;
+    return (status);
 }
 
 /** ===========================================================================
@@ -1120,33 +1303,183 @@ int AudioClass::audioUnmute(void)
 {
     CSL_Status      status;
 
-	/* Select Page 0 */
+    /* Select Page 0 */
     status = rset(0, 0);
-	if(status == CSL_SOK)
-	{
-	    /* Unmute audio */
-	    status = rset(64, 0x00);
+    if (status == CSL_SOK)
+    {
+        /* Unmute audio */
+        status = rset(64, 0x00);
 
-	    /* Small delay to allow the mute setting */
-	    delayMilliseconds(10);
-	}
+        /* Small delay to allow the mute setting */
+        delayMilliseconds(10);
+    }
 
-	return status;
+    return (status);
 }
 
+/** ===========================================================================
+ *   @n@b codecConfig
+ *
+ *   @b Description
+ *   @n Function to configure the codec with the specified config values.
+ *
+ *   @b Arguments
+ *   @verbatim
+ *      configStruct  - Structure containing the Codec Configurations
+ *      noOfElems     - No of Codec Configurations
+     @endverbatim
+ *
+ *   <b> Return Value </b>  CSL_Status
+ *   @li                    CSL_SOK             - Setting Codec Configurations
+ *                                                is successful
+ *   @li                    CSL_ESYS_FAIL       - Setting Codec Configurations
+ *                                                is not successful
+ *
+ *  ===========================================================================
+ */
+static int codecConfig(Uint16 configStruct[][2], int noOfElems)
+{
+    int index;
+    int status;
+
+    status = CSL_SOK;
+    for (index = 0; index < noOfElems; index++)
+    {
+        status |= rset(configStruct[index][0],  configStruct[index][1]);
+    }
+
+    return (status);
+}
+
+/** ===========================================================================
+ *   @n@b setSamplingRate
+ *
+ *   @b Description
+ *   @n Function to set Sampling Rate for Audio IN/OUT.
+ *
+ *   @b Arguments
+ *   @verbatim
+ *      samplingRate - Sampling Rate that is to be set
+     @endverbatim
+ *
+ *   <b> Return Value </b>  CSL_Status
+ *   @li                    CSL_SOK             - Setting Sampling rate successful
+ *   @li                    CSL_ESYS_FAIL       - Setting Sampling rate is not
+ *                                                successful
+ *
+ *  ===========================================================================
+ */
+int AudioClass::setSamplingRate(long samplingRate)
+{
+    int    status;
+    Uint16 (*configStruct)[2];
+    int    noOfElems;
+
+    status = CSL_SOK;
+    switch (samplingRate)
+    {
+        case SAMPLING_RATE_8_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_8k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_8k) /
+                        sizeof(CodecConfig_SamplingRate_8k[0]);
+            break;
+
+        case SAMPLING_RATE_11_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_11k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_11k) /
+                        sizeof(CodecConfig_SamplingRate_11k[0]);
+            break;
+
+        case SAMPLING_RATE_12_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_12k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_12k) /
+                        sizeof(CodecConfig_SamplingRate_12k[0]);
+            break;
+
+        case SAMPLING_RATE_16_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_16k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_16k) /
+                        sizeof(CodecConfig_SamplingRate_16k[0]);
+            break;
+
+        case SAMPLING_RATE_22_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_22k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_22k) /
+                        sizeof(CodecConfig_SamplingRate_22k[0]);
+            break;
+
+        case SAMPLING_RATE_24_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_24k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_24k) /
+                        sizeof(CodecConfig_SamplingRate_24k[0]);
+            break;
+
+        case SAMPLING_RATE_32_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_32k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_32k) /
+                        sizeof(CodecConfig_SamplingRate_32k[0]);
+            break;
+
+        case SAMPLING_RATE_44_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_44k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_44k) /
+                        sizeof(CodecConfig_SamplingRate_44k[0]);
+            break;
+
+        case SAMPLING_RATE_48_KHZ:
+            configStruct = (Uint16 (*)[2])CodecConfig_SamplingRate_48k;
+            noOfElems = sizeof(CodecConfig_SamplingRate_48k) /
+                        sizeof(CodecConfig_SamplingRate_48k[0]);
+            break;
+
+        default:
+            status = CSL_ESYS_FAIL;
+            break;
+
+    }
+
+    if (CSL_SOK == status)
+    {
+        status = codecConfig(configStruct, noOfElems);
+    }
+
+    return (status);
+}
+
+/** ===========================================================================
+ *   @n@b HPL_RConF_Routing
+ *
+ *   @b Description
+ *   @n Function to select the HPL Routing of the Audio Codec.
+ *
+ *   @b Arguments
+ *   @verbatim
+ *      left - value of the left channel configuration that is to be set for the
+ *             HPL routing register in order to select the desired routing to
+ *             HPL
+     @endverbatim
+ *
+ *   <b> Return Value </b>  CSL_Status
+ *   @li                    CSL_SOK             - Selecting the desired HPL
+ *                                                routing successful
+ *   @li                    CSL_ESYS_FAIL       - Selecting the desired HPL
+ *                                                routing is not successful
+ *
+ *  ===========================================================================
+ */
 int AudioClass::HPL_RConF_Routing(int left)
 {
     int status;
     Uint16 value;
 
-    if(left)
+    if (left)
     {
-		value = 0x08;
-	}
-	else
-	{
-		value = 0x00;
-	}
+        value = 0x08;
+    }
+    else
+    {
+        value = 0x00;
+    }
 
     status = rset(0, 1);       /* Select Page 1 */
     status |= rset(12, value);
@@ -1154,20 +1487,44 @@ int AudioClass::HPL_RConF_Routing(int left)
     return (status);
 }
 
+/** ===========================================================================
+ *   @n@b HPR_RConF_Routing
+ *
+ *   @b Description
+ *   @n Function to select the HPR Routing of the Audio Codec.
+ *
+ *   @b Arguments
+ *   @verbatim
+ *      left - value of the left channel configuration that is to be set for the
+ *             HPR routing register in order to select the desired routing to
+ *             HPR
+ *      right - value of the right channel configuration that is to be set for
+ *              the HPR routing register in order to select the desired routing
+ *              to HPR
+     @endverbatim
+ *
+ *   <b> Return Value </b>  CSL_Status
+ *   @li                    CSL_SOK             - Selecting the desired HPR
+ *                                                routing successful
+ *   @li                    CSL_ESYS_FAIL       - Selecting the desired HPR
+ *                                                routing is not successful
+ *
+ *  ===========================================================================
+ */
 int AudioClass::HPR_RConF_Routing(int left, int right)
 {
     int status;
     Uint16 value = 0;
 
-    if(left)
+    if (left)
     {
-		value |= 0x10;
-	}
+        value |= 0x10;
+    }
 
-	if(right)
-	{
-		value |= 0x08;
-	}
+    if (right)
+    {
+        value |= 0x08;
+    }
 
     status = rset(0, 1);       /* Select Page 1 */
     status |= rset(13, value);
@@ -1175,20 +1532,44 @@ int AudioClass::HPR_RConF_Routing(int left, int right)
     return (status);
 }
 
+/** ===========================================================================
+ *   @n@b LOL_RConF_Routing
+ *
+ *   @b Description
+ *   @n Function to select the LOL Routing of the Audio Codec.
+ *
+ *   @b Arguments
+ *   @verbatim
+ *      left - value of the left channel configuration that is to be set for the
+ *             LOL routing register in order to select the desired routing to
+ *             LOL
+ *      right - value of the right channel configuration that is to be set for
+ *              the LOL routing register in order to select the desired routing
+ *              to LOL
+     @endverbatim
+ *
+ *   <b> Return Value </b>  CSL_Status
+ *   @li                    CSL_SOK             - Selecting the desired LOL
+ *                                                routing successful
+ *   @li                    CSL_ESYS_FAIL       - Selecting the desired LOL
+ *                                                routing is not successful
+ *
+ *  ===========================================================================
+ */
 int AudioClass::LOL_RConF_Routing(int left, int right)
 {
     int status;
     Uint16 value = 0;
 
-    if(right)
+    if (right)
     {
-		value |= 0x10;
-	}
+        value |= 0x10;
+    }
 
-	if(right)
-	{
-		left |= 0x08;
-	}
+    if (right)
+    {
+        left |= 0x08;
+    }
 
     status = rset(0, 1);       /* Select Page 1 */
     status |= rset(14, value);
@@ -1196,23 +1577,43 @@ int AudioClass::LOL_RConF_Routing(int left, int right)
     return (status);
 }
 
+/** ===========================================================================
+ *   @n@b LOR_RConF_Routing
+ *
+ *   @b Description
+ *   @n Function to select the LOR Routing of the Audio Codec.
+ *
+ *   @b Arguments
+ *   @verbatim
+ *      right - value of the right channel configuration that is to be set for
+ *              the LOR routing register in order to select the desired routing
+ *              to LOR
+     @endverbatim
+ *
+ *   <b> Return Value </b>  CSL_Status
+ *   @li                    CSL_SOK             - Selecting the desired LOR
+ *                                                routing successful
+ *   @li                    CSL_ESYS_FAIL       - Selecting the desired LOR
+ *                                                routing is not successful
+ *
+ *  ===========================================================================
+ */
 int AudioClass::LOR_RConF_Routing(int right)
 {
     int status;
     Uint16 value;
 
-    if(right)
+    if (right)
     {
-		value = 0x08;
-	}
-	else
-	{
-		value = 0x00;
-	}
+        value = 0x08;
+    }
+    else
+    {
+        value = 0x00;
+    }
 
     status = rset(0, 1);       /* Select Page 1 */
     status |= rset(15, value);
 
     return (status);
 }
-

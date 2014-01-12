@@ -38,7 +38,7 @@
  *  @brief SD/File implementation
  *
  */
- 
+
 #include <SD.h>
 #include <core.h>
 
@@ -126,7 +126,8 @@ static Uint16 computeClkRate(void)
     memMaxClk = CSL_SD_CLOCK_MAX_KHZ;
     clkRate   = 0;
 
-    /* Get the clock value at which CPU is running */
+    /* Get the clock value at which CPU is running. getCpuClock() will return
+       system clock in terms of kHz */
     sysClock = getCpuClock();
 
     if (sysClock > memMaxClk)
@@ -210,6 +211,8 @@ SD_Class::~SD_Class ()
 {
     fileNodesList *currentNode;
 
+    /* De-allocate all the memory that was previous allocated for the File
+       objects of all the opened files */
     do
     {
         currentNode = fileListHeadNode;
@@ -232,6 +235,20 @@ SD_Class::~SD_Class ()
  */
 Bool SD_Class::begin ()
 {
+	return (this->begin(0));
+}
+
+/**
+ *
+ * \brief begin()
+ *
+ *  API to Initialize and Configure the SD Card
+ *
+ * \return TRUE  - Successful in initializing and configuring the SD Card
+ *         FALSE - Unsuccessful in initializing and configuring the SD Card
+ */
+Bool SD_Class::begin (int opmode)
+{
     CSL_Status     status;
     Uint16         clockDiv;
     Uint16         rca;
@@ -239,6 +256,11 @@ Bool SD_Class::begin ()
     AtaState       *ptrAtaDrive;
     AtaMMCState    *gpataMMCStateStruct;
     AtaError       ata_error;
+
+    if ((0 != opmode) && (1 != opmode))
+    {
+		return (FALSE);
+	}
 
     ptrAtaDrive         = &(this->ataDriveStruct);
     gpataMMCStateStruct = &(this->ataMMCStateStruct);
@@ -261,13 +283,57 @@ Bool SD_Class::begin ()
     }
 
     /* Open MMCSD CSL module */
-    mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
-                           CSL_MMCSD_OPMODE_POLLED, &status);
+    if (0 == opmode)
+    {
+		mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
+							   CSL_MMCSD_OPMODE_POLLED, &status);
+	}
+	else
+	{
+		mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
+							   CSL_MMCSD_OPMODE_DMA, &status);
+	}
     if (mmcsdHandle == NULL)
     {
         LOG_MSG_print("MMC_open Failed\n");
         return (FALSE);
     }
+
+	/* Configure the DMA in case of operating mode is set to DMA */
+	if (1 == opmode)
+	{
+		/* Initialize Dma */
+		status = DMA_init();
+		if (status != CSL_SOK)
+		{
+			LOG_MSG_print("DMA_init Failed!\n");
+			return (FALSE);
+		}
+
+		/* Open Dma channel for MMCSD write */
+		dmaWriteHandle = DMA_open(CSL_DMA_CHAN0, &dmaWriteChanObj, &status);
+		if ((dmaWriteHandle == NULL) || (status != CSL_SOK))
+		{
+			LOG_MSG_print("DMA_open for MMCSD Write Failed!\n");
+			return (FALSE);
+		}
+
+		/* Open Dma channel for MMCSD read */
+		dmaReadHandle = DMA_open(CSL_DMA_CHAN1, &dmaReadChanObj, &status);
+		if ((dmaReadHandle == NULL) || (status != CSL_SOK))
+		{
+			LOG_MSG_print("DMA_open for MMCSD Read Failed!\n");
+			return (FALSE);
+		}
+
+		/* Set the DMA handle for MMC read */
+		status = MMC_setDmaHandle(mmcsdHandle, dmaWriteHandle, dmaReadHandle);
+		if (status != CSL_SOK)
+		{
+			LOG_MSG_print("API: MMC_setDmaHandle for MMCSD Failed\n");
+			return (FALSE);
+		}
+	}
 
     /* Reset the SD card */
     status = MMC_sendGoIdle(mmcsdHandle);
@@ -438,6 +504,7 @@ static void extractFileNameFromPath(char *filePath, char *fileName)
     tempPtr = filePath;
     prevPtr = filePath;
 
+    /* Find the last occurence of the character '/', to extract the file name */
     do
     {
         tempPtr = strstr (tempPtr, "/");
@@ -573,7 +640,7 @@ static AtaFile* searchFile (AtaFile  *pAtaFile, char *fileNameWitExt)
         }
         else
         {
-            // if the file name is the same, compare the extension name
+            // if the file name is same, compare the extension name
             for (counter = 0; counter < strlen(ext); counter++)
             {
                 FileName[counter] = FileName[strlen(fileName) + 1 + counter];
@@ -631,7 +698,7 @@ static AtaFile* searchDirectory (AtaFile  *pAtaFile, char *directoryName)
     }
     nameUp[counter] = 0;
 
-    // find the first file in this drive
+    // find the first file in the current directory
     ATA_findFirst(pAtaFile);
 
     // find the file, if it exists
@@ -659,14 +726,14 @@ static AtaFile* searchDirectory (AtaFile  *pAtaFile, char *directoryName)
             }
             else
             {
-                // we have a match
+                // we get the match here
                 return (pAtaFile);
             }
         }
         else
         {
             ata_error = ATA_findNext(pAtaFile);
-            // have we get the empty entry?
+            // have we got the empty entry?
             if (ATA_ERROR_FILE_NOT_FOUND == ata_error)
             {
                 break;
@@ -710,7 +777,9 @@ Bool SD_Class::exists (char *filePath)
 
     memcpy (pAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
 
-    do /* Navigate to the Directory */
+    /* Navigate to the Directory path and check whether the intermediate
+          directories (if any) in the path are present */
+    do
     {
         tempPtr = strstr (tempPtr, "/");
         if (tempPtr != NULL)
@@ -782,12 +851,13 @@ Bool SD_Class::mkdir (char *directoryPath)
     char     *prevPtr;
     int      dirNameLen;
 
-    /* The length of directory path is restricted to 255 charcaters */
+    /* The length of the directory path is restricted to 255 charcaters */
     if (strlen(directoryPath) > 255)
     {
         return (FALSE);
     }
 
+    /* Extracts file name along with its extension */
     extractFileNameFromPath(directoryPath, directoryName);
     extractFileNameAndExt(directoryName, directoryName, extension);
     if ((strlen(directoryName) > 8) || (strlen(extension) > 1))
@@ -807,7 +877,8 @@ Bool SD_Class::mkdir (char *directoryPath)
         memcpy (pAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
         memcpy (parentDirAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
 
-        /* Navigate to the directory, if it doesn't exists create the directory */
+        /* Navigate to the directory in the path, if it doesn't exists create
+           all the intermediary directories */
         do
         {
             tempPtr = strstr (tempPtr, "/");
@@ -945,7 +1016,7 @@ static fileNodesList* searchFileList (unsigned long startCluster)
         if ((currentNode->startCluster != 0xFFFFFFFF)   &&
             (currentNode->startCluster == startCluster))
         {
-            break; // We have a match here
+            break; // We have found the desired node here
         }
         currentNode = currentNode->nextFileNode;
     }
@@ -958,6 +1029,7 @@ static fileNodesList* searchFileList (unsigned long startCluster)
  * \brief open(filePath)
  *
  *  API to open an existing file
+ *  Length of file name accepted by SD library is restricted to 8 characters
  *
  * \param filePath [IN] Path of the File that is to be opened
  *
@@ -988,7 +1060,7 @@ File SD_Class::open (char *filePath)
     memset(&fileObj, 0, sizeof(File));
     fileObj.holdCharFromRead = -1;
 
-    if (0 == strcmp(filePath, "/")) /* Root Directory */
+    if (0 == strcmp(filePath, "/")) /* Request to open Root Directory */
     {
         /* Adding the File Node to the Linked list of File Nodes */
         newFileNode = new (fileNodesList);
@@ -1027,6 +1099,7 @@ File SD_Class::open (char *filePath)
         }
     }
 
+    /* Extracts file name along with its extension */
     extractFileNameFromPath(filePath, fileName);
     extractFileNameAndExt(fileName, fileName, ext);
     if ((strlen(fileName) > 8) || (strlen(ext) > 3))
@@ -1035,7 +1108,8 @@ File SD_Class::open (char *filePath)
         return (fileObj);
     }
 
-    /* Check whether the file is already opened */
+    /* Extract the file name of the requested file, which is to be opened
+       Extracts file name along with its extension */
     extractFileNameFromPath(filePath, fileName);
 
     /* Check whether the file is present on the card */
@@ -1046,7 +1120,9 @@ File SD_Class::open (char *filePath)
     {
         memcpy (pAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
 
-        do /* Navigate to the Directory */
+        /* Navigate to the Directory and check whether the intermediate
+          directories (if any) in the path are present */
+        do
         {
             tempPtr = strstr (tempPtr, "/");
             if (tempPtr != NULL)
@@ -1088,7 +1164,8 @@ File SD_Class::open (char *filePath)
 
         pAtaFile = tmpAddr;
 
-        /* Check whether the requested file is a directory */
+        /* Check whether the requested file to be opened is a directory or
+           a file */
         while (index < strlen (fileName))
         {
             if ('.' ==  fileName[index])
@@ -1136,7 +1213,7 @@ File SD_Class::open (char *filePath)
 
         fileObj.startCluster = (unsigned long)pAtaFile->StartCluster;
 
-        /* Adding the File Node to the Linked list of File Nodes */
+        /* Add the File Node to the Linked list of Opened File Nodes */
         newFileNode = new (fileNodesList);
         if (NULL != newFileNode)
         {
@@ -1148,6 +1225,8 @@ File SD_Class::open (char *filePath)
                     sizeof(AtaFile));
             fileObj.fileMode = FILE_READ;
             fileObj.fileOpenStatus = TRUE;
+
+            /* Extracts file name along with its extension */
             extractFileNameFromPath (filePath, fileObj.fileName);
 
             /* Add this fileNode to the List of file Nodes */
@@ -1183,6 +1262,7 @@ File SD_Class::open (char *filePath)
  * \brief open(filePath, mode)
  *
  *  API to open/create a new file
+ *  Length of file name accepted by SD library is restricted to 8 characters
  *
  * \param  filePath [IN] Path of the File that is to be created
  * \param  mode     [IN] Mode of the File (Read/Write/RW)
@@ -1214,7 +1294,9 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
         pAtaFile->pDrive = &ataDriveStruct;
         memcpy (pAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
 
-        do /* Navigate to the Directory */
+        /* Navigate to the Directory path and check whether the intermediate
+          directories (if any) in the path are present */
+        do
         {
             tempPtr = strstr (tempPtr, "/");
             if (tempPtr != NULL)
@@ -1254,7 +1336,9 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
             return (fileObj);
         }
 
+        /* Extracts file name along with its extension */
         extractFileNameFromPath(filePath, fileName);
+
         extractFileNameAndExt(fileName, fileName, extension);
         if ((strlen(fileName) > 8) || (strlen(extension) > 3))
         {
@@ -1308,6 +1392,8 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
             if (NULL != newFileNode)
             {
                 newFileNode->nextFileNode = (fileNodesList *)NULL;
+
+                /* Extracts file name along with its extension */
                 extractFileNameFromPath (filePath, fileObj.fileName);
 
                 /* Add this fileNode to the List of file Nodes */
@@ -1316,12 +1402,6 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
 
                 fileObj.fileMode       = mode;
                 fileObj.fileOpenStatus = TRUE;
-
-                if (FILE_APPEND == mode)
-                {
-                    /* Seek to the end of the file */
-                    fileObj.seek(fileObj.size());
-                }
 
                 fileObj.startCluster = (unsigned long)fileObj.ataFileStruct.StartCluster;
                 newFileNode->startCluster = fileObj.startCluster;
@@ -1379,7 +1459,9 @@ Bool SD_Class::remove (char *filePath)
     prevPtr     = filePath;
     tempPtr     = filePath;
 
+    /* Extracts file name along with its extension */
     extractFileNameFromPath(filePath, fileName);
+
     extractFileNameAndExt(fileName, fileName, extension);
     if ((strlen(fileName) > 8) || (strlen(extension) > 3))
     {
@@ -1395,7 +1477,9 @@ Bool SD_Class::remove (char *filePath)
 
     memcpy (pAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
 
-    do /* Navigate to the Directory */
+    /* Navigate to the Directory path and check whether the intermediate
+       directories (if any) in the path are present */
+    do
     {
         tempPtr = strstr (tempPtr, "/");
         if (tempPtr != NULL)
@@ -1432,13 +1516,16 @@ Bool SD_Class::remove (char *filePath)
         return (FALSE);
     }
 
+    /* Extracts file name along with its extension */
     extractFileNameFromPath(filePath, fileName);
     pAtaFile = searchFile (pAtaFile, fileName);
     if (NULL != pAtaFile)
     {
-        /* Checking whether File is already opened and in use or not */
+        /* Checking whether File is already opened and is in use or not */
         if (NULL == searchFileList((unsigned long)pAtaFile->StartCluster))
         {
+			/* We have navigated to the desired directory path, now delete the
+			   directory */
             ata_error = ATA_delete (pAtaFile);
             if (ATA_ERROR_NONE == ata_error)
             {
@@ -1474,6 +1561,7 @@ Bool SD_Class::rmdir (char *directoryPath)
     char     *prevPtr;
     int      dirNameLen;
 
+    /* Extracts file name along with its extension */
     extractFileNameFromPath(directoryPath, directoryName);
     extractFileNameAndExt(directoryName, directoryName, extension);
     if ((strlen(directoryName) > 8) || (strlen(extension) > 1))
@@ -1490,7 +1578,9 @@ Bool SD_Class::rmdir (char *directoryPath)
     {
         memcpy (pAtaFile, &(this->ataFirstFileStruct), sizeof(AtaFile));
 
-        do /* Navigate to the directory path */
+        /* Navigate to the Directory path and check whether the intermediate
+          directories (if any) in the path are present */
+        do
         {
             tempPtr = strstr (tempPtr, "/");
             if (tempPtr != NULL)
@@ -1514,10 +1604,12 @@ Bool SD_Class::rmdir (char *directoryPath)
             {
                 break;
             }
-        } while (tempPtr != NULL) ;
+        } while (tempPtr != NULL);
 
         if (NULL == tempPtr)
         {
+			/* We have navigated to the desired directory path, now delete the
+			   directory */
             ata_error = ATA_delete (pAtaFile);
             if (ATA_ERROR_NONE == ata_error)
             {
@@ -1632,7 +1724,7 @@ void File::close ()
         {
             this->fileOpenStatus = FALSE;
 
-            /* Delete the file node from the list of file nodes */
+            /* Delete the file node from the list of opened file nodes */
             fileNode = searchFileList (this->startCluster);
             if (NULL != fileNode)
             {
@@ -1767,6 +1859,7 @@ static void packDataToUint16(char      *valAsString,
 {
     int index;
 
+    /* Pack the bytes of the buffer 'valAsString', into Words (16 bit) */
     for (index = 0; index < length;)
     {
         writeBuffer[index/2] = (AtaUint16)(valAsString[index] & 0xFF);
@@ -1791,7 +1884,6 @@ int File::print (char character)
 {
     AtaError  ata_error;
     AtaUint16 dataToWrite;
-    char      writeBuffer[3];
 
     if ((this->fileOpenStatus == TRUE) &&
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
@@ -1799,12 +1891,9 @@ int File::print (char character)
         /* Check whether data is already there to be flushed or not */
         if (TRUE == this->flushData)
         {
-            writeBuffer[0] = this->charToFlush;
-            writeBuffer[1] = character;
-            writeBuffer[2] = '\0';
+            dataToWrite = (this->charToFlush & 0xFF) << 8;
+            dataToWrite |= (character & 0xFF);
 
-            /* Pack the bytes in a 16-bit integer Array */
-            packDataToUint16 (writeBuffer, &dataToWrite, 2);
             ata_error = ATA_write (&(this->ataFileStruct), &dataToWrite, 1);
             if (ATA_ERROR_NONE == ata_error)
             {
@@ -1839,15 +1928,20 @@ int File::print (char character)
 int File::print (char *printString)
 {
     AtaError  ata_error;
+    AtaUint16 *ataString;
     int       strLength;
     char      data;
     int       retValue;
+
+    ataString = NULL;
 
     if ((this->fileOpenStatus == TRUE) &&
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
     {
         strLength = strlen (printString);
         retValue  = strlen (printString);
+
+        ataString = (AtaUint16 *)malloc(sizeof(AtaUint16) * strLength / 2);
 
         /* Check whether data is already there to be flushed */
         if (TRUE == this->flushData)
@@ -1866,10 +1960,10 @@ int File::print (char *printString)
         }
 
         /* Pack the bytes in a 16-bit integer Array */
-        packDataToUint16 (printString, (AtaUint16 *)printString, strLength);
+        packDataToUint16 (printString, ataString, strLength);
         ata_error = ATA_write (&(this->ataFileStruct),
-                               (AtaUint16 *)printString,
-                               strlen(printString) / 2);
+                               ataString,
+                               strLength / 2);
         if (ATA_ERROR_NONE == ata_error)
         {
             /* If the user requests odd no of bytes to write, hold the last byte
@@ -1879,8 +1973,11 @@ int File::print (char *printString)
                 this->flushData   = TRUE;
                 this->charToFlush = printString[strLength - 1];
             }
+            free(ataString);
             return (retValue);
         }
+
+        free(ataString);
     }
 
     return (0);
@@ -1923,13 +2020,11 @@ int File::print (long integer)
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
     {
         /* Convert the integer to character array */
-        sprintf(valAsString, "%ld", integer);
+        retValue = sprintf(valAsString, "%ld", integer);
+        valAsString[retValue] = '\0';
 
         retValue = this->print(valAsString);
-        if (0 != retValue)
-        {
-            return (strlen(valAsString));
-        }
+        return (retValue);
     }
 
     return (0);
@@ -1956,13 +2051,11 @@ int File::print (float value)
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
     {
         /* Convert the float to character array */
-        sprintf(valAsString, "%.7f", value);
+        retValue = sprintf(valAsString, "%.7f", value);
+        valAsString[retValue] = '\0';
 
         retValue = this->print(valAsString);
-        if (0 != retValue)
-        {
-            return (strlen(valAsString));
-        }
+        return (retValue);
     }
 
     return (0);
@@ -1991,13 +2084,11 @@ int File::print (double value)
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
     {
         /* Convert the float to character array */
-        sprintf(valAsString, "%.15f", value);
+        retValue = sprintf(valAsString, "%.15f", value);
+        valAsString[retValue] = '\0';
 
         retValue = this->print(valAsString);
-        if (0 != retValue)
-        {
-            return (strlen(valAsString));
-        }
+        return (retValue);
     }
 
     return (0);
@@ -2063,7 +2154,8 @@ static void convertDecToBinOct (long value, char *convString, int base)
  */
 int File::print (long integer, NUMBER_FORMAT_BASE base)
 {
-    char      valAsString[50];
+    char valAsString[50];
+    int  retValue;
 
     if ((this->fileOpenStatus == TRUE) &&
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
@@ -2075,15 +2167,18 @@ int File::print (long integer, NUMBER_FORMAT_BASE base)
                 break;
 
             case FILE_OCT:
-                sprintf(valAsString, "%o", integer);
+                retValue = sprintf(valAsString, "%o", integer);
+                valAsString[retValue] = '\0';
                 break;
 
             case FILE_DEC:
-                sprintf(valAsString, "%ld", integer);
+                retValue = sprintf(valAsString, "%ld", integer);
+                valAsString[retValue] = '\0';
                 break;
 
             case FILE_HEX:
-                sprintf(valAsString, "%X", integer);
+                retValue = sprintf(valAsString, "0x%X", integer);
+                valAsString[retValue] = '\0';
                 break;
 
             default:
@@ -2605,10 +2700,12 @@ int File::write (char *printString)
 static int writeData(File *fileHandle, char *buffer, int length)
 {
     AtaError  ata_error;
+    AtaUint16 *ataString;
     char      data;
     int       retValue;
 
     retValue  = length;
+    ataString = NULL;
 
     /* Check whether data is already there to be flushed */
     if (TRUE == fileHandle->flushData)
@@ -2619,10 +2716,12 @@ static int writeData(File *fileHandle, char *buffer, int length)
         length--;
     }
 
+    ataString = (AtaUint16 *)malloc(sizeof(AtaUint16) * length / 2);
+
     /* Pack the bytes in a 16-bit integer Array */
-    packDataToUint16 (buffer, (AtaUint16 *)buffer, length);
+    packDataToUint16 (buffer, ataString, length);
     ata_error = ATA_write (&(fileHandle->ataFileStruct),
-                           (AtaUint16 *)buffer,
+                           ataString,
                            length / 2);
     if (ATA_ERROR_NONE == ata_error)
     {
@@ -2633,8 +2732,10 @@ static int writeData(File *fileHandle, char *buffer, int length)
             fileHandle->flushData   = TRUE;
             fileHandle->charToFlush = buffer[length - 1];
         }
+        free(ataString);
         return (retValue);
     }
+    free(ataString);
 
     return (0);
 }

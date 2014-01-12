@@ -45,7 +45,7 @@
 
 #include "Dsplib.h"
 
-/**
+/** ===========================================================================
  *
  * Second order IIR filter.
  *
@@ -83,6 +83,8 @@
  * 08/25/1998 Modified, to allow in-place operation.  An additional parameter
  *          w (short *) is added to save the state of the filter.
  * 12/05/2013 Changed the function and parameter names
+ *
+ *  ===========================================================================
  */
 void filter_iirSecondOrder(const int length,
                            const int *input,
@@ -90,7 +92,7 @@ void filter_iirSecondOrder(const int length,
                            const int *coeffs,
                            int       *delayBuf);
 
-/**
+/** ===========================================================================
  *
  * Arbitrary order IIR filter. This function cascades multiple second order
  * filter sections to achieve arbitrary order IIR filter
@@ -130,6 +132,7 @@ void filter_iirSecondOrder(const int length,
  *   i.e. delayBuf[] -> {input[-1], input[-2], output[-1], output[-2]}.
  *   This is to allow proper block operation.
  *
+ *  ===========================================================================
  */
 void filter_iirArbitraryOrder(int       length,
                               int       *input,
@@ -138,7 +141,7 @@ void filter_iirArbitraryOrder(int       length,
                               int       *delayBuf,
                               int       order);
 
-/**
+/** ===========================================================================
  *
  * Wrapper API for the dsplib FIR filter API.
  *
@@ -155,6 +158,8 @@ void filter_iirArbitraryOrder(int       length,
  *
  * Returns: int overFlow -> 0 : 32 bit Overflow hasn't occurred
  *                          1 : 32 bit Overflow has occurred
+ *
+ *  ===========================================================================
  */
 int filter_fir(int          *input,
                int          *coeffs,

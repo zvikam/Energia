@@ -104,6 +104,8 @@ public class Base {
 
   // Location for untitled items
   static File untitledFolder;
+  static String C5000CompilersPath = getC5000BasePath();
+  static boolean compileCoreLibrary = false;
 
   // p5 icon for the window
 //  static Image icon;
@@ -288,6 +290,12 @@ public class Base {
         defaultFolder.mkdirs();
       }
     }
+
+    // Get the Compiler Tools path, and make sure it's set properly
+    String compilerToolsPath = Preferences.get("compile.compilerToolsPath");
+    if (compilerToolsPath == null) {
+		Preferences.set("compile.compilerToolsPath", C5000CompilersPath);
+	}
 
     targetsTable = new HashMap<String, Target>();
     loadHardware(getHardwareFolder());
@@ -1754,7 +1762,7 @@ public class Base {
           return hwPath;
       }
       else if (getArch() == "C5000") {
-    	  String hwPath = getC5000BasePath();
+    	  String hwPath = C5000CompilersPath;
     	  return hwPath;
       }
       else {
@@ -1762,16 +1770,45 @@ public class Base {
           + getArch() + File.separator + "bin" + File.separator;
       }
     } else if (Base.isWindows()) {
-      String ret = getHardwarePath() + File.separator + "tools"
+		String ret;
+        if (getArch() != "C5000"){
+		  ret = getHardwarePath() + File.separator + "tools"
           + File.separator + getArch() + File.separator + "bin"
           + File.separator;
+	  } else{
+		  ret = C5000CompilersPath;
+	  }
       return ret;
     } else {
-      return getHardwarePath() + File.separator + "tools" + File.separator
-          + getArch() + File.separator + "bin" + File.separator;
+      	if (getArch() != "C5000"){
+			return getHardwarePath() + File.separator + "tools" + File.separator
+          		+ getArch() + File.separator + "bin" + File.separator;
+		} else {
+			return C5000CompilersPath;
+		}
     }
   }
 
+  static public void setBasePath(String newPath) {
+	  if (getArch() == "C5000"){
+		  C5000CompilersPath = newPath;
+	  }
+  }
+
+  static public void setCompileCoreLibrary(boolean newValue) {
+	  if (getArch() == "C5000"){
+		  compileCoreLibrary = newValue;
+	  }
+  }
+
+  static public boolean getCompileCoreLibrary() {
+	  if (getArch() == "C5000"){
+		  return compileCoreLibrary;
+	  }
+	  else{
+		  return false;
+	  }
+  }
 
   static public Target getTarget() {
     return Base.targetsTable.get(Preferences.get("target"));

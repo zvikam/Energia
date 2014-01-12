@@ -39,7 +39,7 @@
  *  @brief GPIO implementation
  *
  */
- 
+
 #include "GPIO_lib.h"
 
 #include <stdio.h>
@@ -71,6 +71,7 @@ void gpioHandleErrors(int status)
  *
  *      Initialize GPIO Module.
  *
+ *  Returns '0' on success else error code
  */
 int gpioOpen()
 {
@@ -96,6 +97,8 @@ int gpioOpen()
  *  multiplexing based on GPIO pin number passed.
  *
  *      unsigned short number    <- GPIO number
+ *
+ *  Returns '0' on success else error code
  */
 int gpioSelectMode(unsigned short pinNumber)
 {
@@ -103,7 +106,7 @@ int gpioSelectMode(unsigned short pinNumber)
 
     status = CSL_ESYS_INVPARAMS;
 
-    /* Configure the mode in EBSR depending on pin number */
+    /* Configure the mode in EBSR depending on the GPIO pin number */
     if (pinNumber <= 5)
     {
 		status = SYS_setEBSR(CSL_EBSR_FIELD_SP0MODE, CSL_EBSR_SP0MODE_2);
@@ -138,6 +141,8 @@ int gpioSelectMode(unsigned short pinNumber)
  *      unsigned short number    <- GPIO number
  *      unsigned short direction <- 0 : Set GPIO as Input
  *                          1 : Set GPIO as Output
+ *
+ *  Returns '0' on success else error code
  */
 int gpioPinMode(unsigned short pinNumber, unsigned short direction)
 {
@@ -146,7 +151,7 @@ int gpioPinMode(unsigned short pinNumber, unsigned short direction)
 
 	gpioSelectMode(pinNumber);
 
-    /* Configure GPIO direction */
+    /* Configure the requested GPIO pin direction */
     config.pinNum    = (CSL_GpioPinNum)pinNumber;
     config.direction = (CSL_GpioDirection)direction;
     config.trigger   = CSL_GPIO_TRIG_CLEAR_EDGE;
@@ -180,23 +185,23 @@ int gpioGetDirection(int pinNumber)
     CSL_Status     status;
 	CSL_GpioConfig gpioConfig;
 
-    /* Get GPIO input */
+    /* Get input/output directions of all GPIO pins */
     status = GPIO_getConfig(hGpio, &gpioConfig);
     if (CSL_SOK == status)
     {
         if (pinNumber < CSL_GPIO_PIN16)
 		{
-		    return(((gpioConfig.GPIODIRL) >> pinNumber) & PINMASK);
+		    return (((gpioConfig.GPIODIRL) >> pinNumber) & PINMASK);
 		}
 		else
 		{
-		    return(((gpioConfig.GPIODIRH) >> pinNumber) & PINMASK);
+		    return (((gpioConfig.GPIODIRH) >> pinNumber) & PINMASK);
 		}
     }
     else
     {
 	    handleErrors(status);
-        return(2);
+        return (2);
     }
 }
 
@@ -221,7 +226,7 @@ int gpioRead(int pinNumber)
 
     gpioState = 0;
 
-    /* Get GPIO input */
+    /* Get GPIO pin state */
     status = GPIO_read(hGpio, (CSL_GpioPinNum)pinNumber, &gpioState);
     if (CSL_SOK == status)
     {
@@ -230,7 +235,7 @@ int gpioRead(int pinNumber)
     else
     {
 	    handleErrors(status);
-        return(2);
+        return (2);
     }
 }
 
@@ -249,7 +254,7 @@ void gpioWrite(unsigned short pinNumber, unsigned short gpioState)
 {
     CSL_Status status;
 
-    /* Set GPIO output */
+    /* Set GPIO Pin state */
     status = GPIO_write(hGpio, (CSL_GpioPinNum)pinNumber, gpioState);
     if (CSL_SOK != status)
 	{

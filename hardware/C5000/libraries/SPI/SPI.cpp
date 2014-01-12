@@ -195,7 +195,7 @@ void SPI_Class::setClockDivider (int divider)
 {
     CSL_Status status;
 
-    spiConfig.spiClkDiv    = (Uint16)divider;
+    spiConfig.spiClkDiv = (Uint16)divider;
 
     status = SPI_config(spiHandle, &spiConfig);
     if(CSL_SOK != status)
@@ -224,6 +224,18 @@ void SPI_Class::setClockDivider (int divider)
 void SPI_Class::setDataMode (int mode)
 {
     CSL_Status status;
+
+    /* The modes are for the following Clock Polarity(CPOL) and Clock
+     *   Phase(CPHA) Selections
+     *-----------------------
+     *   MODE     CPOL  CPHA
+     *-----------------------
+     * SPI_MODE0   0     0
+     * SPI_MODE1   0     1
+     * SPI_MODE2   1     0
+     * SPI_MODE3   1     1
+     *-----------------------
+     */
 
     switch (mode)
     {
@@ -369,7 +381,6 @@ static void swap8Bits(unsigned short *buffer, int length)
     int            index;
     int            bitIndex;
     unsigned short temp;
-    unsigned short powBit;
 
     index = 0;
 
@@ -411,7 +422,6 @@ static void swap32Bits(unsigned long *buffer, int length)
     int           index;
     int           bitIndex;
     unsigned long temp;
-    unsigned long powBit;
 
     index = 0;
 
@@ -458,6 +468,7 @@ int SPI_Class::transfer (int value)
     }
     buffer = value;
 
+    /* Send the User data */
     status = SPI_dataTransaction(spiHandle, (Uint16 *)&buffer, 1, SPI_WRITE);
     if(CSL_SOK != status)
     {
@@ -465,6 +476,7 @@ int SPI_Class::transfer (int value)
         return ((int)status);
     }
 
+    /* Receive the data, which is to be sent back to the User */
     status = SPI_dataTransaction(spiHandle, (Uint16 *)&buffer, 1, SPI_READ);
     if(CSL_SOK != status)
     {
@@ -513,6 +525,8 @@ int SPI_Class::write (unsigned long *buffer, int length)
 
     if (LSBFIRST == order)
     {
+		/* If the User requests to send LSB first, then swap all the 32 bits
+		   of the User data */
         swap32Bits (buffer, length);
     }
 
@@ -570,6 +584,8 @@ int SPI_Class::read (unsigned long *buffer, int length)
 
         if (LSBFIRST == order)
         {
+		    /* If the User requests to receive LSB first, then swap all the 32
+		       bits of the User data */
             swap32Bits (buffer, length);
         }
     }

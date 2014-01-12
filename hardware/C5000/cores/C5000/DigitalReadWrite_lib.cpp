@@ -39,7 +39,7 @@
  *  @brief Digital Read/Write Module implementation
  *
  */
- 
+
 #include "DigitalReadWrite_lib.h"
 #include <stdio.h>
 #include <string.h>
@@ -131,7 +131,7 @@ int pinMode(unsigned short pinNumber, unsigned short direction)
 
     configOld = Wire.read();
 
-    /* Configure requested pin as OUTPUT */
+    /* Configure requested pin as INPUT/OUTPUT */
     if (0 == port)
     {
         i2cWriteBuf[0] = 0x06; /* Port0 Config Cmd */

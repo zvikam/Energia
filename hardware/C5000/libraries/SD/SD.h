@@ -172,11 +172,16 @@ class SD_Class
         AtaState             ataDriveStruct;
         AtaMMCState          ataMMCStateStruct;
         AtaFile              ataFirstFileStruct;
+		CSL_DMA_Handle       dmaWriteHandle;
+		CSL_DMA_Handle       dmaReadHandle;
+		CSL_DMA_ChannelObj   dmaWriteChanObj;
+		CSL_DMA_ChannelObj   dmaReadChanObj;
 
     public:
         SD_Class ();
         ~SD_Class ();
         Bool begin ();
+        Bool begin (int opmode);
         Bool exists (char *fileName);
         Bool mkdir (char *fileName);
         File open (char *filePath);

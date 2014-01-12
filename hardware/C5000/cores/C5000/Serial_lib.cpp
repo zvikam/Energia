@@ -240,6 +240,7 @@ void SerialClass::begin(long baudRate, Baudrate_Config *baudConfig)
                 uartHandle = (CSL_UartHandle)&(this->uartObj);
 
                 uartSetup.clkInput       = getCpuClock();
+                /* getCpuClock() API will return CPU clock in terms of kHz */
                 uartSetup.clkInput      *= 1000;
                 uartSetup.baud           = baudRate;
                 uartSetup.wordLength     = baudConfig->data;
@@ -440,7 +441,9 @@ Bool SerialClass::findUntil(char *target, char* terminal)
         }
         else
         {
-            while (1) /* Search for the 1st character */
+            /* Search for the 1st character of either target or terminal
+               string */
+            while (1)
             {
                 index = 0;
 
@@ -458,6 +461,7 @@ Bool SerialClass::findUntil(char *target, char* terminal)
             }
         }
 
+        /* If the read character matches both target and terminal string */
         if ((character == target[index]) && (character == terminal[index]))
         {
             index++;
@@ -488,7 +492,8 @@ Bool SerialClass::findUntil(char *target, char* terminal)
             }
         }
 
-        if (character == target[index]) /* Search for the target string */
+        /* If the read character matches the target string */
+        if (character == target[index])
         {
             index++;
 
@@ -498,7 +503,7 @@ Bool SerialClass::findUntil(char *target, char* terminal)
                 return (TRUE);
             }
 
-            while (1)
+            while (1) /* Search for the target string */
             {
                 status = UART_fgetc (uartHandle, &character, this->timeOut);
                 if (CSL_SOK != status)
@@ -535,7 +540,8 @@ Bool SerialClass::findUntil(char *target, char* terminal)
                 }
             }
         }
-        else if (character == terminal[index]) /* Search for the terminal string */
+        /* If the read character matches the terminal string */
+        else if (character == terminal[index])
         {
             index++;
 
@@ -545,7 +551,7 @@ Bool SerialClass::findUntil(char *target, char* terminal)
                 return (FALSE);
             }
 
-            while (1)
+            while (1) /* Search for the terminal string */
             {
                 status = UART_fgetc (uartHandle, &character, this->timeOut);
                 if (CSL_SOK != status)
@@ -606,8 +612,9 @@ void SerialClass::flush(void)
     {
         do
         {
+            /* Wait until the Transmitter Register is Empty */
             eventId = UART_getEventId (uartHandle);
-        } while (1 != eventId); /* Wait until the Transmitter Register is Empty */
+        } while (1 != eventId);
     }
 }
 
@@ -643,7 +650,8 @@ float SerialClass::parseFloat(void)
             return (-1);
         }
 
-        /* Check whether the read character is a digit(1st Digit) */
+        /* Check whether the read character is a digit (This will be the 1st
+           digit) */
         if ((character >= '0') && (character <= '9'))
         {
             decimalPart += (character - '0');
@@ -659,6 +667,7 @@ float SerialClass::parseFloat(void)
 
                 if ((character >= '0') && (character <= '9'))
                 {
+                    /* In this block we are converting character to integer value */
                     decimalPart *= 10;
                     decimalPart += (character - '0');
 
@@ -667,14 +676,16 @@ float SerialClass::parseFloat(void)
                         lengthFractionalPart *= 10;
                     }
 
-                    /* Have we Reached the maximum value */
+                    /* Have we reached the maximum supported value by the
+                       data type - 'long' */
                     if ((decimalPart < 0) || (lengthFractionalPart < 0))
                     {
                         return (-1);
                     }
                 }
-                else if ('.' == character) /* Decimal Point found, read the mantissa part */
+                else if ('.' == character)
                 {
+                    /* Decimal Point found, read the mantissa (fractional) part */
                     if (0 == lengthFractionalPart)
                     {
                         readFloat            = (float)decimalPart;
@@ -731,7 +742,8 @@ long SerialClass::parseInt(void)
             return (-1);
         }
 
-        /* Check whether the read character is a digit(1st Digit) */
+        /* Check whether the read character is a digit (This will be the 1st
+           digit) */
         if ((character >= '0') && (character <= '9'))
         {
             readInteger += (character - '0');
@@ -746,6 +758,7 @@ long SerialClass::parseInt(void)
 
                 if ((character >= '0') && (character <= '9'))
                 {
+                    /* In this block we are converting character to integer value */
                     readInteger *= 10;
                     readInteger += (character - '0');
 
@@ -781,6 +794,49 @@ long SerialClass::print(int value)
  *
  *  print(value)
  *
+ *  API to Print an unsigned integer to the serial port as human-readable
+ *  ASCII text
+ *
+ *  unsigned int value <-- Unsigned integer value that is to be printed on
+ *                         the serial
+ */
+long SerialClass::print(unsigned int value)
+{
+    return (this->print((unsigned long)value));
+}
+
+/**
+ *
+ *  print(value)
+ *
+ *  API to Print a short to the serial port as human-readable ASCII text
+ *
+ *  short value <-- Short value that is to be printed on the serial
+ */
+long SerialClass::print(short value)
+{
+    return (this->print((long)value));
+}
+
+/**
+ *
+ *  print(value)
+ *
+ *  API to Print an unsigned short to the serial port as human-readable
+ *  ASCII text
+ *
+ *  unsigned short value <-- Unsigned short value that is to be printed on
+ *                           the serial
+ */
+long SerialClass::print(unsigned short value)
+{
+    return (this->print((unsigned long)value));
+}
+
+/**
+ *
+ *  print(value)
+ *
  *  API to Print an Integer to the serial port as human-readable ASCII text
  *
  *  long value <-- Integer value that is to be printed on the serial
@@ -788,10 +844,8 @@ long SerialClass::print(int value)
 long SerialClass::print(long value)
 {
     char           valAsString[20];
-    int            index;
-    long           modValue;
-    long           tempValue;
     int            status;
+    int            length;
     CSL_UartHandle uartHandle;
 
     if (0 == this->isInitialized)
@@ -799,37 +853,15 @@ long SerialClass::print(long value)
         return (0);
     }
 
-    index     = 0;
-    modValue  = 1;
-
-    if (value < 0)
-    {
-        valAsString[index++] = '-';
-        value *= -1;
-    }
-    tempValue = value;
-
-    while (tempValue >= 10)
-    {
-        tempValue /= 10;
-        modValue *= 10;
-    }
-
-    while ((value > 0) || (modValue > 0))
-    {
-        valAsString[index] = ((value / modValue) + '0');
-        value %= modValue;
-        modValue /= 10;
-        index++;
-    }
-    valAsString[index] = '\0';
+    /* sprintf() will return the no of characters written to the string */
+    length = sprintf(valAsString, "%ld", value);
 
     uartHandle = (CSL_UartHandle)&(this->uartObj);
 
-    status = UART_write (uartHandle, valAsString, index, this->timeOut);
+    status = UART_write (uartHandle, valAsString, length, this->timeOut);
     if (0 == status)
     {
-        return (index);
+        return (length);
     }
     else
     {
@@ -847,19 +879,25 @@ long SerialClass::print(long value)
  */
 long SerialClass::print(unsigned long value)
 {
-    long tempValue;
-    long retValue;
+    long           length;
+    int            status;
+    char           valAsString[20];
+    CSL_UartHandle uartHandle;
 
-    tempValue = (long)(value >> 16);
-    if (tempValue > 0)
+    /* sprintf() will return the no of characters written to the string */
+    length = sprintf(valAsString, "%lu", value);
+
+    uartHandle = (CSL_UartHandle)&(this->uartObj);
+
+    status = UART_write (uartHandle, valAsString, length, this->timeOut);
+    if (0 == status)
     {
-        retValue = this->print(tempValue);
+        return (length);
     }
-
-    tempValue = (long)(value & 0xFFFF);
-    retValue += this->print(tempValue);
-
-    return (retValue);
+    else
+    {
+        return (0);
+    }
 }
 
 /**
@@ -892,7 +930,7 @@ long SerialClass::print(double value)
 
 /**
  *
- *  print(value)
+ *  print(character)
  *
  *  API to Print a character to the serial port as human-readable ASCII text
  *
@@ -953,10 +991,84 @@ long SerialClass::print(char *printString)
  *
  *  convertDecimalToBase(value, convString, base)
  *
- *  API to Convert a negative/positive Decimal value to Binary, Octal or
- *  Hexadecimal Form
+ *  API to Convert a negative/positive Decimal value of 16 bit integer to
+ *  Binary, Octal or Hexadecimal Form
  *
  *  int value        <-- The integer value that is to be converted
+ *  char *convString <-- Character String to hold the converted hexadecimal
+ *                       value
+ *  int base         <-- Indicates the base to which the decimal value needs
+ *                       to be converted
+ */
+static void convertDecimalToBase (int value, char *convString, int base)
+{
+    unsigned long convValue;
+    int           index;
+    int           rightShift;
+    int           shiftDecrement;
+    int           mask;
+    int           temp;
+
+    index     = 0;
+    convValue = (unsigned long)value;
+
+    /* Grouping of 4 bits of the Number will give the Hexadecimal value
+       Grouping of 3 bits of the Number will give the Octal value
+       Grouping of 1 bit of the Number will give the Binary value
+       Ex: For a number 1234 (which is stored as 10011010010 in memory)
+       Grouping of 4 bits gives (100 1101 0010): 0x4D2 (Hexadecimal)
+       Grouping of 3 bits gives (10 011 010 010): 2322  (Octal)
+       Grouping of 1 bit gives  (10011010010):10011010010 (Binary)
+       */
+    if (16 == base)
+    {
+        rightShift     = 12;
+        shiftDecrement = 4;
+        mask           = 0x0F;
+
+        convString[index++] = '0';
+        convString[index++] = 'x';
+    }
+    else if (8 == base)
+    {
+        rightShift     = 15;
+        shiftDecrement = 3;
+        mask           = 7;
+    }
+    else
+    {
+        rightShift     = 15;
+        shiftDecrement = 1;
+        mask           = 1;
+    }
+
+    while (rightShift >= 0)
+    {
+        temp = (convValue >> rightShift) & mask;
+
+        if ((temp >= 0) && (temp <= 9))
+        {
+            convString[index++] = '0' + temp;
+        }
+        else /* 0xA - 0xF for Hexadecimal format */
+        {
+            convString[index++] = 'A' + (temp - 10);
+        }
+
+        rightShift -= shiftDecrement;
+    }
+
+    convString[index] = '\0';
+}
+
+/**
+ *
+ *  convertDecimalToBase(value, convString, base)
+ *
+ *  API to Convert a negative/positive Decimal value of 32 bit integer to
+ *  Binary, Octal or Hexadecimal Form
+ *
+ *  long value       <-- The integer value that is to be converted
  *  char *convString <-- Character String to hold the converted hexadecimal
  *                       value
  *  int base         <-- Indicates the base to which the decimal value needs
@@ -974,6 +1086,14 @@ static void convertDecimalToBase (long value, char *convString, int base)
     index     = 0;
     convValue = (unsigned long)value;
 
+    /* Grouping of 4 bits of the Number will give the Hexadecimal value
+       Grouping of 3 bits of the Number will give the Octal value
+       Grouping of 1 bit of the Number will give the Binary value
+       Ex: For a number 1234 (which is stored as 10011010010 in memory)
+       Grouping of 4 bits gives (100 1101 0010): 0x4D2 (Hexadecimal)
+       Grouping of 3 bits gives (10 011 010 010): 2322  (Octal)
+       Grouping of 1 bit gives  (10011010010):10011010010 (Binary)
+       */
     if (16 == base)
     {
         rightShift     = 28;
@@ -1004,7 +1124,7 @@ static void convertDecimalToBase (long value, char *convString, int base)
         {
             convString[index++] = '0' + temp;
         }
-        else /* A to F */
+        else /* 0xA - 0xF for Hexadecimal format */
         {
             convString[index++] = 'A' + (temp - 10);
         }
@@ -1019,8 +1139,131 @@ static void convertDecimalToBase (long value, char *convString, int base)
  *
  *  print(value, format)
  *
- *  API to Print an Integer to the serial port as human-readable ASCII text,
- *  in either Binary, Decimal, Octal or Hexadecimal Form
+ *  API to Print an Integer of 16 bits to the serial port as human-readable
+ *  ASCII text, in either Binary, Decimal, Octal or Hexadecimal Form
+ *
+ *  int value  <-- Integer value that is to be printed on the serial
+ *  int format <-- The format in which the value needs to be printed
+ */
+long SerialClass::print(int value, int format)
+{
+    long           returnValue;
+    char           printString[50];
+    CSL_UartHandle uartHandle;
+    int            status;
+
+    returnValue = 0;
+
+    if (1 == this->isInitialized)
+    {
+        switch (format)
+        {
+            case BIN:
+                convertDecimalToBase (value, printString, 2);
+                break;
+
+            case DEC:
+                returnValue = this->print((long)value);
+                break;
+
+            case OCT:
+                convertDecimalToBase (value, printString, 8);
+                break;
+
+            case HEX:
+                convertDecimalToBase (value, printString, 16);
+                break;
+
+            default:
+                return (returnValue);
+        }
+
+        /* If the format is "DEC" call to this->print(value) would have printed
+           the integer on the Serial */
+        if (DEC != format)
+        {
+            uartHandle = (CSL_UartHandle)&(this->uartObj);
+
+            status = UART_write (uartHandle, printString, strlen(printString), this->timeOut);
+            if (0 == status)
+            {
+                returnValue = strlen(printString);
+            }
+        }
+    }
+
+    return (returnValue);
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Unsigned Integer of 16 bits to the serial port as
+ *  human-readable ASCII text, in either Binary, Decimal, Octal or Hexadecimal
+ *  Form
+ *
+ *  unsigned int value  <-- Integer value that is to be printed on the serial
+ *  int format          <-- The format in which the value needs to be printed
+ */
+long SerialClass::print(unsigned int value, int format)
+{
+    return (this->print((int)value, format));
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Integer of 16 bits to the serial port as human-readable
+ *  ASCII text, in either Binary, Decimal, Octal or Hexadecimal Form
+ *
+ *  short value  <-- Integer value that is to be printed on the serial
+ *  int format   <-- The format in which the value needs to be printed
+ */
+long SerialClass::print(short value, int format)
+{
+    return (this->print((int)value, format));
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Unsigned Integer of 16 bits to the serial port as
+ *  human-readable ASCII text, in either Binary, Decimal, Octal or Hexadecimal
+ *  Form
+ *
+ *  unsigned short value  <-- Integer value that is to be printed on the serial
+ *  int format            <-- The format in which the value needs to be printed
+ */
+long SerialClass::print(unsigned short value, int format)
+{
+    return (this->print((int)value, format));
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Unsigned Integer of 32 bits to the serial port as
+ *  human-readable ASCII text, in either Binary, Decimal, Octal or
+ *  Hexadecimal Form
+ *
+ *  unsigned long value  <-- Integer value that is to be printed on the serial
+ *  int format           <-- The format in which the value needs to be printed
+ */
+long SerialClass::print(unsigned long value, int format)
+{
+    return (this->print((long)value, format));
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Integer of 32 bits to the serial port as human-readable
+ *  ASCII text, in either Binary, Decimal, Octal or Hexadecimal Form
  *
  *  long value  <-- Integer value that is to be printed on the serial
  *  int  format <-- The format in which the value needs to be printed
@@ -1058,6 +1301,8 @@ long SerialClass::print(long value, int format)
                 return (returnValue);
         }
 
+        /* If the format is "DEC" call to this->print(value) would have printed
+           the integer on the Serial */
         if (DEC != format)
         {
             uartHandle = (CSL_UartHandle)&(this->uartObj);
@@ -1086,12 +1331,8 @@ long SerialClass::print(long value, int format)
 long SerialClass::print(float value, int noOfDecDigits)
 {
     char           valAsString[30];
-    int            index;
-    unsigned long  modValue;
-    unsigned long  tempValue;
-    unsigned long  exponentPart;
-    float          mantissaPart;
-    unsigned long  multiplier;
+    char           format[10];
+    int            length;
     int            status;
     CSL_UartHandle uartHandle;
 
@@ -1101,63 +1342,19 @@ long SerialClass::print(float value, int noOfDecDigits)
         return (0);
     }
 
-    index        = 0;
-    exponentPart = (unsigned long)value;
-    modValue     = 1;
+    /* Format specifier to print the requested no of digits after the decimal
+       point */
+    sprintf(format, "%%.%df", noOfDecDigits);
 
-    /* Convert the Exponent Part to String */
-    tempValue = exponentPart;
-    while (tempValue >= 10)
-    {
-        tempValue /= 10;
-        modValue *= 10;
-    }
-
-    if (exponentPart > 0)
-    {
-        while ((exponentPart > 0) || (modValue > 0))
-        {
-            valAsString[index] = ((exponentPart / modValue) + '0');
-            exponentPart %= modValue;
-            modValue /= 10;
-            index++;
-        }
-    }
-    else
-    {
-        valAsString[index] = ((exponentPart / modValue) + '0');
-        index++;
-    }
-
-    if (noOfDecDigits > 0) /* Convert the Fractional Part to String */
-    {
-        valAsString[index] = '.';
-        index++;
-
-        multiplier   = 10;
-        exponentPart = (unsigned long)value;
-        mantissaPart = value - (float)exponentPart;
-
-        while (noOfDecDigits > 0)
-        {
-            tempValue = (unsigned long)(mantissaPart * multiplier);
-            tempValue = tempValue % 10;
-
-            valAsString[index] = (tempValue + '0');
-            index++;
-            multiplier *= 10;
-            noOfDecDigits--;
-        }
-    }
-
-    valAsString[index] = '\0';
+    /* sprintf() will return the no of characters written to the string */
+    length = sprintf(valAsString, format, value);
 
     uartHandle = (CSL_UartHandle)&(this->uartObj);
 
-    status = UART_write (uartHandle, valAsString, index, this->timeOut);
+    status = UART_write (uartHandle, valAsString, length, this->timeOut);
     if (0 == status)
     {
-        return (index);
+        return (length);
     }
     else
     {
@@ -1179,12 +1376,8 @@ long SerialClass::print(float value, int noOfDecDigits)
 long SerialClass::print(double value, int noOfDecDigits)
 {
     char           valAsString[30];
-    int            index;
-    unsigned long  modValue;
-    unsigned long  tempValue;
-    unsigned long  exponentPart;
-    double         mantissaPart;
-    unsigned long  multiplier;
+    char           format[10];
+    int            length;
     int            status;
     CSL_UartHandle uartHandle;
 
@@ -1194,63 +1387,19 @@ long SerialClass::print(double value, int noOfDecDigits)
         return (0);
     }
 
-    index        = 0;
-    exponentPart = (unsigned long)value;
-    modValue     = 1;
+    /* Format specifier to print the requested no of digits after the decimal
+       point */
+    sprintf(format, "%%.%df", noOfDecDigits);
 
-    /* Convert the Exponent Part to String */
-    tempValue = exponentPart;
-    while (tempValue >= 10)
-    {
-        tempValue /= 10;
-        modValue *= 10;
-    }
-
-    if (exponentPart > 0)
-    {
-        while ((exponentPart > 0) || (modValue > 0))
-        {
-            valAsString[index] = ((exponentPart / modValue) + '0');
-            exponentPart %= modValue;
-            modValue /= 10;
-            index++;
-        }
-    }
-    else
-    {
-        valAsString[index] = ((exponentPart / modValue) + '0');
-        index++;
-    }
-
-    if (noOfDecDigits > 0) /* Convert the Fractional Part to String */
-    {
-        valAsString[index] = '.';
-        index++;
-
-        multiplier   = 10;
-        exponentPart = (unsigned long)value;
-        mantissaPart = value - (double)exponentPart;
-
-        while (noOfDecDigits > 0)
-        {
-            tempValue = (unsigned long)(mantissaPart * multiplier);
-            tempValue = tempValue % 10;
-
-            valAsString[index] = (tempValue + '0');
-            index++;
-            multiplier *= 10;
-            noOfDecDigits--;
-        }
-    }
-
-    valAsString[index] = '\0';
+    /* sprintf() will return the no of characters written to the string */
+    length = sprintf(valAsString, format, value);
 
     uartHandle = (CSL_UartHandle)&(this->uartObj);
 
-    status = UART_write (uartHandle, valAsString, index, this->timeOut);
+    status = UART_write (uartHandle, valAsString, length, this->timeOut);
     if (0 == status)
     {
-        return (index);
+        return (length);
     }
     else
     {
@@ -1270,6 +1419,50 @@ long SerialClass::print(double value, int noOfDecDigits)
 long SerialClass::println(int value)
 {
     return (this->println((long)value));
+}
+
+/**
+ *
+ *  println(value)
+ *
+ *  API to Print an unsigned integer to the serial port as human-readable
+ *  ASCII text, followed by a new line ("\r\n")
+ *
+ *  unsigned int value <-- Unsigned integer value that is to be printed
+ *                         on the serial
+ */
+long SerialClass::println(unsigned int value)
+{
+    return (this->println((unsigned long)value));
+}
+
+/**
+ *
+ *  println(value)
+ *
+ *  API to Print a short to the serial port as human-readable ASCII text,
+ *  followed by a new line ("\r\n")
+ *
+ *  short value <-- Short value that is to be printed on the serial
+ */
+long SerialClass::println(short value)
+{
+    return (this->println((long)value));
+}
+
+/**
+ *
+ *  println(value)
+ *
+ *  API to Print an unsigned short to the serial port as human-readable
+ *  ASCII text, followed by a new line ("\r\n")
+ *
+ *  unsigned short value <-- Unsigned short value that is to be printed
+ *                           on the serial
+ */
+long SerialClass::println(unsigned short value)
+{
+    return (this->println((unsigned long)value));
 }
 
 /**
@@ -1422,6 +1615,146 @@ long SerialClass::println(char *printString)
     if ((1 == this->isInitialized) && (NULL != printString))
     {
         returnValue = this->print(printString);
+        if (returnValue != 0)
+        {
+            returnValue += this->print("\r\n");
+        }
+    }
+
+    return (returnValue);
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Integer of 16 bits to the serial port as human-readable
+ *  ASCII text, in either Binary, Decimal, Octal or Hexadecimal Form, followed
+ *  by a new line ("\r\n")
+ *
+ *  int value  <-- Integer value that is to be printed on the serial
+ *  int format <-- The format in which the value needs to be printed
+ */
+long SerialClass::println(int value, int format)
+{
+    long returnValue;
+
+    returnValue = 0;
+    if (1 == this->isInitialized) /* If the instance is initialized */
+    {
+        returnValue = this->print(value, format);
+        if (returnValue != 0)
+        {
+            returnValue += this->print("\r\n");
+        }
+    }
+
+    return (returnValue);
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Unsigned Integer of 16 bits to the serial port as
+ *  human-readable ASCII text, in either Binary, Decimal, Octal or Hexadecimal
+ *  Form, followed by a new line ("\r\n")
+ *
+ *  unsigned int value  <-- Integer value that is to be printed on the serial
+ *  int format          <-- The format in which the value needs to be printed
+ */
+long SerialClass::println(unsigned int value, int format)
+{
+    long returnValue;
+
+    returnValue = 0;
+    if (1 == this->isInitialized) /* If the instance is initialized */
+    {
+        returnValue = this->print((int)value, format);
+        if (returnValue != 0)
+        {
+            returnValue += this->print("\r\n");
+        }
+    }
+
+    return (returnValue);
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Integer of 16 bits to the serial port as human-readable
+ *  ASCII text, in either Binary, Decimal, Octal or Hexadecimal Form, followed
+ *  by a new line ("\r\n")
+ *
+ *  short value  <-- Integer value that is to be printed on the serial
+ *  int format   <-- The format in which the value needs to be printed
+ */
+long SerialClass::println(short value, int format)
+{
+    long returnValue;
+
+    returnValue = 0;
+    if (1 == this->isInitialized) /* If the instance is initialized */
+    {
+        returnValue = this->print((int)value, format);
+        if (returnValue != 0)
+        {
+            returnValue += this->print("\r\n");
+        }
+    }
+
+    return (returnValue);
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Unsigned Integer of 16 bits to the serial port as
+ *  human-readable ASCII text, in either Binary, Decimal, Octal or Hexadecimal
+ *  Form, followed by a new line ("\r\n")
+ *
+ *  unsigned short value  <-- Integer value that is to be printed on the serial
+ *  int format            <-- The format in which the value needs to be printed
+ */
+long SerialClass::println(unsigned short value, int format)
+{
+    long returnValue;
+
+    returnValue = 0;
+    if (1 == this->isInitialized) /* If the instance is initialized */
+    {
+        returnValue = this->print((int)value, format);
+        if (returnValue != 0)
+        {
+            returnValue += this->print("\r\n");
+        }
+    }
+
+    return (returnValue);
+}
+
+/**
+ *
+ *  print(value, format)
+ *
+ *  API to Print an Unsigned Integer of 32 bits to the serial port as
+ *  human-readable ASCII text, in either Binary, Decimal, Octal or
+ *  Hexadecimal Form, followed by a new line ("\r\n")
+ *
+ *  unsigned long value  <-- Integer value that is to be printed on the serial
+ *  int format           <-- The format in which the value needs to be printed
+ */
+long SerialClass::println(unsigned long value, int format)
+{
+    long returnValue;
+
+    returnValue = 0;
+    if (1 == this->isInitialized) /* If the instance is initialized */
+    {
+        returnValue = this->print((long)value, format);
         if (returnValue != 0)
         {
             returnValue += this->print("\r\n");
@@ -1619,6 +1952,8 @@ int SerialClass::readBytesUntil(char termChar, char *buffer, int length)
         if (character == termChar)
         {
             break;
+            /* Terminating character read, hence return the string which is
+               read till now */
         }
 
         *destString = character;

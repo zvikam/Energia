@@ -4,24 +4,23 @@
   DMA is configured with proper source and destination address and data length.
   Data in the source buffer is copied into the destination buffer, using DMA.
   The read and write buffer contents should match with each other.
-
-  Procedure:
-  1. Connect Arduino to host PC using USB cable.
-  2. Verify and Upload the example binary to DSP shield.
-  3. Open Serial Monitor and connect to the Arduino Uno COM port.
-  4. Set the baud rate to 9600.
-  5. Observe the messages displayed on the Serial Monitor.
-  6. The read and write buffer contents should match with each other for all
-     the supported DMA channels.
 */
 
 #define DMA_BUFFER_SIZE    (512u)
 
+/* Variable to indicate that the DMA transfer has completed for the respective
+   DMA channel */
 volatile int interrupt_occurred = 0;
 
+/* Variables to store Source and Destination buffer addresses used during DMA
+   transfers */
 unsigned short *dmaSRCBuff = NULL;
 unsigned short *dmaDESTBuff = NULL;
 
+/*
+ * Simple DMA ISR that reads the interrupt status and clears it, finally informs
+ * the setup() API that DMA transfer has completed for the current DMA channel
+ */
 interrupt void dma_isr(void)
 {
     unsigned int ifrValue;
@@ -40,81 +39,89 @@ void setup()
     unsigned short index;
     volatile int   delay;
 
-    Serial.println("\r\nDMA INTERRUPT MODE TEST!");
+    Serial.println("\r\nDMA INTERRUPT MODE DEMO!");
 
-    /* Create DMA data buffers and initialize config buffer */	
+    /* DMA.dmaInit() creates DMA data buffers and initializes the config buffer
+     * The DMA.dmaInit() API will initialize the config structure passed to it
+     * with the default config values
+     */
     status = DMA.dmaInit(&dmaConfig, DMA_BUFFER_SIZE);
     if (status != 0)
     {
-        Serial.print("DMA_init() Failed \n");
         return;
     }
 
     dmaSRCBuff  = dmaConfig.srcAddr;
     dmaDESTBuff = dmaConfig.destAddr;
 
-    dmaConfig.enableDmaInt = 1;
+    dmaConfig.enableDmaInt = 1; /* Enable DMA interrupt */
 
-    for (index = 0; index < DMA_BUFFER_SIZE; index++)
-    {
-        dmaSRCBuff[index]  = index;
-        dmaDESTBuff[index] = 0x0000;
-    }
-
-    initInterrupt((INTERRUPT_DispatchTable *)0x0000);
+    initInterrupt(0x0000);
     attachInterrupt(INTERRUPT_DMA, (INTERRUPT_IsrPtr)dma_isr, 0);
 
     /* Enabling Interrupt */
     enableInterrupt(INTERRUPT_DMA);
 
-    status = DMA.init();
-    if (status != 0)
-    {
-        Serial.println("DMA_init() Failed");
-    }
+    /* Initialize DMA */
+    DMA.init();
 
-    for ( chanNumber = 0; chanNumber < DMA_CHANNEL_MAX; chanNumber++)
+    /* Test all the DMA channels by opening each of the channels, configuring
+     * them to transfer data from 'dmaSRCBuff' and 'dmaDESTBuff' buffers.
+     * Finally, once the DMA transfer completes compare the source and
+     * destination buffer contents
+     */
+    for (chanNumber = 0; chanNumber < DMA_CHANNEL_MAX; chanNumber++)
     {
+        /* Set value to indicate that the DMA transfer has not yet completed for
+           the current DMA channel */
         interrupt_occurred = 0;
 
-        Serial.print("Test for DMA Channel No : ");
-        Serial.println((long)chanNumber);
+        /* Initialize the DMA Source and Destination buffers */
+        for (index = 0; index < DMA_BUFFER_SIZE; index++)
+        {
+            dmaSRCBuff[index]  = index;
+            dmaDESTBuff[index] = 0x0000;
+        }
 
+        /* Opens the respective DMA channel */
         status = DMA.openChannel(chanNumber);
         if (status != 0)
         {
-            Serial.println("DMA_open() Failed");
             break;
         }
 
+        /* Configure the respective DMA channel */
         status = DMA.configChannel(chanNumber, dmaConfig);
         if (status != 0)
         {
-            Serial.println("DMA_config() Failed");
             break;
         }
 
+        /* Start DMA transfer for the respective DMA channel */
         status = DMA.start(chanNumber);
         if (status != 0)
         {
-            Serial.println("DMA_start() Failed");
             break;
         }
 
+        /* Wait for the respective DMA transfer to complete */
         while (1)
         {
             for (delay = 0; delay < 1000; delay++) ;
 
+            /* The value of the variable 'interrupt_occurred' will be set in
+               the DMA ISR, which will be triggered once the current DMA
+               transfer completes */
             if (1 == interrupt_occurred)
             {
                 break;
             }
         }
 
+        /* Close the respective DMA channel */
         status = DMA.closeChannel(chanNumber);
         if (status != 0)
         {
-            Serial.println("DMA.close() Failed");
             break;
         }
 
@@ -122,12 +129,16 @@ void setup()
         {
             if (dmaSRCBuff[index] != dmaDESTBuff[index])
             {
-                Serial.print("Buffer miss matched at position ");
-                Serial.println((long)index);
+                Serial.print("Buffer mismatched at position ");
+                Serial.print((long)index);
+                Serial.print(", for channel ");
+                Serial.print((long)chanNumber);
                 break;
             }
         }
 
+        /* When index will be equal to DMA_BUFFER_SIZE, then both the source
+           and destination buffers would have matched */
         if (index == DMA_BUFFER_SIZE)
         {
             Serial.print("DMA Transfer for Channel No: ");
@@ -136,27 +147,22 @@ void setup()
             Serial.println("Source and Destination Buffers Match!!");
             Serial.println(" ");
         }
-
-        for (index = 0; index < DMA_BUFFER_SIZE; index++)
-        {
-            dmaSRCBuff[index]  = index;
-            dmaDESTBuff[index] = 0x0000;
-        }
     }
 
-    if (chanNumber == 16)
+    if (chanNumber == 16) /* DMA transfer test completed for all channels */
     {
         Serial.println("\r\nDMA INTERRUPT MODE TEST PASSED!!");
         xfOn();
     }
     else
     {
-        Serial.println("\r\n DMA INTERRUPT MODE TEST FAILED!!");
+        Serial.println("\r\n DMA INTERRUPT MODE DEMO FAILED!!");
         xfOff();
     }
 
-	/* Delete the buffers */
-	DMA.dmaDeInit(&dmaConfig);
+    /* De-allocate the buffers, which were allocated by the DMA module by
+       calling DMA.dmaInit() API */
+    DMA.dmaDeInit(&dmaConfig);
 }
 
 void loop()

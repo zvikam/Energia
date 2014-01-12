@@ -122,7 +122,7 @@ static int writeI2C(Uint16 address, Uint16 *data, Uint16 quantity)
 }
 
 /**
- *  Int16 send( Uint16 comdat, Uint16 data )
+ *  Int16 send(Uint16 comdat, Uint16 data)
  *
  *      Sends 2 bytes of data to the OSD9616
  *
@@ -134,14 +134,14 @@ static int writeI2C(Uint16 address, Uint16 *data, Uint16 quantity)
  *      0 => Success
  *      1 => Fail
  */
-static int send( Uint16 comdat, Uint16 data )
+static int send(Uint16 comdat, Uint16 data)
 {
     Uint16 cmd[2];
     CSL_Status status;
 
     cmd[0] = comdat & 0x00FF;     // Specifies whether data is Command or Data
     cmd[1] = data;                // Command / Data
-    csl_waitusec( 1000 );
+    csl_waitusec(1000);
 
     status = writeI2C(I2C_LCD_ADDR, cmd, 2);
 	if(status != CSL_SOK)
@@ -154,7 +154,7 @@ static int send( Uint16 comdat, Uint16 data )
 }
 
 /**
- *  Int16 multiSend( Uint16* data, Uint16 len )
+ *  Int16 multiSend(Uint16* data, Uint16 len)
  *
  *      Sends multiple bytes of data to the OSD9616
  *
@@ -165,7 +165,7 @@ static int send( Uint16 comdat, Uint16 data )
  *      0 => Success
  *      1 => Fail
  */
-static int multiSend( Uint16 *data, Uint16 len )
+static int multiSend(Uint16 *data, Uint16 len)
 {
     Uint16 x;
     Uint16 cmd[10];
@@ -176,7 +176,7 @@ static int multiSend( Uint16 *data, Uint16 len )
     	cmd[x] = data[x];
     }
 
-    csl_waitusec( 1000 );
+    csl_waitusec(1000);
 
     status = writeI2C(I2C_LCD_ADDR, cmd, len);
 	if(status != CSL_SOK)
@@ -707,7 +707,7 @@ void OLED::scrollDisplayLeft(void)
     cmd[5] = 0x01;  // Define end page address
     cmd[6] = 0x00;  // Dummy byte
     cmd[7] = 0xFF;  // Dummy byte
-    multiSend( cmd, 8 );
+    multiSend(cmd, 8);
     send(0x00,0x2f);
 }
 
@@ -745,7 +745,7 @@ void OLED::scrollDisplayLeft(int line)
         cmd[5] = !line; // Define end page address
         cmd[6] = 0x00;  // Dummy byte
         cmd[7] = 0xFF;  // Dummy byte
-        multiSend( cmd, 8 );
+        multiSend(cmd, 8);
         send(0x00,0x2f);
 	}
 }
@@ -777,7 +777,7 @@ void OLED::autoscroll(void)
     cmd[4] = 0x00;  // Set time interval between each scroll step as 5 frames
     cmd[5] = 0x01;  // Define end page address
     cmd[6] = 0x01;  // Vertical scrolling offset
-    multiSend( cmd, 7 );
+    multiSend(cmd, 7);
     send(0x00,0x2f);
 
     /* Keep first 8 rows from vertical scrolling  */
@@ -785,7 +785,7 @@ void OLED::autoscroll(void)
     cmd[1] = 0xa3;  // Set Vertical Scroll Area
     cmd[2] = 0x08;  // Set No. of rows in top fixed area
     cmd[3] = 0x08;  // Set No. of rows in scroll area
-    multiSend( cmd, 4 );
+    multiSend(cmd, 4);
 }
 
 /** ===========================================================================

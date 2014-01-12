@@ -803,3 +803,87 @@ Int16 setSarA2DMeasParam (SAR_Handle       hSar,
 
     return (CSL_SOK);
 }
+
+/**
+ *  Function to copy one buffer to another buffer of type int
+ *
+ *  input    Input buffer
+ *  output   Output buffer
+ *  size     Size of the buffer in words
+ */
+void copyShortBuf(void *input, void *output, unsigned short size)
+{
+	int  *src;
+	int  *dest;
+	unsigned short index;
+
+	src  = (int*)input;
+	dest = (int*)output;
+
+    for (index = 0; index < size; index++)
+    {
+        dest[index] = src[index];
+    }
+}
+
+/**
+ *  Function to copy one buffer to another buffer of type long
+ *
+ *  input    Input buffer
+ *  output   Output buffer
+ *  size     Size of the buffer in double words
+ */
+void copyLongBuf(void *input, void *output, unsigned short size)
+{
+	long *src;
+	long *dest;
+	unsigned short index;
+
+	src  = (long*)input;
+	dest = (long*)output;
+
+    for (index = 0; index < size; index++)
+    {
+        dest[index] = src[index];
+    }
+}
+
+/**
+ *  Function to fill data buffer of type int with given value
+ *
+ *  buf    Data buffer pointer
+ *  value  Value to be filled in buffer
+ *  size   Size of the buffer in words
+ */
+void fillShortBuf(void *buf, int value, unsigned short size)
+{
+	int  *dataBuf;
+	unsigned short index;
+
+	dataBuf = (int*)buf;
+
+    for (index = 0; index < size; index++)
+    {
+        dataBuf[index] = value;
+    }
+}
+
+/**
+ *  Function to fill data buffer of type long with given value
+ *
+ *  buf    Data buffer pointer
+ *  value  Value to be filled in buffer
+ *  size   Size of the buffer in double words
+ */
+void fillLongBuf(void *buf, long value, unsigned short size)
+{
+	long *dataBuf;
+	unsigned short index;
+
+	dataBuf = (long*)buf;
+
+    for (index = 0; index < size; index++)
+    {
+        dataBuf[index] = value;
+    }
+}

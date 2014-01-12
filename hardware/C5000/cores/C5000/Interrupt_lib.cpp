@@ -39,7 +39,7 @@
  *  @brief Interrupt implementation
  *
  */
- 
+
 #include "Interrupt_lib.h"
 
 /** Extern of VECSTART function */
@@ -76,6 +76,8 @@ void attachInterrupt (INTERRUPT_NUMBER intNumber,
 
 	IRQ_disableAll();
 
+    /* Set the Vector API address, which fetches the address of the ISRs of
+       the corresponding interrupts */
     IRQ_setVecs((Uint32)(&VECSTART));
 	IRQ_clear((int)intNumber);
 

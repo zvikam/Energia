@@ -3,61 +3,60 @@
 
   Program to demonstrate the Use of all print APIs of OLED library used for
   Displaying
-
-  Procedure:
-  1. Connect Arduino to host PC using USB cable.
-  2. Verify and Upload the example binary to DSP shield.
-  3. Open Serial Monitor and connect to the Arduino Uno COM port.
-  4. Set the baud rate to 9600.
-  5. Observe the output on Serial Monitor and LCD screen
 */
 
 #include <OLED.h>
 
 void setup() {
+    long value;
 
-    Serial.println("\r\nLCD Print API TEST!");
+    Serial.println("\r\nLCD Print API Demo!");
 
-    disp.oledInit();
-    disp.setOrientation(1);
+    disp.oledInit();        /* Initialize the OLED module */
+    disp.setOrientation(1); /* Set orientation of the LCD to horizontal */
 
-    disp.clear();
+    disp.clear();           /* Clears the entire display screen */
     Serial.println("\r\nDisplaying a String on the LCD");
-    disp.setline(0);
+    disp.setline(0);        /* Set the current display line to Line0 */
     disp.print("Dsp Shield");
     delaySeconds(5);
 
-    disp.clear();
+    disp.clear();           /* Clears the entire display screen */
     Serial.println("\r\nDisplaying a Character 'M' on the LCD");
-    disp.setline(0);
+    disp.setline(0);        /* Set the current display line to Line0 */
     disp.print('M');
     delaySeconds(5);
 
-    disp.clear();
+    disp.clear();           /* Clears the entire display screen */
     Serial.println("\r\nDisplaying an integer value '1234567' on the LCD");
-    disp.setline(0);
-    disp.print((long)1234567);
+    disp.setline(0);        /* Set the current display line to Line0 */
+    value = 1234567;
+    disp.print(value);
     delaySeconds(5);
 
-    disp.clear();
+    disp.clear();           /* Clears the entire display screen */
     Serial.println("\r\nDisplaying Hexadecimal equivalent of '1234567' on the LCD");
-    disp.setline(0);
-    disp.print((long)1234567, HEXADECIMAL);
+    disp.setline(0);        /* Set the current display line to Line0 */
+    value = 1234567;
+    disp.print(value, HEXADECIMAL);
     delaySeconds(5);
 
-    disp.clear();
+    disp.clear();           /* Clears the entire display screen */
     Serial.println("\r\nDisplaying Octal equivalent of '1234567' on the LCD");
-    disp.setline(0);
-    disp.print((long)1234567, OCTAL);
+    disp.setline(0);        /* Set the current display line to Line0 */
+    value = 1234567;
+    disp.print(value, OCTAL);
     delaySeconds(5);
 
     disp.clear();
     Serial.println("\r\nDisplaying Binary equivalent of '123' on the LCD");
-    disp.setline(0);
-    disp.print((long)123, BINARY);
+    disp.setline(0);        /* Set the current display line to Line0 */
+    value = 123;
+    disp.print(value, BINARY);
 
-    Serial.println("\r\nLCD Print API TEST Done!");
+    Serial.println("\r\nLCD Print API Demo Completed!");
 }
 
-void loop() {
+void loop()
+{
 }

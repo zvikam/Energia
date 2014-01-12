@@ -140,6 +140,10 @@ void setSarGPOValue(CSL_SarHandleObj *SarHandle,
 Int16 setSarA2DMeasParam (SAR_Handle       hSar,
                           CSL_SARMeasParam param,
                           CSL_SarChanSel   chanNo);
+void copyShortBuf(void *input, void *output, unsigned short size);
+void copyLongBuf(void *input, void *output, unsigned short size);
+void fillShortBuf(void *buf, int value, unsigned short size);
+void fillLongBuf(void *buf, long value, unsigned short size);
 
 unsigned long getCpuClock();
 

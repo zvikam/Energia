@@ -72,10 +72,10 @@ public class C5000Uploader extends Uploader{
 		List commandDownloader = new ArrayList();
 
 		if ( Base.isLinux() || Base.isMacOS() ) {
-			commandDownloader.add(Base.getHardwarePath() + "/tools/C5000/bin/avrdude");
+			commandDownloader.add(Base.getBasePath() + "/avrdude");
 		}
 		else {
-			commandDownloader.add(Base.getHardwarePath() + "\\tools\\C5000\\bin\\avrdude");
+			commandDownloader.add(Base.getBasePath() + "\\avrdude");
 		}
 		commandDownloader.addAll(params);
 

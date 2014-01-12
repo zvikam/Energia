@@ -39,7 +39,7 @@
  *  @brief Wire/I2C implementation
  *
  */
- 
+
 #include "Wire_lib.h"
 
 TwoWire Wire;
@@ -82,7 +82,7 @@ int TwoWire::begin(void)
     CSL_I2cSetup i2cSetup;
     Uint32       sysClk;
 
-    sysClk = getCpuClock();
+    sysClk = getCpuClock(); /* getCpuClock() will return CPU clock in kHz */
     sysClk = sysClk / 1000;
 
     rxBufferIndex  = 0;

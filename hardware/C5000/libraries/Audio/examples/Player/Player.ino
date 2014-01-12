@@ -1,65 +1,75 @@
 /*
-  Example sketch which searches for the .wav files on the SD Card and opens
-  them. It then reads data from the wave files present on the SD Card and sends
-  the data to codec, which can be listened on headphone.
-
-  Procedure:
-  1. Copy few wave file with extension .wav to SD card
-  2. Connect Arduino to host PC using USB cable.
-  3. Verify and Upload the example binary to DSP shield.
-  4. Connect head phone to green jack of DSP shield.
-  5. Open Serial Monitor and connect to the Arduino Uno COM port.
-  6. Set the baud rate to 9600.
-  7. Observe the messages displayed on the Serial Monitor.
-  8. Listen to the audio from head phone.
-*/
+ * Wave player demo:
+ * Searches for the .wav files on the SD Card and opens them. 
+ * Reads data from the wave files present on the SD Card and sends
+ * the data to codec, which can be listened on headphone.
+ *
+ * This program stops after playing all the wave files present
+ * in root folder of SD card
+ */
 
 #include "SD.h"
 #include "Audio.h"
 #include "OLED.h"
 
-#define BUFFER_SIZE (27u)
-
-char writeBuffer[BUFFER_SIZE];
+#define CIRCULAR_BUFFER_SIZE (5u)
+#define SINGLE_BUFFER_SIZE   (8 * I2S_DMA_BUF_LEN)
 
 File rootDirHandle;
 File fileHandle;
 
-bool bufferRead = false;
-bool bufferSent = true;
+bool bufferRead[CIRCULAR_BUFFER_SIZE];
+bool bufferSent[CIRCULAR_BUFFER_SIZE];
 bool stopExample = false;
 
-unsigned int noOfChannels;
+int  channelType;
+long samplingRate;
 
-Uint16 audioReadBufferL[I2S_DMA_BUF_LEN];
-Uint16 audioReadBufferR[I2S_DMA_BUF_LEN];
-char readBuf[4 * I2S_DMA_BUF_LEN] = {0};
+unsigned short audioReadBufferL[I2S_DMA_BUF_LEN];
+unsigned short audioReadBufferR[I2S_DMA_BUF_LEN];
 
+/* Circular Buffer to read 8KB block of data at a time from the input wave
+   file */
+int waveFileData[CIRCULAR_BUFFER_SIZE][SINGLE_BUFFER_SIZE] = {{0}, {0}};
+int readCircBufferIndex = 0;
+int codecCircBufferIndex = 0;
+int indivBufferIndex = 0;
+
+// DMA Interrupt Service Routine
 interrupt void dmaIsr(void)
 {
     Uint16 ifrValue;
 
-    /* Read the DMA interrupt */
     ifrValue = DMA.readInterruptStatus();
-
     if ((ifrValue >> DMA_CHAN_ReadR) & 0x01)
     {
-        if (bufferRead) //if there is a buffer ready, read it out.
+        /* If the buffer is read from the input wave file, send it to the Audio
+           Out of the Codec */
+        if (true == bufferRead[codecCircBufferIndex])
         {
             bufferCopy();
         }
     }
+
+    /* Calling AudioC.isrDma() will copy the buffers to Audio Out of the Codec,
+     * initiates next DMA transfers of Audio samples to and from the Codec
+     */
     AudioC.isrDma();
 }
 
+/*
+ * Opens next wave file present under Root Directory, reads the number of
+ * channels of the wave file and finally reads the sampling rate of the file to
+ * set the sampling rate of the Audio Codec
+ */
 int openWavFile(void)
 {
     char fileName[13];
     int  index;
-    char readChar;
 
     while (1)
     {
+        // Open Next Wave file present on the SD Card under root
         fileHandle = rootDirHandle.openNextFile();
         if (fileHandle)
         {
@@ -69,6 +79,8 @@ int openWavFile(void)
 
                 index = strlen(fileName);
 
+                /* Check whether the File handle which we have obtained is of a
+                   Audio wave file */
                 if (((fileName[index - 3] == 'w') || (fileName[index - 3] == 'W')) &&
                     ((fileName[index - 2] == 'a') || (fileName[index - 2] == 'A')) &&
                     ((fileName[index - 1] == 'v') || (fileName[index - 1] == 'V')))
@@ -79,26 +91,16 @@ int openWavFile(void)
 
                     Serial.print("\nFile Name: ");
                     Serial.println(fileName);
-                    Serial.print("Reading WAVE file header: ");
-                    for (index = 0; index < 4; index++)
-                    {
-                        readChar = fileHandle.read();
-                        if (-1 == readChar)
-                        {
-                            Serial.println("\r\nError in reading from the file");
-                        }
-                        else
-                        {
-                            Serial.print((char)readChar);
-                        }
-                    }
 
+                    /* Number of channels of the current wave file will be present
+                       in the wave header of the respective file, at an index of
+                       22 in terms of bytes */
                     fileHandle.seek(22);
 
-                    Serial.print("\r\nNumber of Channels: ");
-                    noOfChannels = (unsigned int)fileHandle.read();
-                    Serial.print((int)noOfChannels);
-                    if (1 == noOfChannels)
+                    Serial.print("Number of Channels: ");
+                    channelType = fileHandle.read();
+                    Serial.print(channelType);
+                    if (CHANNEL_MONO == channelType)
                     {
                         Serial.println(" (Mono)");
                     }
@@ -106,6 +108,16 @@ int openWavFile(void)
                     {
                         Serial.println(" (Stereo)");
                     }
+
+                    /* Sampling rate present in the Wave file header starts from
+                       24th index in terms of bytes */
+                    fileHandle.seek(24);
+                    samplingRate = (long)fileHandle.read();
+                    samplingRate |= ((long)fileHandle.read() << 8);
+
+                    Serial.print("Sampling Rate: ");
+                    Serial.print(samplingRate);
+                    Serial.println("Hz");
 
                     fileHandle.seek(44);
                     return (0);
@@ -122,121 +134,194 @@ int openWavFile(void)
     }
 }
 
+// Function to swap bytes of an input buffer of specified length
+void swapBytes(int *input, int length)
+{
+    int index;
+    int temp;
+
+    for (index = 0; index < length; index++)
+    {
+        temp = (input[index] & 0xFF) << 8;
+        input[index] = (input[index] & 0xFF00) >> 8;
+
+        input[index] |= temp;
+    }
+}
+
+// Initializes OLED, Audio and SD modules
 void setup()
 {
     int  retStatus;
+    int  index;
 
-    Serial.print("\n Audio Player TEST!\n");
+    Serial.print("\n Audio Player Demo!\n");
 
     pinMode(LED0, OUTPUT);
 
+    //Initialize OLED module for file name display	
     disp.oledInit();
     disp.clear();
     disp.setOrientation(1);
     disp.setline(0);
     disp.print("Audio Player");
 
-    retStatus = SD.begin(); //initialize SD Card
-    if (TRUE == retStatus) // if init okay
+    for (index = 0; index < CIRCULAR_BUFFER_SIZE; index++)
     {
-        Serial.println("\r\nSuccessful in Initializing the SD Module");
+        bufferSent[index] = true;
+        bufferRead[index] = false;
+    }
 
+    retStatus = SD.begin(); // initialize SD Card
+    if (TRUE == retStatus)
+    {
         rootDirHandle = SD.open("/");
         if (rootDirHandle)
         {
+            /* Open the 1st wave file that exists under Root directory of the
+               SD Card */
             retStatus = openWavFile();
-
             if (0 != retStatus)
             {
-                Serial.println("\r\nWave files are not present on the SD Card");
+                // Wave file not present, hence stop the recording
                 stopExample = true;
             }
         }
         else
         {
-            Serial.println("\r\nError in Opening Root Directory");
+            // Error in opening Root directory, hence stop the recording
+            stopExample = true;
         }
     }
     else
     {
-        Serial.println("\r\nError in Initializing SD Module");
+        // Error in initializing the SD module, hence stop the recording
+        stopExample = true;
     }
 
     retStatus = AudioC.Audio();
     if (retStatus != 0)
     {
-        Serial.print("\n Audio Init failed!\n");
+        // Error in initializing the Audio module, hence stop the recording
+        stopExample = true;
     }
-
-    AudioC.attachIntr((INTERRUPT_IsrPtr)dmaIsr);
+    else
+    {
+    	// Configure codec sampling rate based on wave file sampling rate
+        AudioC.setSamplingRate(samplingRate);
+        // Configure interrupts and start audio transfer
+        AudioC.attachIntr(dmaIsr);
+    }
 }
 
-void bufferCopy() // simple copy from the read buffer.
+/*
+ * This API does a simple copy of Audio samples to the Audio Out buffers of the
+ * Codec, from the buffers which hold the audio data read from the wave file
+ */
+void bufferCopy()
 {
     int index;
-    for (index = 0; index < I2S_DMA_BUF_LEN; index++)
+    int index2;
+
+    if (CHANNEL_MONO == channelType) // Mono Channel
     {
-        AudioC.audioInLeft[AudioC.activeInBuf][index] = audioReadBufferL[index];
-        AudioC.audioInRight[AudioC.activeInBuf][index] = audioReadBufferR[index];
+        // Left channel and right channel data will be same
+
+        // Copying Left Channel Audio sample Data
+        copyShortBuf(&waveFileData[codecCircBufferIndex][indivBufferIndex],
+                     AudioC.audioInLeft[AudioC.activeInBuf],
+                     I2S_DMA_BUF_LEN);
+
+        // Copying Right Channel Audio sample Data*/
+        copyShortBuf(AudioC.audioInLeft[AudioC.activeInBuf],
+                     AudioC.audioInRight[AudioC.activeInBuf],
+                     I2S_DMA_BUF_LEN);
+
+        indivBufferIndex += I2S_DMA_BUF_LEN;
     }
-    bufferSent = true;
-    bufferRead = false;
+    else // Stereo Channel
+    {
+        index2 = indivBufferIndex;
+        
+        // Copying Left and right samples alternatively
+        for (index = 0; index < I2S_DMA_BUF_LEN; index++)
+        {
+            AudioC.audioInLeft[AudioC.activeInBuf][index]  = waveFileData[codecCircBufferIndex][index2++];
+            AudioC.audioInRight[AudioC.activeInBuf][index] = waveFileData[codecCircBufferIndex][index2++];
+        }
+        
+        indivBufferIndex += (2 * I2S_DMA_BUF_LEN);
+    }
+
+    // Update buffer indexes	
+    if (SINGLE_BUFFER_SIZE == indivBufferIndex)
+    {
+        indivBufferIndex = 0;
+        bufferSent[codecCircBufferIndex] = true;
+        bufferRead[codecCircBufferIndex] = false;
+
+        codecCircBufferIndex++;
+
+        if (CIRCULAR_BUFFER_SIZE == codecCircBufferIndex)
+        {
+            codecCircBufferIndex = 0;
+        }
+    }
 }
 
+/*
+ * This API reads audio data from the wave file and stores it into a temporary
+ * buffer. DMA ISR copies the data from this temporary buffer to the Output
+ * buffers of the Audio library
+ *
+ * When the API completes reading the entire data from a wave file, it tries to
+ * open the next existing wave file under Root directory. If it finds the next
+ * wave file, then it plays that file. When it doesn't find any more wave files,
+ * it just stops reading data.
+ */
 void loop()
 {
     int bytesRead;
-    int index;
-    int index2;
     int status;
-    Uint16 sampleData;
 
-    if ((stopExample == false) && (bufferSent == true))
+    if ((stopExample == false) && (bufferSent[readCircBufferIndex] == true))
     {
-        index2 = 0;
-
-        if (2 == noOfChannels) /* Stereo */
-        {
-            bytesRead = fileHandle.read(readBuf, 4 * I2S_DMA_BUF_LEN);
-		}
-		else
-		{
-			bytesRead = fileHandle.read(readBuf, 2 * I2S_DMA_BUF_LEN);
-		}
-        /* In theory, set this to four and you should get both channels at once
-           https://ccrma.stanford.edu/courses/422/projects/WaveFormat/ this
-           doesn't seem to be the case */
-
+        bytesRead = fileHandle.read(&waveFileData[readCircBufferIndex][0],
+                                    SINGLE_BUFFER_SIZE);
         if (0 == bytesRead)
         {
-            /* Open next wave file, if present on the SD card */
+            // Open next wave file, if present on the SD card 
             status = openWavFile();
             if (0 != status)
             {
-                Serial.println("\r\nNo more Wave files present on the SD Card");
+                /* No more Wave files present under Root directory, hence
+                  stop the recording */
                 stopExample = true;
+            }
+            else
+            {
+                /* Set the sampling rate of the Codec in accordance with the
+                 * sampling rate mentioned in the respective wave file header
+                 */
+                AudioC.setSamplingRate(samplingRate);
+                
+                // Wait for short time to get the codec clock stabilized
+                delaySeconds(1);
             }
             return;
         }
 
-        for (index = 0; index < I2S_DMA_BUF_LEN; index++)
+        /* Audio data in the wave file will be in Little Endian format, hence
+           swap the bytes to obtain the actual data */
+        swapBytes(waveFileData[readCircBufferIndex], SINGLE_BUFFER_SIZE);
+        bufferSent[readCircBufferIndex] = false;
+        bufferRead[readCircBufferIndex] = true;
+
+        readCircBufferIndex++;
+
+        if (CIRCULAR_BUFFER_SIZE == readCircBufferIndex)
         {
-            sampleData = readBuf[index2+1]<<8|readBuf[index2+2];
-            audioReadBufferL[index] = sampleData;
-
-            if (2 == noOfChannels) /* Stereo */
-            {
-                sampleData = readBuf[index2+3]<<8|readBuf[index2+4];
-                index2 += 4;
-            }
-            else
-            {
-                index2 += 2;
-            }
-
-            audioReadBufferR[index] = sampleData;
+            readCircBufferIndex = 0;
         }
-        bufferSent = false;
-        bufferRead = true;
     }
 }

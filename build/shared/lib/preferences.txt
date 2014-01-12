@@ -242,8 +242,8 @@ run.present.exclusive = false
 run.present.exclusive.macosx = true
 
 # ARDUINO PREFERENCES
-board = lpmsp430g2231
-target = msp430
+board = c5535sh
+target = C5000
 
 programmer = arduino:avrispmkii
 
@@ -256,3 +256,4 @@ serial.stopbits=1
 serial.parity=N
 serial.debug_rate=9600
 serial.open_monitor=false
+compile.compileCoreLibrary=false
