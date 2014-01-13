@@ -1,0 +1,47 @@
+#######################################
+# Syntax Coloring Map For Audio
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+AudioC	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+Audio	KEYWORD2
+close	KEYWORD2
+attachIntr	KEYWORD2
+detachIntr	KEYWORD2
+read	KEYWORD2
+write	KEYWORD2
+isrDma	KEYWORD2
+setInputGain	KEYWORD2
+setOutputVolume	KEYWORD2
+audioMute	KEYWORD2
+audioUnmute	KEYWORD2
+setSamplingRate	KEYWORD2
+HPL_RConF_Routing	KEYWORD2
+HPR_RConF_Routing	KEYWORD2
+LOL_RConF_Routing	KEYWORD2
+LOR_RConF_Routing	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+I2S_DMA_BUF_LEN	LITERAL1
+DMA_CHAN_ReadL	LITERAL1
+DMA_CHAN_ReadR	LITERAL1
+DMA_CHAN_WriteL	LITERAL1
+DMA_CHAN_WriteR	LITERAL1
+SAMPLING_RATE_8_KHZ	LITERAL1
+SAMPLING_RATE_11_KHZ	LITERAL1
+SAMPLING_RATE_12_KHZ	LITERAL1
+SAMPLING_RATE_16_KHZ	LITERAL1
+SAMPLING_RATE_22_KHZ	LITERAL1
+SAMPLING_RATE_24_KHZ	LITERAL1
+SAMPLING_RATE_32_KHZ	LITERAL1
+SAMPLING_RATE_44_KHZ	LITERAL1
+SAMPLING_RATE_48_KHZ	LITERAL1

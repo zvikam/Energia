@@ -178,20 +178,7 @@
     <fail message="wrong platform (${os.name})" />
   </target>
 
-  <property name="arm.tools.local" value="arm_tools_mac.tar.bz2"/>
-  <available property="exists.dep.arm" file="macosx/dist/${arm.tools.local}"/>
-  <property name="dep.arm.default.ok" value="true"/>
-
-  <target name="check.deps"
-    if="dep.arm.default.ok"
-    unless="exists.dep.arm">
-    <property name="arm.tools.remote" value="http://energia.nu/files/arm_tools_mac.tar.bz2"/>
-
-    <!-- Get arm tools -->
-    <get src="${arm.tools.remote}" dest="macosx/dist/${arm.tools.local}"/>
-  </target>
-
-  <target name="macosx-build" if="macosx" depends="revision-check, macosx-checkos, check.deps, subprojects-build" description="Build Mac OS X version">
+  <target name="macosx-build" if="macosx" depends="revision-check, macosx-checkos, subprojects-build" description="Build Mac OS X version">
     <mkdir dir="macosx/work" />
     
     <!-- assemble the pde -->
@@ -265,6 +252,7 @@
     <chmod file="macosx/work/Energia.app/Contents/MacOS/JavaApplicationStub" perm="+x" />
 <!--
     <chmod perm="+x">
+      <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/C5000/bin" includes="**/*" />
       <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/avr/bin" includes="**/*" />
       <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr/bin" includes="**/*" />
       <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr-3/bin" includes="**/*" />
@@ -309,6 +297,7 @@
     <chmod file="macosx/working_dir/Energia.app/Contents/MacOS/JavaApplicationStub" perm="+x" />
 <!--
     <chmod perm="+x">
+      <fileset dir="macosx/work/Energia.app/Contents/Resources/Java/hardware/tools/C5000/bin" includes="**/*" />
       <fileset dir="macosx/working_dir/Energia.app/Contents/Resources/Java/hardware/tools/avr/bin" includes="**/*" />
       <fileset dir="macosx/working_dir/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr/bin" includes="**/*" />
       <fileset dir="macosx/working_dir/Energia.app/Contents/Resources/Java/hardware/tools/avr/avr-3/bin" includes="**/*" />

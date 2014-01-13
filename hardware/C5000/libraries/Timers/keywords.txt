@@ -1,0 +1,50 @@
+#######################################
+# Syntax Coloring Map For OLED
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Timer	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+selectTimer	KEYWORD2
+configTimer	KEYWORD2
+initialize	KEYWORD2
+setPeriod	KEYWORD2
+start	KEYWORD2
+stop	KEYWORD2
+read	KEYWORD2
+close	KEYWORD2
+setWdt	KEYWORD2
+ServiceWdt	KEYWORD2
+startWdt	KEYWORD2
+stopWdt	KEYWORD2
+closeWdt	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+#define	GPT0	LITERAL1    
+#define	GPT1	LITERAL1    
+#define	GPT2	LITERAL1    
+#define	GPT_PRE_SC_DIV_0	LITERAL1     	
+#define	GPT_PRE_SC_DIV_1	LITERAL1   
+#define	GPT_PRE_SC_DIV_2	LITERAL1   
+#define	GPT_PRE_SC_DIV_3	LITERAL1   
+#define	GPT_PRE_SC_DIV_4	LITERAL1   
+#define	GPT_PRE_SC_DIV_5	LITERAL1   
+#define	GPT_PRE_SC_DIV_6	LITERAL1   
+#define	GPT_PRE_SC_DIV_7	LITERAL1   
+#define	GPT_PRE_SC_DIV_8	LITERAL1   
+#define	GPT_PRE_SC_DIV_9	LITERAL1   
+#define	GPT_PRE_SC_DIV_10	LITERAL1  
+#define	GPT_PRE_SC_DIV_11	LITERAL1  
+#define	GPT_PRE_SC_DIV_12	LITERAL1  
+#define HIGH_WORD_MASK	LITERAL1     
+#define LOW_WORD_MASK	LITERAL1 	     
+#define WORD_LENGTH	LITERAL1        

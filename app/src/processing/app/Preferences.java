@@ -33,7 +33,8 @@ import javax.swing.*;
 import processing.app.syntax.*;
 import processing.core.*;
 import static processing.app.I18n._;
-
+import processing.app.debug.Compiler;
+import processing.app.debug.RunnerException;
 
 
 
@@ -125,6 +126,8 @@ public class Preferences {
   JTextField fontSizeField;
   JCheckBox updateExtensionBox;
   JCheckBox autoAssociateBox;
+  JCheckBox compileCoreLibBox;
+  JTextField compilerToolsPathField;
 
   JComboBox comboFont;
 
@@ -138,18 +141,18 @@ public class Preferences {
   static Hashtable defaults;
   static Hashtable table = new Hashtable();;
   static File preferencesFile;
- 
+
   // Retrieves the name of all the system fonts
   static protected String[] GetAllSystemFonts()
   {
-  	/*ArrayList<String> fontsList = new ArrayList<String>(); 
-	for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts()) 
+  	/*ArrayList<String> fontsList = new ArrayList<String>();
+	for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
 		fontsList.add(f.getName());
 	return fontsList.toArray(new String[0]); */
-	
+
 	return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
   }
-  
+
   static protected void init(String commandLinePrefs) {
 
     // start by loading the defaults, in case something
@@ -217,7 +220,13 @@ public class Preferences {
 			 ), ex);
         }
       }
-    }    
+    }
+
+    if (get("compile.compilerToolsPath") != null){
+		Base.setBasePath(get("compile.compilerToolsPath") + File.separator);
+	}
+    Base.setCompileCoreLibrary(get("compile.compileCoreLibrary") == null ||
+                                   getBoolean("compile.compileCoreLibrary"));
   }
 
 
@@ -300,7 +309,7 @@ public class Preferences {
     box.setBounds(left, top, d.width, d.height);
     right = Math.max(right, left + d.width);
     top += d.height + GUI_BETWEEN;
-    
+
     // Editor font size [    ]
 
     box = Box.createHorizontalBox();
@@ -320,7 +329,7 @@ public class Preferences {
 
 
     // Show verbose output during: [ ] compilation [ ] upload
-    
+
     box = Box.createHorizontalBox();
     label = new JLabel(_("Show verbose output during: "));
     box.add(label);
@@ -334,14 +343,14 @@ public class Preferences {
     top += d.height + GUI_BETWEEN;
 
     // [ ] Verify code after upload
-    
+
     verifyUploadBox = new JCheckBox("Verify code after upload");
     pain.add(verifyUploadBox);
     d = verifyUploadBox.getPreferredSize();
     verifyUploadBox.setBounds(left, top, d.width + 10, d.height);
     right = Math.max(right, left + d.width);
     top += d.height + GUI_BETWEEN;
-    
+
     // [ ] Use external editor
 
     externalEditorBox = new JCheckBox(_("Use external editor"));
@@ -360,15 +369,15 @@ public class Preferences {
     checkUpdatesBox.setBounds(left, top, d.width + 10, d.height);
     right = Math.max(right, left + d.width);
     top += d.height + GUI_BETWEEN;
-    
+
     // [ ] Update sketch files to new extension on save (.pde -> .ino)
-    
+
     updateExtensionBox = new JCheckBox(_("Update sketch files to new extension on save (.pde -> .ino)"));
     pain.add(updateExtensionBox);
     d = updateExtensionBox.getPreferredSize();
     updateExtensionBox.setBounds(left, top, d.width + 10, d.height);
     right = Math.max(right, left + d.width);
-    top += d.height + GUI_BETWEEN;    
+    top += d.height + GUI_BETWEEN;
 
     // [ ] Automatically associate .pde files with Processing
 
@@ -382,6 +391,51 @@ public class Preferences {
       top += d.height + GUI_BETWEEN;
     }
 
+    // [ ] Compile Core library, if check box is ckecked
+
+    compileCoreLibBox = new JCheckBox(_("Compile DSP Shield Core Library"));
+    pain.add(compileCoreLibBox);
+    d = compileCoreLibBox.getPreferredSize();
+    compileCoreLibBox.setBounds(left, top, d.width + 10, d.height);
+    right = Math.max(right, left + d.width);
+    top += d.height + GUI_BETWEEN;
+
+    // Compiler Tools location for C5535 DSP Shield:
+    // [...............................]  [ Browse ]
+    label = new JLabel(_("Compiler Tools Location:"));
+    pain.add(label);
+    d = label.getPreferredSize();
+    label.setBounds(left, top, d.width, d.height);
+    top += d.height;
+
+    compilerToolsPathField = new JTextField(40);
+    compilerToolsPathField.setText(Base.getBasePath());
+    pain.add(compilerToolsPathField);
+    d = compilerToolsPathField.getPreferredSize();
+
+    button = new JButton(PROMPT_BROWSE);
+    button.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          File dflt = new File(compilerToolsPathField.getText());
+          File file = Base.selectFolder(_("DSP Shield Compiler Tools Path"), dflt, dialog);
+          if (file != null) {
+            compilerToolsPathField.setText(file.getAbsolutePath());
+          }
+        }
+      });
+    pain.add(button);
+    d2 = button.getPreferredSize();
+
+    // take max height of all components to vertically align them
+    vmax = Math.max(d.height, d2.height);
+    compilerToolsPathField.setBounds(left, top + (vmax-d.height)/2,
+                                     d.width, d.height);
+    h = left + d.width + GUI_SMALL;
+    button.setBounds(h, top + (vmax-d2.height)/2,
+                     d2.width, d2.height);
+
+    right = Math.max(right, h + d2.width + GUI_BIG);
+    top += vmax + GUI_BETWEEN;
 
     // More preferences are in the ...
 
@@ -399,7 +453,7 @@ public class Preferences {
         public void mousePressed(MouseEvent e) {
           Base.openFolder(Base.getSettingsFolder());
         }
-        
+
         public void mouseEntered(MouseEvent e) {
           clickable.setForeground(new Color(0, 0, 140));
         }
@@ -524,7 +578,7 @@ public class Preferences {
     setBoolean("build.verbose", verboseCompilationBox.isSelected());
     setBoolean("upload.verbose", verboseUploadBox.isSelected());
     setBoolean("upload.verify", verifyUploadBox.isSelected());
-    
+
 //    setBoolean("sketchbook.closing_last_window_quits",
 //               closingLastQuitsBox.isSelected());
     //setBoolean("sketchbook.prompt", sketchPromptBox.isSelected());
@@ -569,8 +623,28 @@ public class Preferences {
       setBoolean("platform.auto_file_type_associations",
                  autoAssociateBox.isSelected());
     }
-    
+
     setBoolean("editor.update_extension", updateExtensionBox.isSelected());
+
+    String arch = Base.getArch();
+    if (arch == "C5000") {
+		oldPath = get("compile.compilerToolsPath");
+		newPath = compilerToolsPathField.getText();
+
+		int lastIndex = newPath.lastIndexOf(File.separator) + 1;
+
+		if (newPath.length() == lastIndex){
+			newPath = newPath.substring(0, lastIndex-1);
+		}
+
+		if (!newPath.equals(oldPath)) {
+			editor.base.rebuildSketchbookMenus();
+			set("compile.compilerToolsPath", newPath);
+			Base.setBasePath(newPath + File.separator);
+		}
+		setBoolean("compile.compileCoreLibrary", compileCoreLibBox.isSelected());
+		Base.setCompileCoreLibrary(compileCoreLibBox.isSelected());
+	}
 
     editor.applyPreferences();
   }
@@ -602,9 +676,13 @@ public class Preferences {
       autoAssociateBox.
         setSelected(getBoolean("platform.auto_file_type_associations"));
     }
-    
+
     updateExtensionBox.setSelected(get("editor.update_extension") == null ||
                                    getBoolean("editor.update_extension"));
+
+    compileCoreLibBox.setSelected(get("compile.compileCoreLibrary") == null ||
+                                   getBoolean("compile.compileCoreLibrary"));
+    compilerToolsPathField.setText(get("compile.compilerToolsPath"));
 
     dialog.setVisible(true);
   }
@@ -616,8 +694,8 @@ public class Preferences {
   static protected void load(InputStream input) throws IOException {
     load(input, table);
   }
-  
-  static public void load(InputStream input, Map table) throws IOException {  
+
+  static public void load(InputStream input, Map table) throws IOException {
     String[] lines = PApplet.loadStrings(input);  // Reads as UTF-8
     for (String line : lines) {
       if ((line.length() == 0) ||
@@ -670,7 +748,7 @@ public class Preferences {
   //static public String get(String attribute) {
   //return get(attribute, null);
   //}
-  
+
   static public String get(String attribute /*, String defaultValue */) {
     return (String) table.get(attribute);
     /*

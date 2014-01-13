@@ -1,0 +1,48 @@
+#######################################
+# Syntax Coloring Map For SD
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SD_Card	KEYWORD1
+File	KEYWORD1
+FILE_MODE	KEYWORD1
+NUMBER_FORMAT_BASE	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+exists	KEYWORD2
+mkdir	KEYWORD2
+open	KEYWORD2
+remove	KEYWORD2
+rmdir	KEYWORD2
+available	KEYWORD2
+close	KEYWORD2
+flush	KEYWORD2
+peek	KEYWORD2
+position	KEYWORD2
+print	KEYWORD2
+println	KEYWORD2
+seek	KEYWORD2
+size	KEYWORD2
+read	KEYWORD2
+write	KEYWORD2
+isDirectory	KEYWORD2
+openNextFile	KEYWORD2
+rewindDirectory	KEYWORD2
+getName	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+FILE_READ	LITERAL1
+FILE_WRITE	LITERAL1
+BIN	LITERAL1
+OCT	LITERAL1
+DEC	LITERAL1
+HEX	LITERAL1

@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map For RTC
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+RTC	KEYWORD1
+RTCDate	KEYWORD1
+RTCTime	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+init      KEYWORD2
+start	KEYWORD2
+stop	KEYWORD2
+setTime	KEYWORD2
+setDate	KEYWORD2
+getTime	KEYWORD2
+getDate	KEYWORD2
+setAlarm	KEYWORD2
+getAlarm	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

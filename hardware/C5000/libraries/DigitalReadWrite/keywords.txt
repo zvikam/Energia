@@ -1,0 +1,64 @@
+#######################################
+# Syntax Coloring Map For DigitalReadWrite
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+digitalOpen	KEYWORD2
+pinMode		KEYWORD2
+digitalWrite	KEYWORD2
+digitalRead	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+INPUT	LITERAL1
+OUTPUT	LITERAL1
+LOW	LITERAL1
+HIGH	LITERAL1         
+IOEXP_P0	LITERAL1
+IOEXP_P1	LITERAL1
+IO_EXPANDER1	LITERAL1
+IO_EXPANDER2	LITERAL1
+
+IO0	LITERAL1
+IO1	LITERAL1
+IO2	LITERAL1		
+IO3	LITERAL1
+IO4	LITERAL1
+IO5	LITERAL1
+IO6	LITERAL1
+IO7	LITERAL1
+IO8	LITERAL1
+IO9	LITERAL1
+ARD_I2C_EN	LITERAL1
+ARD_UART_CNTRL0		LITERAL1
+ARD_UART_CNTRL1		LITERAL1
+ARD_UART_CNTRL2		LITERAL1
+ARD_RST_CNTRL0	LITERAL1
+ARD_RST_CNTRL1	LITERAL1
+LED0	LITERAL1
+LED1	LITERAL1
+LED2	LITERAL1
+SD_DET	LITERAL1
+OLED_REG	LITERAL1
+I2S2_MUX_SEL	LITERAL1
+UART_MUX_SEL	LITERAL1
+SD_MUX_EN	LITERAL1
+ARD_SPI_EN	LITERAL1
+E3	LITERAL1
+E1	LITERAL1
+E2	LITERAL1
+E0	LITERAL1
+IO_UNUSED0	LITERAL1
+IO_UNUSED1	LITERAL1
+SW8	LITERAL1
+SW7	LITERAL1
+
+digitalPinToPort	LITERAL1

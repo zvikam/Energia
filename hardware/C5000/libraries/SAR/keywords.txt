@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map For SAR
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SAR_Class	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+end	KEYWORD2
+configChannel	KEYWORD2
+startConversion	KEYWORD2
+stopConversion	KEYWORD2
+getStatus	KEYWORD2
+readData	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+SAR_POLL_MODE	LITERAL1
+SAR_INTERRUPT_MODE	LITERAL1
+SAR_DMA_MODE	LITERAL1
+SAR_CHANNEL0	LITERAL1
+SAR_CHANNEL1	LITERAL1
+SAR_CHANNEL2	LITERAL1
+SAR_CHANNEL3	LITERAL1
+SAR_CHANNEL4	LITERAL1
+SAR_CHANNEL5	LITERAL1
+SAR_CONTINUOUS_CONVERSION	LITERAL1
+SAR_SINGLE_CONVERSION	LITERAL1

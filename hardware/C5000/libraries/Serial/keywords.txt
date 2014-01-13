@@ -1,0 +1,38 @@
+#######################################
+# Syntax Coloring Map For Serial
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Serial	KEYWORD1
+Baudrate_Config	KEYWORD1
+NUMBER_FORMAT	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+end	KEYWORD2
+find	KEYWORD2
+findUntil	KEYWORD2
+flush	KEYWORD2
+parseFloat	KEYWORD2
+parseInt	KEYWORD2
+print	KEYWORD2
+println	KEYWORD2
+read	KEYWORD2
+readBytes	KEYWORD2
+readBytesUntil	KEYWORD2
+setTimeout	KEYWORD2
+write	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+BINARY_FORMAT	LITERAL1
+DECIMAL_FORMAT	LITERAL1
+OCTAL_FORMAT	LITERAL1
+HEXADECIMAL_FORMAT	LITERAL1
