@@ -38,6 +38,7 @@ import processing.app.debug.RunnerException;
 
 
 
+
 /**
  * Storage class for user preferences and environment settings.
  * <P>
@@ -141,18 +142,18 @@ public class Preferences {
   static Hashtable defaults;
   static Hashtable table = new Hashtable();;
   static File preferencesFile;
-
+ 
   // Retrieves the name of all the system fonts
   static protected String[] GetAllSystemFonts()
   {
-  	/*ArrayList<String> fontsList = new ArrayList<String>();
-	for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts())
+  	/*ArrayList<String> fontsList = new ArrayList<String>(); 
+	for (Font f : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts()) 
 		fontsList.add(f.getName());
 	return fontsList.toArray(new String[0]); */
-
+	
 	return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
   }
-
+  
   static protected void init(String commandLinePrefs) {
 
     // start by loading the defaults, in case something
@@ -220,7 +221,7 @@ public class Preferences {
 			 ), ex);
         }
       }
-    }
+    }    
 
     if (get("compile.compilerToolsPath") != null){
 		Base.setBasePath(get("compile.compilerToolsPath") + File.separator);
@@ -309,7 +310,7 @@ public class Preferences {
     box.setBounds(left, top, d.width, d.height);
     right = Math.max(right, left + d.width);
     top += d.height + GUI_BETWEEN;
-
+    
     // Editor font size [    ]
 
     box = Box.createHorizontalBox();
@@ -329,7 +330,7 @@ public class Preferences {
 
 
     // Show verbose output during: [ ] compilation [ ] upload
-
+    
     box = Box.createHorizontalBox();
     label = new JLabel(_("Show verbose output during: "));
     box.add(label);
@@ -343,14 +344,14 @@ public class Preferences {
     top += d.height + GUI_BETWEEN;
 
     // [ ] Verify code after upload
-
+    
     verifyUploadBox = new JCheckBox("Verify code after upload");
     pain.add(verifyUploadBox);
     d = verifyUploadBox.getPreferredSize();
     verifyUploadBox.setBounds(left, top, d.width + 10, d.height);
     right = Math.max(right, left + d.width);
     top += d.height + GUI_BETWEEN;
-
+    
     // [ ] Use external editor
 
     externalEditorBox = new JCheckBox(_("Use external editor"));
@@ -369,15 +370,15 @@ public class Preferences {
     checkUpdatesBox.setBounds(left, top, d.width + 10, d.height);
     right = Math.max(right, left + d.width);
     top += d.height + GUI_BETWEEN;
-
+    
     // [ ] Update sketch files to new extension on save (.pde -> .ino)
-
+    
     updateExtensionBox = new JCheckBox(_("Update sketch files to new extension on save (.pde -> .ino)"));
     pain.add(updateExtensionBox);
     d = updateExtensionBox.getPreferredSize();
     updateExtensionBox.setBounds(left, top, d.width + 10, d.height);
     right = Math.max(right, left + d.width);
-    top += d.height + GUI_BETWEEN;
+    top += d.height + GUI_BETWEEN;    
 
     // [ ] Automatically associate .pde files with Processing
 
@@ -453,7 +454,7 @@ public class Preferences {
         public void mousePressed(MouseEvent e) {
           Base.openFolder(Base.getSettingsFolder());
         }
-
+        
         public void mouseEntered(MouseEvent e) {
           clickable.setForeground(new Color(0, 0, 140));
         }
@@ -578,7 +579,7 @@ public class Preferences {
     setBoolean("build.verbose", verboseCompilationBox.isSelected());
     setBoolean("upload.verbose", verboseUploadBox.isSelected());
     setBoolean("upload.verify", verifyUploadBox.isSelected());
-
+    
 //    setBoolean("sketchbook.closing_last_window_quits",
 //               closingLastQuitsBox.isSelected());
     //setBoolean("sketchbook.prompt", sketchPromptBox.isSelected());
@@ -623,7 +624,7 @@ public class Preferences {
       setBoolean("platform.auto_file_type_associations",
                  autoAssociateBox.isSelected());
     }
-
+    
     setBoolean("editor.update_extension", updateExtensionBox.isSelected());
 
     String arch = Base.getArch();
@@ -676,7 +677,7 @@ public class Preferences {
       autoAssociateBox.
         setSelected(getBoolean("platform.auto_file_type_associations"));
     }
-
+    
     updateExtensionBox.setSelected(get("editor.update_extension") == null ||
                                    getBoolean("editor.update_extension"));
 
@@ -694,8 +695,8 @@ public class Preferences {
   static protected void load(InputStream input) throws IOException {
     load(input, table);
   }
-
-  static public void load(InputStream input, Map table) throws IOException {
+  
+  static public void load(InputStream input, Map table) throws IOException {  
     String[] lines = PApplet.loadStrings(input);  // Reads as UTF-8
     for (String line : lines) {
       if ((line.length() == 0) ||
@@ -748,7 +749,7 @@ public class Preferences {
   //static public String get(String attribute) {
   //return get(attribute, null);
   //}
-
+  
   static public String get(String attribute /*, String defaultValue */) {
     return (String) table.get(attribute);
     /*

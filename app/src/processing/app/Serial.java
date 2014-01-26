@@ -53,7 +53,7 @@ public class Serial implements SerialPortEventListener {
   int stopbits;
   boolean monitor = false;
 
-  // read buffer and streams
+  // read buffer and streams 
 
   InputStream input;
   OutputStream output;
@@ -61,7 +61,7 @@ public class Serial implements SerialPortEventListener {
   byte buffer[] = new byte[32768];
   int bufferIndex;
   int bufferLast;
-
+  
   MessageConsumer consumer;
 
   public Serial(boolean monitor) throws SerialException {
@@ -72,25 +72,25 @@ public class Serial implements SerialPortEventListener {
       new Float(Preferences.get("serial.stopbits")).floatValue());
     this.monitor = monitor;
   }
-
+    
   public Serial() throws SerialException {
     this(Preferences.get("serial.port"),
       Preferences.getInteger("serial.debug_rate"),
       Preferences.get("serial.parity").charAt(0),
-      Preferences.getInteger("serial.databits"),
+      Preferences.getInteger("serial.databits"), 
       new Float(Preferences.get("serial.stopbits")).floatValue());
   }
 
   public Serial(int irate) throws SerialException {
     this(Preferences.get("serial.port"), irate,
       Preferences.get("serial.parity").charAt(0),
-      Preferences.getInteger("serial.databits"),
+      Preferences.getInteger("serial.databits"), 
       new Float(Preferences.get("serial.stopbits")).floatValue());
   }
 
   public Serial(String iname, int irate) throws SerialException {
     this(iname, irate, Preferences.get("serial.parity").charAt(0),
-    Preferences.getInteger("serial.databits"),
+    Preferences.getInteger("serial.databits"), 
     new Float(Preferences.get("serial.stopbits")).floatValue());
   }
 
@@ -164,7 +164,7 @@ public class Serial implements SerialPortEventListener {
 //      //exception = e;
 //      //e.printStackTrace();
     }
-
+    
     if (port == null) {
       throw new SerialNotFoundException(
         I18n.format(
@@ -214,8 +214,8 @@ public class Serial implements SerialPortEventListener {
     }
     port = null;
   }
-
-
+  
+  
   public void addListener(MessageConsumer consumer) {
     this.consumer = consumer;
   }
@@ -253,7 +253,7 @@ public class Serial implements SerialPortEventListener {
             	buffer[bufferLast++] = (byte) input.read();
             }
             /*
-            System.err.println(input.available() + " " +
+            System.err.println(input.available() + " " + 
                                ((char) buffer[bufferLast-1]));
             */            //}
           }
@@ -292,8 +292,8 @@ public class Serial implements SerialPortEventListener {
 
 
   /**
-   * Returns a number between 0 and 255 for the next byte that's
-   * waiting in the buffer.
+   * Returns a number between 0 and 255 for the next byte that's 
+   * waiting in the buffer. 
    * Returns -1 if there was no byte (although the user should
    * first check available() to see if things are ready to avoid this)
    */
@@ -324,7 +324,7 @@ public class Serial implements SerialPortEventListener {
   /**
    * Return a byte array of anything that's in the serial buffer.
    * Not particularly memory/speed efficient, because it creates
-   * a byte array on each read, but it's easier to use than
+   * a byte array on each read, but it's easier to use than 
    * readBytes(byte b[]) (see below).
    */
   public byte[] readBytes() {
@@ -343,9 +343,9 @@ public class Serial implements SerialPortEventListener {
 
 
   /**
-   * Grab whatever is in the serial buffer, and stuff it into a
-   * byte buffer passed in by the user. This is more memory/time
-   * efficient than readBytes() returning a byte[] array.
+   * Grab whatever is in the serial buffer, and stuff it into a 
+   * byte buffer passed in by the user. This is more memory/time 
+   * efficient than readBytes() returning a byte[] array. 
    *
    * Returns an int for how many bytes were read. If more bytes
    * are available than can fit into the byte array, only those
@@ -365,13 +365,13 @@ public class Serial implements SerialPortEventListener {
         bufferLast = 0;
       }
       return length;
-    }
+    }    
   }
 
 
   /**
    * Reads from the serial port into a buffer of bytes up to and
-   * including a particular character. If the character isn't in
+   * including a particular character. If the character isn't in 
    * the serial buffer, then 'null' is returned.
    */
   public byte[] readBytesUntil(int interesting) {
@@ -379,7 +379,7 @@ public class Serial implements SerialPortEventListener {
     byte what = (byte)interesting;
 
     synchronized (buffer) {
-      int found = -1;
+      int found = -1; 
       for (int k = bufferIndex; k < bufferLast; k++) {
         if (buffer[k] == what) {
           found = k;
@@ -400,11 +400,11 @@ public class Serial implements SerialPortEventListener {
 
 
   /**
-   * Reads from the serial port into a buffer of bytes until a
+   * Reads from the serial port into a buffer of bytes until a 
    * particular character. If the character isn't in the serial
    * buffer, then 'null' is returned.
    *
-   * If outgoing[] is not big enough, then -1 is returned,
+   * If outgoing[] is not big enough, then -1 is returned, 
    *   and an error message is printed on the console.
    * If nothing is in the buffer, zero is returned.
    * If 'interesting' byte is not in the buffer, then 0 is returned.
@@ -414,7 +414,7 @@ public class Serial implements SerialPortEventListener {
     byte what = (byte)interesting;
 
     synchronized (buffer) {
-      int found = -1;
+      int found = -1; 
       for (int k = bufferIndex; k < bufferLast; k++) {
         if (buffer[k] == what) {
           found = k;
@@ -450,7 +450,7 @@ public class Serial implements SerialPortEventListener {
 
   /**
    * Return whatever has been read from the serial port so far
-   * as a String. It assumes that the incoming characters are ASCII.
+   * as a String. It assumes that the incoming characters are ASCII. 
    *
    * If you want to move Unicode data, you can first convert the
    * String to a byte stream in the representation of your choice
@@ -463,7 +463,7 @@ public class Serial implements SerialPortEventListener {
 
 
   /**
-   * Combination of readBytesUntil and readString. See caveats in
+   * Combination of readBytesUntil and readString. See caveats in 
    * each function. Returns null if it still hasn't found what
    * you're looking for.
    *
@@ -506,8 +506,8 @@ public class Serial implements SerialPortEventListener {
 
   /**
    * Write a String to the output. Note that this doesn't account
-   * for Unicode (two bytes per char), nor will it send UTF8
-   * characters.. It assumes that you mean to send a byte buffer
+   * for Unicode (two bytes per char), nor will it send UTF8 
+   * characters.. It assumes that you mean to send a byte buffer 
    * (most often the case for networking and serial i/o) and
    * will only use the bottom 8 bits of each char in the string.
    * (Meaning that internally it uses String.getBytes)
@@ -529,7 +529,7 @@ public class Serial implements SerialPortEventListener {
   }
 
   /**
-   * If this just hangs and never completes on Windows,
+   * If this just hangs and never completes on Windows, 
    * it may be because the DLL doesn't have its exec bit set.
    * Why the hell that'd be the case, who knows.
    */
@@ -541,7 +541,7 @@ public class Serial implements SerialPortEventListener {
       Enumeration portList = CommPortIdentifier.getPortIdentifiers();
       //System.err.println("got port list");
       while (portList.hasMoreElements()) {
-        CommPortIdentifier portId =
+        CommPortIdentifier portId = 
           (CommPortIdentifier) portList.nextElement();
         //System.out.println(portId);
 
@@ -613,14 +613,14 @@ public class Serial implements SerialPortEventListener {
       //System.out.println("building port list");
       Enumeration portList = CommPortIdentifier.getPortIdentifiers();
       while (portList.hasMoreElements()) {
-        CommPortIdentifier portId =
+        CommPortIdentifier portId = 
           (CommPortIdentifier) portList.nextElement();
         //System.out.println(portId);
 
         if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
           //if (portId.getName().equals(port)) {
           String name = portId.getName();
-          //CheckboxMenuItem mi =
+          //CheckboxMenuItem mi = 
           //new CheckboxMenuItem(name, name.equals(defaultName));
 
           //mi.addItemListener(listener);
@@ -656,4 +656,4 @@ public class Serial implements SerialPortEventListener {
   */
 
 
-
+ 
