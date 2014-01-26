@@ -1281,6 +1281,7 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
     int           dirNameLen;
     char          *tempPtr;
     char          *prevPtr;
+    long          temp;
 
     prevPtr = filePath;
     tempPtr = filePath;
@@ -1362,8 +1363,21 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
 
                 if (FILE_APPEND == mode)
                 {
+					temp = fileObj.size();
                     /* Seek to the end of the file */
-                    fileObj.seek(fileObj.size());
+                    if ((temp % 2) == 0)
+                    {
+						fileObj.seek(temp);
+					}
+					else
+					{
+						/* Store the last byte */
+						fileObj.seek(temp - 1);
+						fileObj.charToFlush = fileObj.read();
+						fileObj.flushData   = TRUE;
+
+						fileObj.seek(temp - 1);
+					}
                 }
             }
 
@@ -1713,6 +1727,10 @@ void File::close ()
         {
             /* FLush any data which is pending to be written */
             this->flush();
+			if (this->available())
+			{
+				this->seek(this->size());
+			}
             ata_error = ATA_close(&(this->ataFileStruct));
         }
         else
@@ -2403,7 +2421,7 @@ Bool File::seek (unsigned long posValue)
 {
     AtaError  ata_error;
 
-    if ((this->fileOpenStatus == TRUE) && (posValue < this->size()))
+    if ((this->fileOpenStatus == TRUE) && (posValue <= this->size()))
     {
         this->flush(); /* Flush any remaining data */
         holdCharFromRead = -1;
