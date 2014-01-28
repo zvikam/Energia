@@ -34,6 +34,12 @@
 #           PREFIX and BUNDLE_SUPPORT_LIBS to make it less dependent
 #           on external shared libs.
 
+# 2013-12-20 ss BUNDLE_SUPPORT_LIBS defaults to yes
+#            some cleanup to better run on angstrom 
+#            wget without content-disposition
+#            load gmp from http side
+#            some more reporting
+#
 # rm -rf BUILD bin* build.log* gcc* gdb* gm* mp* msp*
 
 set -e
@@ -45,11 +51,12 @@ gdb_lts_patches=""
 libc_lts_patches="sf3522752"
 mcu_lts_patches="sf3522088"
 
-: ${BUNDLE_SUPPORT_LIBS:-yes}
+: ${BUNDLE_SUPPORT_LIBS:=yes}
 
 if [ "${BUNDLE_SUPPORT_LIBS}" = "yes" ]
 then
 	# Minimum required versions as per gcc/INSTALL/prerequisites.html
+	echo  BUNDLE_SUPPORT_LIBS = ${BUNDLE_SUPPORT_LIBS}
 	mpc_version="0.8.1"
 	mpfr_version="2.4.2"
 	gmp_version="4.3.2"
@@ -87,7 +94,8 @@ dl()
 	# SF directlinks
 	fn="$( basename "${1%/download}" )"
 	[ -f "${fn}" ] && return
-	wget --content-disposition -qO "${fn}" "${1}"
+	echo wget: "${1}"
+	wget -qO "${fn}" "${1}"
 }
 
 xtr()
@@ -204,7 +212,7 @@ dl "${base_url}/msp430-libc/msp430-libc-${libc_ver}.tar.bz2"
 
 if [ "${BUNDLE_SUPPORT_LIBS}" = "yes" ]
 then
-	dl "ftp://gmplib.org/pub/gmp-${gmp_version}/gmp-${gmp_version}.tar.bz2"
+	dl "http://ftp.gnu.org/pub/gnu/gmp/gmp-${gmp_version}.tar.bz2"
 	dl "http://www.mpfr.org/mpfr-${mpfr_version}/mpfr-${mpfr_version}.tar.bz2"
 	dl "http://www.multiprecision.org/mpc/download/mpc-${mpc_version}.tar.gz"
 fi
