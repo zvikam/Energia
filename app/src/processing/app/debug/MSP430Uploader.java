@@ -182,27 +182,7 @@ public class MSP430Uploader extends Uploader{
 		}
 
     try {
-      Serial serialPort = new Serial();
-      byte[] readBuffer;
-      while(serialPort.available() > 0) {
-        readBuffer = serialPort.readBytes();
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {}
-      }
-
-      // Enable GDB bootloader on target board
-      serialPort.setRTS(false);
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {}
-
-      // Reset target board
-      serialPort.setDTR(false);
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {}
-      serialPort.setDTR(true);
+      flushSerialBuffer();
 
       String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
       "' -ex 'set debug remote 0' " + buildPath + File.separator + className + ".elf" +
@@ -223,15 +203,10 @@ public class MSP430Uploader extends Uploader{
         while ((line = in.readLine()) != null) {
             System.out.println(line);
         } 
-
         process.waitFor();
         process.destroy();
-
         ret = true;
-
-        serialPort.setRTS(true);
       }
-
     } catch (SerialNotFoundException e) {
       throw e;
     } catch (Exception e) {
