@@ -12,9 +12,8 @@ FFTransform	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-FFT	KEYWORD2
-IFFT	KEYWORD2
-filter	KEYWORD2
+FFT_init	KEYWORD2
+FFT_filter	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
