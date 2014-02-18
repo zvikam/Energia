@@ -74,97 +74,102 @@ void radioISR(void)
           // Is CRC OK?
           if (ccPacket.crc_ok)
           {
-            static SWPACKET swPacket;
-            REGISTER *reg;
-            static bool eval = true;
-
-            swPacket = SWPACKET(ccPacket);
-
-            #ifdef SWAP_EXTENDED_ADDRESS
-            if (swPacket.addrType == SWAPADDR_EXTENDED)
-            #else
-            if (swPacket.addrType == SWAPADDR_SIMPLE)
-            #endif
-            {
-              // Repeater enabled?
-              if (panstamp.repeater != NULL)
-                panstamp.repeater->packetHandler(&swPacket);
-
-              // Smart encryption locally enabled?
-              if (panstamp.security & 0x02)
-              {
-                // OK, then incoming packets must be encrypted too
-                if (!(swPacket.security & 0x02))
-                  eval = false;
-              }
-            }
+            if (panstamp.ccPacketReceived != NULL)
+              panstamp.ccPacketReceived(&ccPacket);
             else
-              eval = false;
-            if (eval)
             {
-              // Function
-              switch(swPacket.function)
+              static SWPACKET swPacket;
+              REGISTER *reg;
+              static bool eval = true;
+
+              swPacket = SWPACKET(ccPacket);
+
+              #ifdef SWAP_EXTENDED_ADDRESS
+              if (swPacket.addrType == SWAPADDR_EXTENDED)
+              #else
+              if (swPacket.addrType == SWAPADDR_SIMPLE)
+              #endif
               {
-                case SWAPFUNCT_CMD:
-                  // Command not addressed to us?
-                  if (swPacket.destAddr != panstamp.swapAddress)
-                    break;
-                  // Current version does not support data recording mode
-                  // so destination address and register address must be the same
-                  if (swPacket.destAddr != swPacket.regAddr)
-                    break;
-                  // Valid register?
-                  if ((reg = getRegister(swPacket.regId)) == NULL)
-                    break;
-                  // Anti-playback security enabled?
-                  if (panstamp.security & 0x01)
-                  {
-                    // Check received nonce
-                    if (panstamp.nonce != swPacket.nonce)
+                // Repeater enabled?
+                if (panstamp.repeater != NULL)
+                  panstamp.repeater->packetHandler(&swPacket);
+
+                // Smart encryption locally enabled?
+                if (panstamp.security & 0x02)
+                {
+                  // OK, then incoming packets must be encrypted too
+                  if (!(swPacket.security & 0x02))
+                    eval = false;
+                }
+              }
+              else
+                eval = false;
+              if (eval)
+              {
+                // Function
+                switch(swPacket.function)
+                {
+                  case SWAPFUNCT_CMD:
+                    // Command not addressed to us?
+                    if (swPacket.destAddr != panstamp.swapAddress)
+                      break;
+                    // Current version does not support data recording mode
+                    // so destination address and register address must be the same
+                    if (swPacket.destAddr != swPacket.regAddr)
+                      break;
+                    // Valid register?
+                    if ((reg = getRegister(swPacket.regId)) == NULL)
+                      break;
+                    // Anti-playback security enabled?
+                    if (panstamp.security & 0x01)
                     {
-                      // Nonce missmatch. Transmit correct nonce.
-                      reg = getRegister(REGI_SECUNONCE);
-                      reg->sendSwapStatus();
-                      break;
+                      // Check received nonce
+                      if (panstamp.nonce != swPacket.nonce)
+                      {
+                        // Nonce missmatch. Transmit correct nonce.
+                        reg = getRegister(REGI_SECUNONCE);
+                        reg->sendSwapStatus();
+                        break;
+                      }
                     }
-                  }
-                  // Filter incorrect data lengths
-                  if (swPacket.value.length == reg->length)
-                    reg->setData(swPacket.value.data);
-                  else
-                    reg->sendSwapStatus();
-                  break;
-                case SWAPFUNCT_QRY:
-                  // Only Product Code can be broadcasted
-                  if (swPacket.destAddr == SWAP_BCAST_ADDR)
-                  {
-                    if (swPacket.regId != REGI_PRODUCTCODE)
+                    // Filter incorrect data lengths
+                    if (swPacket.value.length == reg->length)
+                      reg->setData(swPacket.value.data);
+                    else
+                      reg->sendSwapStatus();
+                    break;
+                  case SWAPFUNCT_QRY:
+                    // Only Product Code can be broadcasted
+                    if (swPacket.destAddr == SWAP_BCAST_ADDR)
+                    {
+                      if (swPacket.regId != REGI_PRODUCTCODE)
+                        break;
+                    }
+                    // Query not addressed to us?
+                    else if (swPacket.destAddr != panstamp.radio.devAddress)
                       break;
-                  }
-                  // Query not addressed to us?
-                  else if (swPacket.destAddr != panstamp.radio.devAddress)
+                    // Current version does not support data recording mode
+                    // so destination address and register address must be the same
+                    if (swPacket.destAddr != swPacket.regAddr)
+                      break;
+                    // Valid register?
+                    if ((reg = getRegister(swPacket.regId)) == NULL)
+                      break;
+                    reg->getData();
                     break;
-                  // Current version does not support data recording mode
-                  // so destination address and register address must be the same
-                  if (swPacket.destAddr != swPacket.regAddr)
+                  case SWAPFUNCT_STA:
+                    // User callback function declared?
+                    if (panstamp.statusReceived != NULL)
+                      panstamp.statusReceived(&swPacket);
                     break;
-                  // Valid register?
-                  if ((reg = getRegister(swPacket.regId)) == NULL)
+                  default:
                     break;
-                  reg->getData();
-                  break;
-                case SWAPFUNCT_STA:
-                  // User callback function declared?
-                  if (panstamp.statusReceived != NULL)
-                    panstamp.statusReceived(&swPacket);
-                  break;
-                default:
-                  break;
+                }
               }
             }
           }
+          MRFI_ENABLE_SYNC_PIN_INT();
         }
-        MRFI_ENABLE_SYNC_PIN_INT();
       }
     }
   }
@@ -177,6 +182,7 @@ void radioISR(void)
  */
 PANSTAMP::PANSTAMP(void)
 {
+  ccPacketReceived = NULL;
   statusReceived = NULL;
   repeater = NULL;
 }

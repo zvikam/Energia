@@ -52,6 +52,7 @@
 /**
  * Macros
  */
+#define setPacketRxCallback(ptrFunc)     ccPacketReceived = ptrFunc
 #define setSwapStatusCallBack(ptrFunc)   statusReceived = ptrFunc
 
 #define eepromToFactoryDefaults()                     \
@@ -178,6 +179,11 @@ class PANSTAMP
      * @param maxHop Maximum repeater count. Zero if omitted
      */
     void enableRepeater(unsigned char maxHop=0);
+
+    /**
+     * CC11XX packet received. Callback function
+     */
+    void (*ccPacketReceived)(CCPACKET *packet);
 
     /**
      * SWAP status packet received. Callback function
