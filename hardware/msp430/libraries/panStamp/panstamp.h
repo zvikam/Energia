@@ -28,7 +28,6 @@
 #include "cc430core.h"
 #include "cc430radio.h"
 #include "cc430rtc.h"
-#include "cc430ta1.h"
 #include "thermistor.h"
 #include "register.h"
 #include "swpacket.h"

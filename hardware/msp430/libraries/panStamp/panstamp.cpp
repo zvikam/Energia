@@ -236,6 +236,7 @@ void PANSTAMP::init()
 
   // Configure LED pin as output
   PJDIR |= BIT1;
+  PJOUT &= ~BIT1;
 
   // Initialize temperature sensor
   thermistor.init();
