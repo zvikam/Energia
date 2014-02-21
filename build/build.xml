@@ -9,6 +9,7 @@
   <condition property="windows"><os family="windows" /></condition>
   <condition property="linux"><os family="unix" /></condition>
   <condition property="linux32"><os family="unix" arch="i386" /></condition>
+  <condition property="linux32"><os family="unix" arch="arm" /></condition>
   <condition property="linux64"><os family="unix" arch="amd64" /></condition>
   
   <condition property="platform" 
@@ -17,6 +18,8 @@
 	     value="windows"><os family="windows" /></condition>
   <condition property="platform" 
 	     value="linux32"><os family="unix" arch="i386" /></condition>
+  <condition property="platform" 
+	     value="linux32"><os family="unix" arch="arm" /></condition>
   <condition property="platform" 
 	     value="linux64"><os family="unix" arch="amd64" /></condition>
 
@@ -682,9 +685,11 @@
   <!-- - - - - - - - -->
   <!-- Run It!       -->
   <!-- - - - - - - - -->
-  
+
   <target name="clean" description="Perform a spring cleaning" 
 	  depends="linux-clean, windows-clean, macosx-clean, subprojects-clean">
   </target>
 
+ 
+ 
 </project>
