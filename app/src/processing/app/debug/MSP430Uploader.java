@@ -68,9 +68,12 @@ public class MSP430Uploader extends Uploader{
 	      if (ret == false) {
 		      JOptionPane.showMessageDialog(editor,
               "Unable to upload new firmware to the target board\n"
-              + "Please check connections on your target board", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
-          return ret;
+              + "Please check connections on your target board\n"
+              + "Also check that your panStamp is in programming mode", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
         }
+        else
+          System.out.println("Process completed");
+        return ret;
       } catch (SerialNotFoundException e) {
 		      JOptionPane.showMessageDialog(editor,
               "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
@@ -173,11 +176,11 @@ public class MSP430Uploader extends Uploader{
       sysPrompt = "/bin/bash";
 		}
 		else if (Base.isMacOS()) {
-			gdbBin = "/tools/msp430/bin/msp430-gdb";
+			gdbBin = Base.getHardwarePath() + "/tools/msp430/bin/msp430-gdb";
       sysPrompt = "/bin/bash";
 		}
 		else {
-			gdbBin = "\\tools\\msp430\\bin\\msp430-gdb";
+			gdbBin = Base.getHardwarePath() + "\\tools\\msp430\\bin\\msp430-gdb";
       sysPrompt = "cmd";
 		}
 
@@ -187,7 +190,7 @@ public class MSP430Uploader extends Uploader{
       String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
       "' -ex 'set debug remote 0' " + buildPath + File.separator + className + ".elf" +
       " -ex 'erase' -ex 'load' -ex 'quit'";
-      System.out.println(gdbcommand);
+
       String line;
 
       Process process = Runtime.getRuntime().exec(sysPrompt);
@@ -200,9 +203,6 @@ public class MSP430Uploader extends Uploader{
         out.flush();
         out.close();
 
-        while ((line = in.readLine()) != null) {
-            System.out.println(line);
-        } 
         process.waitFor();
         process.destroy();
         ret = true;
