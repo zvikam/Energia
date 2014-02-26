@@ -29,7 +29,7 @@
  * Thermistor
  */
 // Thermistor power pin
-#define THERMISTOR_PWRPIN 15
+//#define THERMISTOR_PWRPIN 15
 // which analog pin to connect
 #define THERMISTORPIN A5       
 // resistance at 25 degrees C

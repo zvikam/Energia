@@ -28,6 +28,21 @@
 #include "datatypes.h"
 
 /**
+ * Port state structure
+ */
+struct PORTCFG
+{
+    // Function selection
+    uint8_t selection;
+
+    // Port mapping
+    uint16_t mapping[8];
+
+    // Port direction
+    uint8_t direction;
+};
+
+/**
  * Class: CC430CORE
  * 
  * Description:
@@ -35,6 +50,12 @@
  */
 class CC430CORE
 {
+  private:
+    /**
+     * Configuration of ports
+     */
+    PORTCFG portConfig[3];
+
   public:   
     /**
      * init
@@ -42,6 +63,23 @@ class CC430CORE
      * Initializa MCU core
      */
     void init(void);
+
+    /**
+     * setLowPowerMode
+     *
+     * Enter low power mode
+     *
+     * @param lpm4 true if LPM4 has to be entered. Otherwise the MCU will
+     * enter LPM3
+     */
+    void setLowPowerMode(bool lpm4 = false);
+
+    /*
+     * setNormalMode
+     *
+     * Revert from low power mode
+     */
+    void setNormalMode(void);
 
     /**
      * getVcc

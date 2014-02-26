@@ -22,6 +22,7 @@
  * Creation date: 06/21/2013
  */
 
+#include "panstamp.h"
 #include "cc430rtc.h"
 #include "cc430f5137.h"
 #include "Energia.h"
@@ -127,7 +128,12 @@ void CC430RTC::sleep(uint16_t time, RTCSRC source)
   RTC_ISR_ENABLE();                   // Enable RTC interrupt
   RTC_START_32BIT_COUNTER();          // Start RTC counter with 32-bit overflow
 
-  __bis_SR_register(LPM3_bits + GIE); // Enter LPM3 with interrupts
+//  __bis_SR_register(LPM3_bits + GIE); // Enter LPM3 with interrupts
+  panstamp.core.setLowPowerMode();    // Enter low-power mode
+
+  // ZZZZZZZ....
+
+  panstamp.core.setNormalMode();      // Exit low-power mode
 
   enableWatchDog();                   // Enable WDT again
 }

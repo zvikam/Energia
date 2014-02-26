@@ -34,11 +34,6 @@
 #include "config.h"
 #include "repeater.h"
 
-#ifndef Energia_h
-#include "cc430uart.h"
-#include "cc430i2c.h"
-#endif
-
 /**
  * RTC definitions
  */
@@ -108,19 +103,7 @@ class PANSTAMP
      * Onboard thermistor
      */
     THERMISTOR thermistor; 
-
-    #ifndef Energia_h
-    /**
-     * Serial port
-     */
-    CC430UART serial;
-
-    /**
-     * I2C port
-     */
-    CC430I2C i2c;
-    #endif
-    
+   
     #ifdef SWAP_EXTENDED_ADDRESS
     /**
      * SWAP extended address
@@ -209,15 +192,6 @@ class PANSTAMP
      * Reset panStamp
      */
     void reset(void);
-
-    /**
-     * wakeUp
-     *
-     * Wake from sleep mode
-     *
-     * @param rxOn Enter RX_ON state after waking up
-     */
-    void wakeUp(bool rxOn=true);
 
     /**
      * goToSleep

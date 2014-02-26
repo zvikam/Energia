@@ -273,18 +273,6 @@ void PANSTAMP::reset()
 }
 
 /**
- * wakeUp
- *
- * Wake from sleep mode
- *
- * @param rxOn Enter RX_ON state after waking up
- */
-void PANSTAMP::wakeUp(bool rxOn) 
-{
-  radio.wakeUp();
-}
-
-/**
  * goToSleep
  *
  * put the MCU in sleep mode
