@@ -185,14 +185,12 @@ public class MSP430Uploader extends Uploader{
 		}
 
     try {
-      flushSerialBuffer();
-
       String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
       "' -ex 'set debug remote 0' " + buildPath + File.separator + className + ".elf" +
       " -ex 'erase' -ex 'load' -ex 'quit'";
 
       String line;
-
+setRTS(false);
       Process process = Runtime.getRuntime().exec(sysPrompt);
 
       if (process != null) {
@@ -203,10 +201,18 @@ public class MSP430Uploader extends Uploader{
         out.flush();
         out.close();
 
+        String sCurrentLine;
+  			while ((sCurrentLine = in.readLine()) != null) {
+  				System.out.println(sCurrentLine);
+        }
+
         process.waitFor();
         process.destroy();
         ret = true;
       }
+
+setRTS(false);
+
     } catch (SerialNotFoundException e) {
       throw e;
     } catch (Exception e) {
@@ -215,4 +221,29 @@ public class MSP430Uploader extends Uploader{
       return ret;
     }    
 	}
+
+  private void setRTS(boolean state) throws RunnerException, SerialException {
+    // Cleanup the serial buffer
+    try {
+      Serial serialPort = new Serial();
+      byte[] readBuffer;
+      while(serialPort.available() > 0) {
+        readBuffer = serialPort.readBytes();
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {}
+      }
+
+      serialPort.setRTS(state);
+      
+      serialPort.dispose();
+    } catch (SerialNotFoundException e) {
+      throw e;
+    } catch(Exception e) {
+      e.printStackTrace();
+      throw new RunnerException(e.getMessage());
+    }
+  }
+
 }
+
