@@ -1,3 +1,4 @@
+- NTC calibration
 - Add absolute date/time functions in CC430RTC class
 - Hardware encryption
 - MAC address
