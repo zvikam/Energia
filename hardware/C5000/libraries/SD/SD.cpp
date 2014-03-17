@@ -64,9 +64,9 @@
 class fileNodesList
 {
     public:
-	    /** Starting cluster of file */
+        /** Starting cluster of file */
         unsigned long        startCluster;
-		/** Pointer to next file */
+        /** Pointer to next file */
         struct fileNodesList *nextFileNode;
 
         fileNodesList()
@@ -235,7 +235,7 @@ SD_Class::~SD_Class ()
  */
 Bool SD_Class::begin ()
 {
-	return (this->begin(0));
+    return (this->begin(0));
 }
 
 /**
@@ -259,8 +259,8 @@ Bool SD_Class::begin (int opmode)
 
     if ((0 != opmode) && (1 != opmode))
     {
-		return (FALSE);
-	}
+        return (FALSE);
+    }
 
     ptrAtaDrive         = &(this->ataDriveStruct);
     gpataMMCStateStruct = &(this->ataMMCStateStruct);
@@ -285,55 +285,55 @@ Bool SD_Class::begin (int opmode)
     /* Open MMCSD CSL module */
     if (0 == opmode)
     {
-		mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
-							   CSL_MMCSD_OPMODE_POLLED, &status);
-	}
-	else
-	{
-		mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
-							   CSL_MMCSD_OPMODE_DMA, &status);
-	}
+        mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
+                               CSL_MMCSD_OPMODE_POLLED, &status);
+    }
+    else
+    {
+        mmcsdHandle = MMC_open(&mmcsdContObj, CSL_MMCSD0_INST,
+                               CSL_MMCSD_OPMODE_DMA, &status);
+    }
     if (mmcsdHandle == NULL)
     {
         LOG_MSG_print("MMC_open Failed\n");
         return (FALSE);
     }
 
-	/* Configure the DMA in case of operating mode is set to DMA */
-	if (1 == opmode)
-	{
-		/* Initialize Dma */
-		status = DMA_init();
-		if (status != CSL_SOK)
-		{
-			LOG_MSG_print("DMA_init Failed!\n");
-			return (FALSE);
-		}
+    /* Configure the DMA in case of operating mode is set to DMA */
+    if (1 == opmode)
+    {
+        /* Initialize Dma */
+        status = DMA_init();
+        if (status != CSL_SOK)
+        {
+            LOG_MSG_print("DMA_init Failed!\n");
+            return (FALSE);
+        }
 
-		/* Open Dma channel for MMCSD write */
-		dmaWriteHandle = DMA_open(CSL_DMA_CHAN0, &dmaWriteChanObj, &status);
-		if ((dmaWriteHandle == NULL) || (status != CSL_SOK))
-		{
-			LOG_MSG_print("DMA_open for MMCSD Write Failed!\n");
-			return (FALSE);
-		}
+        /* Open Dma channel for MMCSD write */
+        dmaWriteHandle = DMA_open(CSL_DMA_CHAN0, &dmaWriteChanObj, &status);
+        if ((dmaWriteHandle == NULL) || (status != CSL_SOK))
+        {
+            LOG_MSG_print("DMA_open for MMCSD Write Failed!\n");
+            return (FALSE);
+        }
 
-		/* Open Dma channel for MMCSD read */
-		dmaReadHandle = DMA_open(CSL_DMA_CHAN1, &dmaReadChanObj, &status);
-		if ((dmaReadHandle == NULL) || (status != CSL_SOK))
-		{
-			LOG_MSG_print("DMA_open for MMCSD Read Failed!\n");
-			return (FALSE);
-		}
+        /* Open Dma channel for MMCSD read */
+        dmaReadHandle = DMA_open(CSL_DMA_CHAN1, &dmaReadChanObj, &status);
+        if ((dmaReadHandle == NULL) || (status != CSL_SOK))
+        {
+            LOG_MSG_print("DMA_open for MMCSD Read Failed!\n");
+            return (FALSE);
+        }
 
-		/* Set the DMA handle for MMC read */
-		status = MMC_setDmaHandle(mmcsdHandle, dmaWriteHandle, dmaReadHandle);
-		if (status != CSL_SOK)
-		{
-			LOG_MSG_print("API: MMC_setDmaHandle for MMCSD Failed\n");
-			return (FALSE);
-		}
-	}
+        /* Set the DMA handle for MMC read */
+        status = MMC_setDmaHandle(mmcsdHandle, dmaWriteHandle, dmaReadHandle);
+        if (status != CSL_SOK)
+        {
+            LOG_MSG_print("API: MMC_setDmaHandle for MMCSD Failed\n");
+            return (FALSE);
+        }
+    }
 
     /* Reset the SD card */
     status = MMC_sendGoIdle(mmcsdHandle);
@@ -484,6 +484,7 @@ Bool SD_Class::begin (int opmode)
     }
 
     fileListLastNode = fileListHeadNode;
+    fileListHeadNode->nextFileNode = NULL;
 
     return (TRUE);
 }
@@ -626,9 +627,14 @@ static AtaFile* searchFile (AtaFile  *pAtaFile, char *fileNameWitExt)
                                     0,
                                     strlen(fileName) + strlen (ext) + 1);
 
+		for (counter = 0; counter < strlen(FileName); counter++)
+		{
+			FileName[counter] = toupper(FileName[counter]);
+		}
+		FileName[counter] = 0;
+
         // Check whether the file name is the same or not
-        if ((strncmp(FileName, fileName, strlen(fileName)) != 0) &&
-            (strncmp(FileName, nameUp, strlen(nameUp)) != 0))
+        if (strncmp(FileName, nameUp, strlen(nameUp)) != 0)
         {
             // if the file name is not the same, get the next entry
             ata_error = ATA_findNext(pAtaFile);
@@ -646,8 +652,7 @@ static AtaFile* searchFile (AtaFile  *pAtaFile, char *fileNameWitExt)
                 FileName[counter] = FileName[strlen(fileName) + 1 + counter];
             }
 
-            if ((strncmp(FileName, ext, strlen(ext)) != 0) &&
-                (strncmp(FileName, extUp, strlen(extUp)) != 0))
+            if (strncmp(FileName, extUp, strlen(extUp)) != 0)
             {
                 ata_error = ATA_findNext(pAtaFile);
                 if (ATA_ERROR_FILE_NOT_FOUND == ata_error)
@@ -746,6 +751,87 @@ static AtaFile* searchDirectory (AtaFile  *pAtaFile, char *directoryName)
 
 /**
  *
+ * \brief checkFilePathName(filePathName)
+ *
+ *  API to check whether a file/directory path is valid or not
+ *
+ * \param filePathName [IN] String containing the path that is to be verified
+ *
+ * \return TRUE  - If the file/directory path is valid
+ *         FALSE - If the file/directory path is invalid
+ */
+static Bool checkFilePathName(char *filePathName)
+{
+    char *fileName;
+    char *extension;
+    char tempPath[256];
+
+    if ((strlen(filePathName) > 255) || (strlen(filePathName) <= 0))
+    {
+        return (FALSE);
+    }
+
+    if (0 == strcmp(filePathName, "/"))
+    {
+        return (TRUE);
+    }
+
+    fileName  = NULL;
+    extension = NULL;
+
+    fileName = strrchr(filePathName, '/');
+    if (NULL == fileName)
+    {
+        fileName = filePathName;
+    }
+    else
+    {
+        fileName++;
+    }
+
+    extension = strrchr(filePathName, '.');
+    if ((extension != NULL) && (extension > fileName))
+    {
+        if (((extension - fileName) > 8) || (strlen(extension) > 4))
+        {
+            /* Here 'extension' will also include '.' */
+            return (FALSE);
+        }
+    }
+    else /* Here 'extension' will be NULL, if file name is a directory */
+    {
+        /* If the Directory path is in the form "../DIR_NAME/", extract the
+           correct directory name */
+        if ('/' == filePathName[strlen(filePathName) - 1])
+        {
+            strcpy(tempPath, filePathName);
+
+            fileName = strrchr(tempPath, '/');
+            fileName[0] = '\0';
+
+            fileName = strrchr(tempPath, '/');
+            if (NULL == fileName)
+            {
+                fileName = filePathName;
+            }
+            else
+            {
+                fileName++;
+            }
+        }
+
+        if (strlen(fileName) > 8)
+        {
+            /* Length of file name is more than 8 */
+            return (FALSE);
+        }
+    }
+
+    return (TRUE);
+}
+
+/**
+ *
  * \brief exists(filePath)
  *
  *  API to check whether a particular file exists in the ATA File System or not
@@ -767,6 +853,12 @@ Bool SD_Class::exists (char *filePath)
 
     prevPtr  = filePath;
     tempPtr  = filePath;
+
+    if ((NULL == filePath) ||
+        (FALSE == checkFilePathName(filePath)))
+    {
+		return (FALSE);
+	}
 
     pAtaFile = new (AtaFile);
     tmpAddr  = pAtaFile;
@@ -852,7 +944,7 @@ Bool SD_Class::mkdir (char *directoryPath)
     int      dirNameLen;
 
     /* The length of the directory path is restricted to 255 charcaters */
-    if (strlen(directoryPath) > 255)
+    if (FALSE == checkFilePathName(directoryPath))
     {
         return (FALSE);
     }
@@ -1058,6 +1150,12 @@ File SD_Class::open (char *filePath)
     index       = 0;
 
     memset(&fileObj, 0, sizeof(File));
+
+    if (FALSE == checkFilePathName(filePath))
+    {
+        return (fileObj);
+    }
+
     fileObj.holdCharFromRead = -1;
 
     if (0 == strcmp(filePath, "/")) /* Request to open Root Directory */
@@ -1281,11 +1379,19 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
     int           dirNameLen;
     char          *tempPtr;
     char          *prevPtr;
+    long          temp;
 
     prevPtr = filePath;
     tempPtr = filePath;
 
     memset(&fileObj, 0, sizeof(File));
+
+    if ((FALSE == checkFilePathName(filePath)) ||
+        ((FILE_READ != mode) && (FILE_WRITE != mode) && (FILE_APPEND != mode)))
+    {
+        return (fileObj);
+    }
+
     fileObj.holdCharFromRead = -1;
 
     if ((FILE_WRITE == mode) || (FILE_APPEND == mode))
@@ -1362,15 +1468,30 @@ File SD_Class::open (char *filePath, FILE_MODE mode)
 
                 if (FILE_APPEND == mode)
                 {
+                    temp = fileObj.size();
                     /* Seek to the end of the file */
-                    fileObj.seek(fileObj.size());
+                    if ((temp % 2) == 0)
+                    {
+                        fileObj.seek(temp);
+                    }
+                    else
+                    {
+                        /* Store the last byte */
+                        fileObj.seek(temp - 1);
+                        fileObj.charToFlush = fileObj.read();
+                        fileObj.seek(temp - 1);
+
+                        fileObj.ataFileStruct.Size--;
+                        fileObj.flushData        = TRUE;
+                        fileObj.currFilePosition = temp;
+                    }
                 }
             }
 
             if (FILE_WRITE == mode)
             {
-				fileObj.ataFileStruct.Size = 0;
-			}
+                fileObj.ataFileStruct.Size = 0;
+            }
             return (fileObj);
         }
 
@@ -1459,6 +1580,11 @@ Bool SD_Class::remove (char *filePath)
     prevPtr     = filePath;
     tempPtr     = filePath;
 
+    if (FALSE == checkFilePathName(filePath))
+    {
+		return (FALSE);
+	}
+
     /* Extracts file name along with its extension */
     extractFileNameFromPath(filePath, fileName);
 
@@ -1524,8 +1650,8 @@ Bool SD_Class::remove (char *filePath)
         /* Checking whether File is already opened and is in use or not */
         if (NULL == searchFileList((unsigned long)pAtaFile->StartCluster))
         {
-			/* We have navigated to the desired directory path, now delete the
-			   directory */
+            /* We have navigated to the desired directory path, now delete the
+               directory */
             ata_error = ATA_delete (pAtaFile);
             if (ATA_ERROR_NONE == ata_error)
             {
@@ -1560,6 +1686,11 @@ Bool SD_Class::rmdir (char *directoryPath)
     char     *tempPtr;
     char     *prevPtr;
     int      dirNameLen;
+
+    if (FALSE == checkFilePathName(directoryPath))
+    {
+		return (FALSE);
+	}
 
     /* Extracts file name along with its extension */
     extractFileNameFromPath(directoryPath, directoryName);
@@ -1608,8 +1739,8 @@ Bool SD_Class::rmdir (char *directoryPath)
 
         if (NULL == tempPtr)
         {
-			/* We have navigated to the desired directory path, now delete the
-			   directory */
+            /* We have navigated to the desired directory path, now delete the
+               directory */
             ata_error = ATA_delete (pAtaFile);
             if (ATA_ERROR_NONE == ata_error)
             {
@@ -1625,6 +1756,7 @@ Bool SD_Class::rmdir (char *directoryPath)
         }
     }
 
+    delete (tmpAddr);
     return (FALSE);
 }
 
@@ -1644,7 +1776,10 @@ File::File()
     charToFlush      = -1;
     startCluster     = 0xFFFFFFFF;
     fileOrDirectory  = FALSE;
+    seekIsTocurrPos  = TRUE;
+    flushDataFromSeek = FALSE;
     fileName[0]      = '\0';
+    currFilePosition = 0;
 }
 
 /**
@@ -1666,6 +1801,9 @@ File::File(const File &fileObj)
     fileOpenStatus   = fileObj.fileOpenStatus;
     fileOrDirectory  = fileObj.fileOrDirectory;
     startCluster     = fileObj.startCluster;
+    seekIsTocurrPos  = fileObj.seekIsTocurrPos;
+    flushDataFromSeek= fileObj.flushDataFromSeek;
+    currFilePosition = fileObj.currFilePosition;
 
     strcpy (fileName, fileObj.fileName);
     memcpy (&ataFileStruct, &(fileObj.ataFileStruct), sizeof(AtaFile));
@@ -1711,8 +1849,13 @@ void File::close ()
     {
         if (FALSE == this->isDirectory())
         {
-            /* FLush any data which is pending to be written */
+            if (this->available())
+            {
+				this->seek(this->size());
+			}
+            /* Flush any data which is pending to be written */
             this->flush();
+
             ata_error = ATA_close(&(this->ataFileStruct));
         }
         else
@@ -1757,6 +1900,10 @@ void File::flush ()
 
     if (TRUE == this->flushData)
     {
+        /* Setting Size as current File Pointer position, it will be valid
+           when User seeks to some position (other than EOF) of the file */
+        this->ataFileStruct.Size = (this->position() / 2) * 2;
+
         dataToWrite = (AtaUint16)(this->charToFlush & 0xFF);
         dataToWrite = (dataToWrite << 8);
 
@@ -1769,6 +1916,7 @@ void File::flush ()
             this->ataFileStruct.Size--;
             this->charToFlush = 0;
             this->flushData   = FALSE;
+            this->currFilePosition++;
         }
     }
 }
@@ -1796,8 +1944,9 @@ char File::peek ()
             /* Obtain the current seek position */
             currentPosition = this->position();
 
+            dataToRead = 0;
             ata_error = ATA_read (&(this->ataFileStruct), &dataToRead, 1);
-            if (ATA_ERROR_NONE == ata_error)
+            if ((ATA_ERROR_NONE == ata_error) || (ATA_ERROR_EOF == ata_error))
             {
                 retValue = (char)(dataToRead & 0xFF00);
                 retValue = (retValue >> 8);
@@ -1827,21 +1976,13 @@ char File::peek ()
  */
 unsigned long File::position ()
 {
-    AtaFileSize currentPosition;
-    AtaError    ata_error;
-
-    currentPosition = 0;
     if (this->fileOpenStatus == TRUE)
     {
         /* Get the current file seek position */
-        ata_error = ATA_tell_b (&(this->ataFileStruct), &currentPosition);
-        if (ATA_ERROR_NONE != ata_error)
-        {
-            currentPosition = 0;
-        }
+        return (this->currFilePosition);
     }
 
-    return (currentPosition);
+    return (0);
 }
 
 /**
@@ -1888,25 +2029,39 @@ int File::print (char character)
     if ((this->fileOpenStatus == TRUE) &&
         ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
     {
+        /* Setting Size as current File Pointer position, it will be valid
+           when User seeks to some position (other than EOF) of the file */
+        this->ataFileStruct.Size = (this->position() / 2) * 2;
+
         /* Check whether data is already there to be flushed or not */
         if (TRUE == this->flushData)
         {
+            if (this->seekIsTocurrPos == FALSE)
+            {
+                this->holdCharFromRead = -1;
+                this->seekIsTocurrPos  = TRUE;
+            }
+
             dataToWrite = (this->charToFlush & 0xFF) << 8;
             dataToWrite |= (character & 0xFF);
 
             ata_error = ATA_write (&(this->ataFileStruct), &dataToWrite, 1);
             if (ATA_ERROR_NONE == ata_error)
             {
-                this->charToFlush = 0;
-                this->flushData   = FALSE;
+                this->charToFlush       = 0;
+                this->flushData         = FALSE;
+                this->flushDataFromSeek = FALSE;
+                this->currFilePosition++;
                 return (1);
             }
         }
         else
         {
             /* Store the character in the flush data variable */
-            this->charToFlush = character;
-            this->flushData   = TRUE;
+            this->charToFlush       = character;
+            this->flushData         = TRUE;
+            this->flushDataFromSeek = FALSE;
+            this->currFilePosition++;
             return (1);
         }
     }
@@ -1936,7 +2091,9 @@ int File::print (char *printString)
     ataString = NULL;
 
     if ((this->fileOpenStatus == TRUE) &&
-        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
+        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)) &&
+        (printString != NULL) &&
+        (strlen(printString) > 0))
     {
         strLength = strlen (printString);
         retValue  = strlen (printString);
@@ -1956,8 +2113,14 @@ int File::print (char *printString)
         {
             this->flushData   = TRUE;
             this->charToFlush = printString[0];
+            this->currFilePosition++;
+            free(ataString);
             return (retValue);
         }
+
+        /* Setting Size as current File Pointer position, it will be valid
+           when User seeks to some position (other than EOF) of the file */
+        this->ataFileStruct.Size = (this->position() / 2) * 2;
 
         /* Pack the bytes in a 16-bit integer Array */
         packDataToUint16 (printString, ataString, strLength);
@@ -1966,6 +2129,8 @@ int File::print (char *printString)
                                strLength / 2);
         if (ATA_ERROR_NONE == ata_error)
         {
+            this->currFilePosition += strLength;
+
             /* If the user requests odd no of bytes to write, hold the last byte
                in the 'flushData' variable */
             if (0 != (strLength % 2) )
@@ -1974,6 +2139,7 @@ int File::print (char *printString)
                 this->charToFlush = printString[strLength - 1];
             }
             free(ataString);
+
             return (retValue);
         }
 
@@ -2157,36 +2323,39 @@ int File::print (long integer, NUMBER_FORMAT_BASE base)
     char valAsString[50];
     int  retValue;
 
-    if ((this->fileOpenStatus == TRUE) &&
-        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
+    if ((base >= FILE_BIN) && (base <= FILE_HEX))
     {
-        switch (base)
-        {
-            case FILE_BIN:
-                convertDecToBinOct (integer, valAsString, 2);
-                break;
+		if ((this->fileOpenStatus == TRUE) &&
+			((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
+		{
+			switch (base)
+			{
+				case FILE_BIN:
+					convertDecToBinOct (integer, valAsString, 2);
+					break;
 
-            case FILE_OCT:
-                retValue = sprintf(valAsString, "%o", integer);
-                valAsString[retValue] = '\0';
-                break;
+				case FILE_OCT:
+					retValue = sprintf(valAsString, "%o", integer);
+					valAsString[retValue] = '\0';
+					break;
 
-            case FILE_DEC:
-                retValue = sprintf(valAsString, "%ld", integer);
-                valAsString[retValue] = '\0';
-                break;
+				case FILE_DEC:
+					retValue = sprintf(valAsString, "%ld", integer);
+					valAsString[retValue] = '\0';
+					break;
 
-            case FILE_HEX:
-                retValue = sprintf(valAsString, "0x%X", integer);
-                valAsString[retValue] = '\0';
-                break;
+				case FILE_HEX:
+					retValue = sprintf(valAsString, "0x%X", integer);
+					valAsString[retValue] = '\0';
+					break;
 
-            default:
-                return (0);
-        }
+				default:
+					return (0);
+			}
 
-        return (this->print(valAsString));
-    }
+			return (this->print(valAsString));
+		}
+	}
 
     return (0);
 }
@@ -2402,15 +2571,48 @@ int File::println (long integer, NUMBER_FORMAT_BASE base)
 Bool File::seek (unsigned long posValue)
 {
     AtaError  ata_error;
+    AtaUint16 dataRead;
 
-    if ((this->fileOpenStatus == TRUE) && (posValue < this->size()))
+    if ((this->fileOpenStatus == TRUE) && (posValue <= this->size()))
     {
-        this->flush(); /* Flush any remaining data */
-        holdCharFromRead = -1;
+        if (this->flushDataFromSeek == FALSE)
+        {
+            this->flush(); /* Flush any remaining data */
+        }
 
-        ata_error = ATA_seek_b (&(this->ataFileStruct), (AtaUint32)posValue);
+        this->holdCharFromRead  = -1;
+        this->seekIsTocurrPos   = TRUE;
+        this->flushDataFromSeek = FALSE;
+        this->flushData         = FALSE;
+
+        ata_error = ATA_seek (&(this->ataFileStruct), (AtaUint32)posValue / 2);
         if (ATA_ERROR_NONE == ata_error)
         {
+            if (posValue % 2) /* If request is to Seek odd no of bytes */
+            {
+                /* Read the next word and hold the LSB for next read
+                   operation, also hold the MSB for next write operation */
+                ata_error = ATA_read (&(this->ataFileStruct), &dataRead, 1);
+                if ((ATA_ERROR_NONE == ata_error) || (ATA_ERROR_EOF == ata_error))
+                {
+                    if (ATA_ERROR_NONE == ata_error)
+                    {
+                        this->holdCharFromRead = dataRead & 0xFF;
+                    }
+
+                    ata_error = ATA_seek (&(this->ataFileStruct), (AtaUint32)posValue / 2);
+                    this->seekIsTocurrPos = FALSE;
+
+                    if (this->fileMode != FILE_READ)
+                    {
+                        this->charToFlush = (dataRead & 0xFF00) >> 8;
+                        this->flushData   = TRUE;
+                        this->flushDataFromSeek = TRUE;
+                    }
+                }
+            }
+
+            this->currFilePosition = posValue;
             return (TRUE);
         }
     }
@@ -2435,7 +2637,7 @@ unsigned long File::size ()
     {
         fileSize = (unsigned long)this->ataFileStruct.Size;
 
-        if (TRUE == this->flushData)
+        if ((TRUE == this->flushData) && ((FALSE == this->flushDataFromSeek)))
         {
             fileSize++;
         }
@@ -2461,6 +2663,12 @@ char File::read ()
 
     if (this->fileOpenStatus == TRUE)
     {
+        if (this->seekIsTocurrPos == FALSE)
+        {
+            ata_error = ATA_read (&(this->ataFileStruct), &dataToRead, 1);
+            this->seekIsTocurrPos = TRUE;
+        }
+
         /* ATA_read() will return 2 bytes as a single data element, so check
            whether any data is already read in previous calls to ATA_read(which
            will be stored in holdCharFromRead variable) */
@@ -2472,6 +2680,7 @@ char File::read ()
                 this->holdCharFromRead = (dataToRead & 0xFF);
                 readCharacter = ((dataToRead & 0xFF00) >> 8);
 
+                this->currFilePosition++;
                 return (readCharacter);
             }
             else if (ATA_ERROR_EOF == ata_error)
@@ -2479,7 +2688,8 @@ char File::read ()
                 if (1 == (this->ataFileStruct.CurrentByte - this->ataFileStruct.Size))
                 {
                     readCharacter = ((dataToRead & 0xFF00) >> 8);
-                    this->holdCharFromRead = 0;
+                    this->holdCharFromRead = -1;
+                    this->currFilePosition++;
                     return (readCharacter);
                 }
             }
@@ -2492,6 +2702,7 @@ char File::read ()
         {
             readCharacter = this->holdCharFromRead;
             this->holdCharFromRead = -1;
+            this->currFilePosition++;
             return (readCharacter);
         }
     }
@@ -2519,7 +2730,9 @@ int File::read (char *buffer, int length)
     unsigned long curValue;
 
     retValue = 0;
-    if (this->fileOpenStatus == TRUE)
+    if ((this->fileOpenStatus == TRUE) &&
+        (buffer != NULL) &&
+        (length > 0))
     {
         curValue = this->position();
 
@@ -2527,8 +2740,7 @@ int File::read (char *buffer, int length)
            be stored in holdCharFromRead variable) */
         if (this->holdCharFromRead != -1)
         {
-            buffer[0] = this->holdCharFromRead;
-            this->holdCharFromRead = -1;
+            buffer[0] = this->read();
 
             buffer++; /* Incrementing the buffer pointer, so that the data in
                          'holdCharFromRead' variable will be stored later */
@@ -2573,6 +2785,7 @@ int File::read (char *buffer, int length)
         return (0);
     }
 
+    this->currFilePosition += length;
     return (retValue + length);
 }
 
@@ -2595,7 +2808,9 @@ int File::read (int *buffer, int length)
     unsigned long curValue;
 
     retValue = 0;
-    if (this->fileOpenStatus == TRUE)
+    if ((this->fileOpenStatus == TRUE) &&
+        (buffer != NULL) &&
+        (length > 0))
     {
         curValue = this->position();
 
@@ -2603,8 +2818,7 @@ int File::read (int *buffer, int length)
            be stored in holdCharFromRead variable) */
         if (this->holdCharFromRead != -1)
         {
-            buffer[0] = this->holdCharFromRead;
-            this->holdCharFromRead = -1;
+            buffer[0] = this->read();
 
             buffer++; /* Incrementing the buffer pointer, so that the data in
                          'holdCharFromRead' variable will be stored later */
@@ -2633,6 +2847,7 @@ int File::read (int *buffer, int length)
         return (0);
     }
 
+    this->currFilePosition += (2 *length);
     return (retValue + length);
 }
 
@@ -2697,7 +2912,7 @@ int File::write (char *printString)
  * \return The number of bytes written to the file
  *         Else zero, if the file is not opened or for invalid file operation
  */
-static int writeData(File *fileHandle, char *buffer, int length)
+int File::writeData(File *fileHandle, char *buffer, int length)
 {
     AtaError  ata_error;
     AtaUint16 *ataString;
@@ -2764,8 +2979,14 @@ int File::write (char *buffer, int length)
     writeCacheBuffer[WRITE_CACHE_SIZE]  = '\0';
 
     if ((this->fileOpenStatus == TRUE) &&
-        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
+        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)) &&
+        (buffer != NULL) &&
+        (length > 0))
     {
+        /* Setting Size as current File Pointer position, it will be valid
+           when User seeks to some position (other than EOF) of the file */
+        this->ataFileStruct.Size = (this->position() / 2) * 2;
+
         while (length > WRITE_CACHE_SIZE)
         {
             /* Writing data in chunks of 512 bytes */
@@ -2776,6 +2997,8 @@ int File::write (char *buffer, int length)
             {
                 return (0);
             }
+
+            this->currFilePosition += WRITE_CACHE_SIZE;
 
             startAddr += WRITE_CACHE_SIZE;
             length    -= WRITE_CACHE_SIZE;
@@ -2792,6 +3015,7 @@ int File::write (char *buffer, int length)
             {
                 return (0);
             }
+            this->currFilePosition += length;
             noOfBytesWritten += length;
         }
     }
@@ -2816,17 +3040,47 @@ int File::write (int *buffer, int length)
 {
     int       noOfBytesWritten;
     AtaError  ata_error;
+    AtaUint16 temp;
 
     noOfBytesWritten = 0;
 
     if ((this->fileOpenStatus == TRUE) &&
-        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)))
+        ((this->fileMode == FILE_WRITE) || (this->fileMode == FILE_APPEND)) &&
+        (buffer != NULL) &&
+        (length > 0))
     {
+        /* Setting Size as current File Pointer position, it will be valid
+           when User seeks to some position (other than EOF) of the file */
+        this->ataFileStruct.Size = (this->position() / 2) * 2;
+
+        if (TRUE == this->flushData)
+        {
+            if (this->seekIsTocurrPos == FALSE)
+            {
+                this->holdCharFromRead = -1;
+                this->seekIsTocurrPos  = TRUE;
+            }
+
+            temp = ((AtaUint16)this->charToFlush << 8);
+
+            ata_error = ATA_write (&(this->ataFileStruct),
+                                   &temp,
+                                   1);
+
+            if (ATA_ERROR_NONE == ata_error)
+            {
+                this->flushData   = FALSE;
+                this->charToFlush = 0;
+                this->currFilePosition += 2;
+            }
+        }
+
         ata_error = ATA_write (&(this->ataFileStruct),
                                (AtaUint16 *)buffer,
                                length);
         if (ATA_ERROR_NONE == ata_error)
         {
+            this->currFilePosition += (2 * length);
             noOfBytesWritten = length;
         }
     }
@@ -3008,7 +3262,10 @@ void File::rewindDirectory ()
  */
 void File::getName(char *fileName)
 {
-    strcpy(fileName, this->fileName);
+    if (fileName != NULL)
+    {
+		strcpy(fileName, this->fileName);
+	}
 }
 
 /**

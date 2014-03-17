@@ -82,6 +82,8 @@ typedef enum NUMBER_FORMAT_BASE
     FILE_HEX
 } NUMBER_FORMAT_BASE;
 
+class SD_Class;
+
 /**
  * \brief File Class
  *
@@ -90,28 +92,44 @@ typedef enum NUMBER_FORMAT_BASE
  */
 class File
 {
-    public:
-	    /** Variable to hold the character to be flushed */
+    /** Making 'SD_Class' class friend of 'File' class, so that member
+        functions of 'SD_Class' can access private member fields of 'File' */
+    friend class SD_Class;
+
+    private:
+        /** Variable to hold the character to be flushed */
         char          charToFlush;
-	    /** Flag to indicate if the data should be flushed */
+        /** Flag to indicate if the data should be flushed */
         Bool          flushData;
-	    /** Variable to hold the character which was read last */
+        /** Variable to hold the character which was read last */
         char          holdCharFromRead;
-		/** File name buffer */
+        /** File name buffer */
         char          fileName[13];
-		/** Starting cluster */
+        /** Starting cluster */
         unsigned long startCluster;
-		/** ATA file structure */
+        /** ATA file structure */
         AtaFile       ataFileStruct;
-		/** Mode in which the file is opened */
+        /** Mode in which the file is opened */
         FILE_MODE     fileMode;
-		/** Flag to indicate if a file is open or not */
+        /** Flag to indicate if a file is open or not */
         Bool          fileOpenStatus;
-		/** TRUE if its a directory, else FALSE */
+        /** TRUE if its a directory, else FALSE */
         Bool          fileOrDirectory;
+        /** TRUE if the current File pointer is properly placed, else FALSE .
+            This variable also denotes that the character read during seek
+            operation is yet to be sent to the User */
+        Bool          seekIsTocurrPos;
+        /** TRUE if the last byte read during seek operation is yet to be
+            flushed to the file, else FALSE */
+        Bool          flushDataFromSeek;
+        /** Variable that holds the current position in the file from which
+            next byte will be read/written to */
+        unsigned long currFilePosition;
+
+        int writeData(File *fileHandle, char *buffer, int length);
 
     public:
-	    /** To check file open status */
+        /** To check file open status */
         operator bool() const
         {
             return (fileOpenStatus && strlen(fileName));
@@ -172,10 +190,10 @@ class SD_Class
         AtaState             ataDriveStruct;
         AtaMMCState          ataMMCStateStruct;
         AtaFile              ataFirstFileStruct;
-		CSL_DMA_Handle       dmaWriteHandle;
-		CSL_DMA_Handle       dmaReadHandle;
-		CSL_DMA_ChannelObj   dmaWriteChanObj;
-		CSL_DMA_ChannelObj   dmaReadChanObj;
+        CSL_DMA_Handle       dmaWriteHandle;
+        CSL_DMA_Handle       dmaReadHandle;
+        CSL_DMA_ChannelObj   dmaWriteChanObj;
+        CSL_DMA_ChannelObj   dmaReadChanObj;
 
     public:
         SD_Class ();

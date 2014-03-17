@@ -16,6 +16,7 @@ void setup()
 {
     Bool status;
     File fileHandle;
+    char fileName[15];
 
     status = SD.begin();
 
@@ -29,7 +30,8 @@ void setup()
                 if (!fileHandle.isDirectory())
                 {
                     Serial.print("File Name: ");
-                    Serial.print(fileHandle.fileName);
+                    fileHandle.getName(fileName);
+                    Serial.print(fileName);
 
                      /* Get the size of the file using File.size() */
                     Serial.print("\tSize: ");

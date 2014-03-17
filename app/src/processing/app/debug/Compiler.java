@@ -85,7 +85,7 @@ public class Compiler implements MessageConsumer {
       throw re;
     }
     String corePath;
-
+    
     if (core.indexOf(':') == -1) {
       Target t = Base.getTarget();
       File coreFolder = new File(new File(t.getFolder(), "cores"), core);
@@ -99,7 +99,7 @@ public class Compiler implements MessageConsumer {
 
     String variant = boardPreferences.get("build.variant");
     String variantPath = null;
-
+    
     if (variant != null) {
       if (variant.indexOf(':') == -1) {
 	Target t = Base.getTarget();
@@ -201,6 +201,7 @@ if(arch != "C5000")
               findFilesInPath(corePath, "cpp", true),
               boardPreferences);
 
+
   runtimeLibraryName = buildPath + File.separator + "core.a";
   if(arch == "msp430")  {
     baseCommandAR = new ArrayList(Arrays.asList(new String[] {
@@ -209,11 +210,11 @@ if(arch != "C5000")
       runtimeLibraryName
     }));
     } else if(arch == "lm4f") {
-      baseCommandAR = new ArrayList(Arrays.asList(new String[] {
+      baseCommandAR = new ArrayList(Arrays.asList(new String[] { 
         basePath + "arm-none-eabi-ar",
         "rcs",
         runtimeLibraryName
-    }));
+    }));  	
     } else  if(arch == "c2000"){
       baseCommandAR = new ArrayList(Arrays.asList(new String[] {
 	    basePath + "ar2000",
@@ -226,7 +227,8 @@ if(arch != "C5000")
         "rcs",
         runtimeLibraryName
     }));
-    }
+  }
+
 //  if(arch != "c2000"){
 	  for(File file : coreObjectFiles) {
 	     List commandAR = new ArrayList(baseCommandAR);
@@ -266,18 +268,18 @@ else
     }
     sketch.setCompilingProgress(60);
     List baseCommandLinker;
-    if (arch == "msp430") {
+    if (arch == "msp430") { 
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "msp430-gcc",
         "-Os",
         // msp430 linker has an issue with main residing in an archive, cora.a in this case.
         // -u,main works around this by forcing the linker to find a definition for main.
-        "-Wl,-gc-sections,-u,main",
+        "-Wl,-gc-sections,-u,main", 
         "-mmcu=" + boardPreferences.get("build.mcu"),
         "-o",
         buildPath + File.separator + primaryClassName + ".elf"
       }));
-    }else if (arch == "lm4f") {
+    }else if (arch == "lm4f") { 
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "arm-none-eabi-g++",
         "-Os",
@@ -290,16 +292,16 @@ else
         "-o",
         buildPath + File.separator + primaryClassName + ".elf",
       }));
-    } else if (arch == "c2000") {
+    } else if (arch == "c2000") { 
         List objects = new ArrayList(baseCommandAR);
-
+        
         includePaths.clear();
         includePaths.add(corePath);  // include path for core only
         if (rtsIncPath != null) includePaths.add(rtsIncPath);
         if (variantPath != null) includePaths.add(variantPath);
         if (rtsIncPath != null) includePaths.add(rtsLibPath);
-
-
+       
+        
         //TODO: Test linker arugments
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "cl2000"}));
@@ -320,7 +322,7 @@ else
         baseCommandLinker.add("--warn_sections");//compile for unified memory model
         for (int i = 0; i < includePaths.size(); i++) {
         	baseCommandLinker.add("-i" + '\"' + (String) includePaths.get(i)+ '\"' );
-        }
+        } 
         baseCommandLinker.add("--reread_libs");//compile for unified memory model
         baseCommandLinker.add("--display_error_number");//compile for unified memory model
         baseCommandLinker.add("--diag_wrap=off");//compile for unified memory model
@@ -329,6 +331,8 @@ else
         baseCommandLinker.add("-o" + buildPath + File.separator + primaryClassName + ".out");
 //        "-o",
 //        buildPath + File.separator + primaryClassName + ".elf"
+        
+        
 
 
 
@@ -365,6 +369,7 @@ else
         buildPath + File.separator + primaryClassName + ".elf"
         }));
     }
+
     if (arch == "C5000")
     {
         //baseCommandLinker.add("linkx.cmd")
@@ -409,7 +414,7 @@ else
         basePath + "arm-none-eabi-objcopy",
         "-O",
       }));
-    }else if (arch == "c2000") {
+    }else if (arch == "c2000") { 
 	//TODO: Figure out object copy
     baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {basePath + "hex2000"}));
     baseCommandObjcopy.add("-boot");
@@ -434,7 +439,7 @@ else
     }
     List commandObjcopy;
     if ((arch == "msp430") || (arch == "lm4f") || (arch == "c2000")) {
-      //nothing
+      //nothing 
     } else if (arch == "C5000") {
         //nothing
       } else {
@@ -472,9 +477,9 @@ else
 	    commandObjcopy.add(buildPath + File.separator + primaryClassName + ".hex");
     }
 	execAsynchronously(commandObjcopy);
-
+    
     sketch.setCompilingProgress(90);
-
+   
     return true;
   }
 
@@ -557,13 +562,13 @@ else
 
   private List<File> compileFiles(String basePath,
                                   String buildPath, List<File> includePaths,
-                                  List<File> sSources,
+                                  List<File> sSources, 
                                   List<File> cSources, List<File> cppSources,
                                   Map<String, String> boardPreferences)
     throws RunnerException {
 
     List<File> objectPaths = new ArrayList<File>();
-
+    
     String arch = Base.getArch();
 
 	String objectExtension = ".o";
@@ -583,7 +588,7 @@ else
                                              objectPath,
                                              boardPreferences));
     }
-
+ 		
     for (File file : cSources) {
         String objectPath = buildPath + File.separator + file.getName() + objectExtension;
         String dependPath = buildPath + File.separator + file.getName() + dependExtension;
@@ -609,7 +614,7 @@ else
                                                  objectPath,
                                                  boardPreferences));
     }
-
+    
     return objectPaths;
   }
 
@@ -686,7 +691,7 @@ else
     String[] command = new String[commandList.size()];
     commandList.toArray(command);
     int result = 0;
-
+    
     if (verbose || Preferences.getBoolean("build.verbose")) {
       for(int j = 0; j < command.length; j++) {
         System.out.print(command[j] + " ");
@@ -699,7 +704,7 @@ else
     secondErrorFound = false;
 
     Process process;
-
+    
     try {
       process = Runtime.getRuntime().exec(command);
     } catch (IOException e) {
@@ -765,7 +770,7 @@ else
         s = s.substring(0, i) + s.substring(i + (buildPath + File.separator).length());
       }
     }
-
+  
     // look for error line, which contains file name, line number,
     // and at least the first line of the error message
     String errorFormat = "([\\w\\d_]+.\\w+):(\\d+):\\s*error:\\s*(.*)\\s*";
@@ -775,46 +780,46 @@ else
 //      exception = sketch.placeException(pieces[3], pieces[1], PApplet.parseInt(pieces[2]) - 1);
 //      if (exception != null) exception.hideStackTrace();
 //    }
-
+    
     if (pieces != null) {
       String error = pieces[3], msg = "";
-
+      
       if (pieces[3].trim().equals("SPI.h: No such file or directory")) {
         error = _("Please import the SPI library from the Sketch > Import Library menu.");
         msg = _("\nAs of Arduino 0019, the Ethernet library depends on the SPI library." +
               "\nYou appear to be using it or another library that depends on the SPI library.\n\n");
       }
-
+      
       if (pieces[3].trim().equals("'BYTE' was not declared in this scope")) {
         error = _("The 'BYTE' keyword is no longer supported.");
         msg = _("\nAs of Arduino 1.0, the 'BYTE' keyword is no longer supported." +
               "\nPlease use Serial.write() instead.\n\n");
       }
-
+      
       if (pieces[3].trim().equals("no matching function for call to 'Server::Server(int)'")) {
         error = _("The Server class has been renamed EthernetServer.");
         msg = _("\nAs of Arduino 1.0, the Server class in the Ethernet library " +
               "has been renamed to EthernetServer.\n\n");
       }
-
+      
       if (pieces[3].trim().equals("no matching function for call to 'Client::Client(byte [4], int)'")) {
         error = _("The Client class has been renamed EthernetClient.");
         msg = _("\nAs of Arduino 1.0, the Client class in the Ethernet library " +
               "has been renamed to EthernetClient.\n\n");
       }
-
+      
       if (pieces[3].trim().equals("'Udp' was not declared in this scope")) {
         error = _("The Udp class has been renamed EthernetUdp.");
         msg = _("\nAs of Arduino 1.0, the Udp class in the Ethernet library " +
               "has been renamed to EthernetClient.\n\n");
       }
-
+      
       if (pieces[3].trim().equals("'class TwoWire' has no member named 'send'")) {
         error = _("Wire.send() has been renamed Wire.write().");
         msg = _("\nAs of Arduino 1.0, the Wire.send() function was renamed " +
               "to Wire.write() for consistency with other libraries.\n\n");
       }
-
+      
       if (pieces[3].trim().equals("'class TwoWire' has no member named 'receive'")) {
         error = _("Wire.receive() has been renamed Wire.read().");
         msg = _("\nAs of Arduino 1.0, the Wire.receive() function was renamed " +
@@ -836,13 +841,13 @@ else
         int lineNum = e.getCodeLine() + 1;
         s = fileName + ":" + lineNum + ": error: " + pieces[3] + msg;
       }
-
+            
       if (exception == null && e != null) {
         exception = e;
         exception.hideStackTrace();
-      }
+      }      
     }
-
+    
     System.err.print(s);
   }
 
@@ -851,9 +856,9 @@ else
   static private List getCommandCompilerS(String basePath, List includePaths,
     String sourceName, String objectName, Map<String, String> boardPreferences) {
     String arch = Base.getArch();
-
+    
     List baseCommandCompiler;
-
+    
     if (arch == "msp430") {
     	//as per
     	//http://mspgcc.sourceforge.net/manual/x1522.html
@@ -881,7 +886,7 @@ else
           "-DENERGIA=" + Base.EREVISION,
         }));
     } else if (arch == "c2000") {
-
+    	
         String[] filePrefix = new String[2];
         filePrefix = sourceName.split(".s");
       	//TODO: Figure out compiler args...updated needs testing
@@ -893,7 +898,7 @@ else
         baseCommandCompiler.add("-g"); // include debugging info (so errors include line numbers)
         for (int i = 0; i < includePaths.size(); i++) {
         	baseCommandCompiler.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
-        }
+        }      
         baseCommandCompiler.add("--gcc");//enable gcc extensions
         baseCommandCompiler.add("--define=ENERGIA=" + Base.EREVISION);
         baseCommandCompiler.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
@@ -924,7 +929,7 @@ else
           "-DARDUINO=" + Base.REVISION,
         }));
     }
-
+    
     for (int i = 0; i < includePaths.size(); i++) {
     	if(arch == "c2000"){
 //    		baseCommandCompilerCPP.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
@@ -957,7 +962,7 @@ else
     return baseCommandCompiler;
   }
 
-
+  
   static private List getCommandCompilerC(String basePath, List includePaths,
     String sourceName, String objectName, Map<String, String> boardPreferences) {
 	 String arch = Base.getArch();
@@ -995,7 +1000,7 @@ else
         "-DENERGIA=" + Base.EREVISION,
       }));
       } else if (arch == "c2000") {
-
+      	
           String[] filePrefix = new String[2];
           filePrefix = sourceName.split(".c");
         	//TODO: Figure out compiler args...updated needs testing
@@ -1007,7 +1012,7 @@ else
           baseCommandCompiler.add("-g"); // include debugging info (so errors include line numbers)
           for (int i = 0; i < includePaths.size(); i++) {
         	  baseCommandCompiler.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
-          }
+          }      
           baseCommandCompiler.add("--gcc");//enable gcc extensions
           baseCommandCompiler.add("--define=ENERGIA=" + Base.EREVISION);
           baseCommandCompiler.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
@@ -1049,7 +1054,7 @@ else
         "-DARDUINO=" + Base.REVISION,
         }));
     }
-
+		
       for (int i = 0; i < includePaths.size(); i++) {
       	if(arch == "c2000"){
 //      		baseCommandCompilerCPP.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
@@ -1081,15 +1086,15 @@ else
 
     return baseCommandCompiler;
   }
-
-
+	
+	
   static private List getCommandCompilerCPP(String basePath,
     List includePaths, String sourceName, String objectName,
     Map<String, String> boardPreferences) {
-
+    
     String arch = Base.getArch();
     List baseCommandCompilerCPP;
-    if (arch == "msp430") {
+    if (arch == "msp430") {  
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
         basePath + "msp430-g++",
         "-c", // compile, don't link
@@ -1104,7 +1109,7 @@ else
         "-DARDUINO=" + Base.REVISION,
         "-DENERGIA=" + Base.EREVISION,
       }));
-    }
+    } 
     else if (arch == "lm4f") {
         baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
           basePath + "arm-none-eabi-g++",
@@ -1124,7 +1129,7 @@ else
           "-DENERGIA=" + Base.EREVISION,
         }));
     }else if (arch == "c2000") {
-
+    	
       String[] filePrefix = new String[2];
       filePrefix = sourceName.split(".cpp");
     	//TODO: Figure out compiler args...updated needs testing
@@ -1136,7 +1141,7 @@ else
       baseCommandCompilerCPP.add("-g"); // include debugging info (so errors include line numbers)
       for (int i = 0; i < includePaths.size(); i++) {
       	baseCommandCompilerCPP.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
-      }
+      }      
       baseCommandCompilerCPP.add("--gcc");//enable gcc extensions
       baseCommandCompilerCPP.add("--define=ENERGIA=" + Base.EREVISION);
       baseCommandCompilerCPP.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
@@ -1177,7 +1182,7 @@ else
         "-MMD", // output dependancy info
         "-define=ARDUINO=" + Base.REVISION,
       }));
-    }
+    } 
 
     for (int i = 0; i < includePaths.size(); i++) {
     	if(arch == "c2000"){
@@ -1235,32 +1240,32 @@ else
         return name.endsWith(".h");
       }
     };
-
+    
     return (new File(path)).list(onlyHFiles);
   }
-
+  
   static public ArrayList<File> findFilesInPath(String path, String extension,
                                                 boolean recurse) {
     return findFilesInFolder(new File(path), extension, recurse);
   }
-
+  
   static public ArrayList<File> findFilesInFolder(File folder, String extension,
                                                   boolean recurse) {
     ArrayList<File> files = new ArrayList<File>();
-
+    
     if (folder.listFiles() == null) return files;
-
+    
     for (File file : folder.listFiles()) {
       if (file.getName().startsWith(".")) continue; // skip hidden files
-
+      
       if (file.getName().endsWith("." + extension))
         files.add(file);
-
+        
       if (recurse && file.isDirectory()) {
         files.addAll(findFilesInFolder(file, extension, true));
       }
     }
-
+    
     return files;
   }
 }

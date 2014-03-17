@@ -548,7 +548,7 @@ int AudioClass::init(void)
         rset(81, 0xC0);     // Power up LADC/RADC only
         rset(82, 0x00);     // Unmute LADC/RADC only 0dB gain
 
-        csl_waitusec(3000);
+        delayMilliseconds(3000);
 
         /* Initialize I2S */
         status = I2S.init();

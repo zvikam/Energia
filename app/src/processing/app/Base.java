@@ -62,8 +62,8 @@ public class Base {
     platformIndices.put("macosx", PConstants.MACOSX);
     platformIndices.put("linux", PConstants.LINUX);
   }
-
-  static Map<String,String> archMap = new HashMap<String, String>();
+  
+  static Map<String,String> archMap = new HashMap<String, String>(); 
   static {
     archMap.put("arduino", "avr");
     archMap.put("msp430", "msp430");
@@ -91,7 +91,7 @@ public class Base {
   static private File hardwareFolder;
 
   static HashSet<File> libraries;
-
+  
   // maps imported packages to their library folder
   static HashMap<String, File> importToLibraryTable;
 
@@ -99,7 +99,7 @@ public class Base {
   // (both those in the p5/libs folder and those with lib subfolders
   // found in the sketchbook)
   static public String librariesClassPath;
-
+  
   static public HashMap<String, Target> targetsTable;
 
   // Location for untitled items
@@ -253,11 +253,11 @@ public class Base {
     //String workingDirectory = System.getProperty("user.dir");
     examplesFolder = getContentFile("examples");
     String targetLibDir = new String("");
-    if(Preferences.get("target").equals("msp430"))
+    if(Preferences.get("target").equals("msp430")) 
     	targetLibDir = "hardware/msp430/";
     else if (Preferences.get("target").equals("lm4f"))
     	targetLibDir = "hardware/lm4f/";
-    else if (Preferences.get("target").equals("c2000"))
+    else if (Preferences.get("target").equals("c2000")) 
     	targetLibDir = "hardware/c2000/";
     else if (Preferences.get("target").equals("C5000"))
     	targetLibDir = "hardware/C5000/";
@@ -290,13 +290,13 @@ public class Base {
         defaultFolder.mkdirs();
       }
     }
-
+    
     // Get the Compiler Tools path, and make sure it's set properly
     String compilerToolsPath = Preferences.get("compile.compilerToolsPath");
     if (compilerToolsPath == null) {
 		Preferences.set("compile.compilerToolsPath", C5000CompilersPath);
 	}
-
+	    
     targetsTable = new HashMap<String, Target>();
     loadHardware(getHardwareFolder());
     loadHardware(getSketchbookHardwareFolder());
@@ -604,14 +604,14 @@ public class Base {
   {
     // Find the start point
     String t = editor.getText();
-
+    
     try {
 		Pattern regex = Pattern.compile("void\\s+setup\\s*\\(\\s*\\)");
 		Matcher regexMatcher = regex.matcher(t);
-		while (regexMatcher.find())
+		while (regexMatcher.find()) 
 		{
 			int totalLeftBracketsOpened = 0;
-
+			
 			for(int i = regexMatcher.end(); i<t.length(); i++)
 			{
 				// Search the closing bracket
@@ -626,7 +626,7 @@ public class Base {
 							for(int j = i-1; j > regexMatcher.end();j--)
 							{
 								int c = t.charAt(j);
-
+								
 								if(c!=10 && c!=13)
 								{
 									editor.setSelection(++j,j);
@@ -638,7 +638,7 @@ public class Base {
 					}
 			}
 			break;
-		}
+		} 
 	} catch (PatternSyntaxException ex) {
 		// Syntax error in the regular expression
 	}
@@ -1001,7 +1001,7 @@ public class Base {
 	  temp = new JMenu("Contributed Libraries");
       found = addSketches(temp, getSketchbookLibrariesFolder(), true);
       if (found) {menu.add(temp); n++;};
-
+      
       temp = new JMenu("Libraries");
       addSketches(temp, librariesFolder, true);
       menu.add(temp);
@@ -1009,7 +1009,7 @@ public class Base {
     } catch (IOException e) {
       e.printStackTrace();
     }
-
+    
     return n;
   }
 
@@ -1074,28 +1074,28 @@ public class Base {
       e.printStackTrace();
     }
   }
-
-
+  
+  
   public void onBoardOrPortChange() {
     for (Editor editor : editors) {
       editor.onBoardOrPortChange();
-    }
+    }  
   }
-
+  
   public void onArchChanged() {
 	  for (Editor editor : editors) {
 		  editor.onArchChanged();
-	  }
+	  }	  
   }
 
-
+  
   public void rebuildBoardsMenu(JMenu menu) {
     //System.out.println("rebuilding boards menu");
-    menu.removeAll();
+    menu.removeAll();      
     ButtonGroup group = new ButtonGroup();
     for (Target target : targetsTable.values()) {
       for (String board : target.getBoards().keySet()) {
-        AbstractAction action =
+        AbstractAction action = 
           new AbstractAction(target.getBoards().get(board).get("name")) {
             public void actionPerformed(ActionEvent actionevent) {
               //System.out.println("Switching to " + target + ":" + board);
@@ -1103,11 +1103,11 @@ public class Base {
               String o = Preferences.get("target");
               if(!n.equals(o)) {
             	  String targetLibDir = new String("");
-            	  if(n.equals("msp430"))
+            	  if(n.equals("msp430")) 
             		  targetLibDir = "hardware/msp430/";
             	  else if(n.equals("lm4f"))
             		  targetLibDir = "hardware/lm4f/";
-				  else if(n.equals("c2000"))
+				  else if(n.equals("c2000")) 
             		  targetLibDir = "hardware/c2000/";
 				  else if(n.equals("C5000"))
             		  targetLibDir = "hardware/C5000/";
@@ -1132,16 +1132,16 @@ public class Base {
       }
     }
   }
+  
 
-
-/*
+/*  
   public void rebuildProgrammerMenu(JMenu menu) {
     //System.out.println("rebuilding programmer menu");
-    menu.removeAll();
+    menu.removeAll();      
     ButtonGroup group = new ButtonGroup();
     for (Target target : targetsTable.values()) {
       for (String programmer : target.getProgrammers().keySet()) {
-        AbstractAction action =
+        AbstractAction action = 
           new AbstractAction(
             target.getProgrammers().get(programmer).get("name")) {
             public void actionPerformed(ActionEvent actionevent) {
@@ -1211,7 +1211,7 @@ public class Base {
 	boolean skipLibraryFolder = folder.equals((Base.getSketchbookFolder()));
 
     for (int i = 0; i < list.length; i++) {
-      if ((list[i].charAt(0) == '.') || list[i].startsWith("__disabled_") || list[i].equals("CVS") ||
+      if ((list[i].charAt(0) == '.') || list[i].startsWith("__disabled_") || list[i].equals("CVS") || 
       	(skipLibraryFolder && list[i].compareToIgnoreCase("libraries")==0)) continue;
 
       File subfolder = new File(folder, list[i]);
@@ -1352,11 +1352,11 @@ public class Base {
     }
     return ifound;
   }
-
-
+  
+  
   protected void loadHardware(File folder) {
     if (!folder.isDirectory()) return;
-
+    
     String list[] = folder.list(new FilenameFilter() {
       public boolean accept(File dir, String name) {
         // skip .DS_Store files, .svn folders, etc
@@ -1371,9 +1371,9 @@ public class Base {
     // alphabetize list, since it's not always alpha order
     // replaced hella slow bubble sort with this feller for 0093
     Arrays.sort(list, String.CASE_INSENSITIVE_ORDER);
-
+    
     for (String target : list) {
-
+    	
     	//Check to ensure compiler is installed before displaying C2000 Support
     	if(target.equals("c2000")){
     		if(Base.getC2000BasePath() != ""){
@@ -1385,7 +1385,7 @@ public class Base {
     	      targetsTable.put(target, new Target(target, subfolder));
     	}
     }
-
+    
   }
 
 
@@ -1646,13 +1646,13 @@ public class Base {
     // before the other folders / paths get cached).
     return getContentFile("hardware");
   }
-
-
+  
+  
   static public String getHardwarePath() {
     return getHardwareFolder().getAbsolutePath();
   }
-
-
+  
+  
   static public String getAvrBasePath() {
     String path = getHardwarePath() + File.separator + "tools" +
                   File.separator + "avr" + File.separator + "bin" + File.separator;
@@ -1684,7 +1684,7 @@ public class Base {
   static public String getC2000BasePath() {
 	    String path = getHardwarePath() + File.separator + "tools" +
 	                  File.separator + "c2000" + File.separator + "bin" + File.separator;
-
+	    
 	    if (Base.isLinux() || !(new File(path)).exists()) {
 	      return "";  // use msp430-gcc and mspdebug in PATH instead of platform version
 	    }
@@ -1703,7 +1703,7 @@ public class Base {
   static public String getArch() {
     return archMap.get(Preferences.get("target"));
   }
-
+  
   static public String toShortPath(String longpath) {
     String shortpath = "", sub = "";
     //longpath = longpath.replaceAll("\\s", "");
@@ -1715,15 +1715,15 @@ public class Base {
       {
 		int thisFile = 1;
 		sub = temp.substring(0, 6);
-
+		
 		// Find if there are more files
 		File dir = new File(shortpath);
-  		for (File child : dir.listFiles())
+  		for (File child : dir.listFiles()) 
   		{
   			String originalName = child.getName().toUpperCase();
   			String tempName = originalName.replaceAll("\\s", "");
   			int l = tempName.length();
-
+  			
   			if(tempName.substring(0, l>6 ? 6:l).compareTo(sub)==0)
   			{
   				if(originalName.compareTo(temp)==0)
@@ -1733,20 +1733,20 @@ public class Base {
   			}
   		}
   		String ext = "";
-
+  		
   		if(temp.indexOf(".")>0) // There is an extension to add
   		{
   			ext = temp.substring(temp.lastIndexOf(".")+1);
   			ext = "." + ext.substring(0,ext.length()>3?3:ext.length());
   		}
-
+  		
         temp = sub + "~" + thisFile + ext;
       }
       shortpath += temp + "\\";
     }
     return shortpath;
   }
-
+  
   static public String getBasePath() {
     if (Base.isLinux()) {
       if (getArch() == "msp430") {
@@ -1770,7 +1770,7 @@ public class Base {
           + getArch() + File.separator + "bin" + File.separator;
       }
     } else if (Base.isWindows()) {
-		String ret;
+      String ret;
         if (getArch() != "C5000"){
 		  ret = getHardwarePath() + File.separator + "tools"
           + File.separator + getArch() + File.separator + "bin"
@@ -1788,7 +1788,8 @@ public class Base {
 		}
     }
   }
-
+  
+  
   static public void setBasePath(String newPath) {
 	  if (getArch() == "C5000"){
 		  C5000CompilersPath = newPath;
@@ -1813,8 +1814,8 @@ public class Base {
   static public Target getTarget() {
     return Base.targetsTable.get(Preferences.get("target"));
   }
-
-
+  
+  
   static public Map<String, String> getBoardPreferences() {
     Target target = getTarget();
     if (target == null) return new LinkedHashMap();
@@ -1824,7 +1825,7 @@ public class Base {
     if (map == null) return new LinkedHashMap();
     return map;
   }
-
+  
 
   static public File getSketchbookFolder() {
     return new File(Preferences.get("sketchbook.path"));
@@ -1851,8 +1852,8 @@ public class Base {
   static public String getSketchbookLibrariesPath() {
     return getSketchbookLibrariesFolder().getAbsolutePath();
   }
-
-
+  
+  
   static public File getSketchbookHardwareFolder() {
     return new File(getSketchbookFolder(), "hardware");
   }
@@ -2005,7 +2006,7 @@ public class Base {
     // don't use the low-res icon on Mac OS X; the window should
     // already have the right icon from the .app file.
     if (Base.isMacOS()) return;
-
+    
     ArrayList<Image> images = new ArrayList<Image>();
     images.add(createImageFromLib("energia_16.png"));
     images.add(createImageFromLib("energia_24.png"));
@@ -2013,7 +2014,7 @@ public class Base {
     images.add(createImageFromLib("energia_48.png"));
     frame.setIconImages(images);
   }
-
+  
   static private Image createImageFromLib(String filename)
   {
   	return Toolkit.getDefaultToolkit().createImage(new File("lib/" + filename).getAbsolutePath());
@@ -2098,7 +2099,7 @@ public class Base {
   static public void showFAQ() {
     showReference(_("FAQ.html"));
   }
-
+  
 
   // .................................................................
 

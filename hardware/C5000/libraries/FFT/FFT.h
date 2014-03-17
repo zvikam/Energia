@@ -80,12 +80,8 @@ extern "C" {
  */
 class FFTClass {
     public:
-       int FFT(void *Input, unsigned short lengthFFT, unsigned short scaleType, unsigned short realComplex, unsigned short dataType);
-       int IFFT(void *Input, unsigned short lengthIFFT, unsigned short scaleType, unsigned short realComplex, unsigned short dataType);
-       void filter(long *Input, long *Taps, long *Output, unsigned short size);
-	private:
-	   void handleErrors(void);
-	   void buff_copy32(long *input, long *output, long size);
+       void FFT_init(void);
+       void FFT_filter(short *input, short *output, short *overlap, int length);
 };
 
 extern FFTClass FFTransform;

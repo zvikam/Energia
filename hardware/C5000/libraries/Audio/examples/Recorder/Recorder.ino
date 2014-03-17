@@ -2,48 +2,56 @@
  * Wave recorder demo:
  *  Stores the audio samples received from audio module to a file
  *  on SD card in wave format.
- * 
+ *
  * Default configurations:
  *  Sampling rate - 48KHz
- *  Channel Type  - Stereo
+ *  Channel Type  - Mono
  *  Duration      - 60 secs
- * 
+ *
+ * Note: Stereo mode configurations can be enabled by defining macro
+ * 'ENABLE_STEREO_RECORD'
+ *
  * Changing the default configurations:
  *  Sampling rate - Change the value of 'samplingRate' which
- *                  can be one of the macros SAMPLING_RATE_XX_KHZ 
+ *                  can be one of the macros SAMPLING_RATE_XX_KHZ
  *                  defined in Audio.h
- *  Channel Type  - Change the value of 'channelType' to CHANNEL_MONO 
+ *  Channel Type  - Change the value of 'channelType' to CHANNEL_MONO
  *                  for mono recording
- *  Duration      - Change the value of macro 'RECORD_DURATION' which 
+ *  Duration      - Change the value of macro 'RECORD_DURATION' which
  *                  defines the duration of record in secs
- *  
+ *
  * CAUTION: DO NOT power off the DSP shield when record is in progress.
  * Recorded file will not be saved unless program ends smoothly.
+ *
+ * SD Card performance Requirements for proper record
+ * ---------------------------------------------------
+ * SD card used for record should be of class 4 or higher for proper 
+ * recording in stereo mode. Recording in stereo mode can be done 
+ * without data loss up to 32KHz sampling frequency with class 4 SD card.
+ * It is not recommended to use sampling frequency more than 32KHz 
+ * for stereo mode which causes data loss during record.
+ *
  */
 
 #include "SD.h"
 #include "Audio.h"
 #include "OLED.h"
 
-/* Record duration in seconds. 
+/* Record duration in seconds.
    Modify this macro to change the duration of record */
 #define RECORD_DURATION (60)
 
-/* Size of the Block of data. File.write() writes 'SINGLE_BUFFER_SIZE' 
-   number of words at a time to the recorded file */
-#define SINGLE_BUFFER_SIZE  (4096)
+//#define ENABLE_STEREO_RECORD
 
-// Circular Buffer Size
-#define NO_OF_WRITE_BUFFERS (5)
 
 // Variable to hold Record file size in terms of KiloBytes
 long recFileSize = 0;
-long samplingRate = SAMPLING_RATE_48_KHZ;
 
 /* Counter to indicate the number of times to call File.write(), to write the
  * audio data to the recorded file.
- * File.write() will write 8KB of data at once, hence the value
- * (recordCounter * 8KB) will give the recorded file size.
+ * File.write() will write (2*SINGLE_BUFFER_SIZE) bytes of data at once, 
+ * hence the value (recordCounter * (2*SINGLE_BUFFER_SIZE)) will give the 
+ * recorded file size.
  */
 long recordCounter = 0;
 
@@ -60,24 +68,44 @@ int writeToFileL[I2S_DMA_BUF_LEN];
 #pragma DATA_ALIGN(32)
 int writeToFileR[I2S_DMA_BUF_LEN];
 
-// Buffers to store the data to be written to file
-#pragma DATA_ALIGN(32)
-int writeBuf[NO_OF_WRITE_BUFFERS][SINGLE_BUFFER_SIZE] = {0};
-
 // Variables to store different buffer indexes used by the program
 int codecIndex = 0;
 int writeBufIndex = 0;
 int writeToFileIndex = 0;
-volatile bool buffAvailable[NO_OF_WRITE_BUFFERS] = {false};
 
 volatile long fileCounter = 0;
 
 char waveFileHeader[44] = {0};
 
-/* Record channel type. Change this value to 'CHANNEL_MONO' for mono
-   recording */
-//int channelType = CHANNEL_STEREO;
+#ifdef ENABLE_STEREO_RECORD
+/* Record channel type.*/
+int channelType = CHANNEL_STEREO;
+long samplingRate = SAMPLING_RATE_32_KHZ;
+
+/* Size of the Block of data. File.write() writes 'SINGLE_BUFFER_SIZE'
+   number of words at a time to the recorded file */
+#define SINGLE_BUFFER_SIZE  (2048)
+
+// Circular Buffer Size
+#define NO_OF_WRITE_BUFFERS (10)
+
+#else
+long samplingRate = SAMPLING_RATE_48_KHZ;
 int channelType = CHANNEL_MONO;
+
+/* Size of the Block of data. File.write() writes 'SINGLE_BUFFER_SIZE'
+   number of words at a time to the recorded file */
+#define SINGLE_BUFFER_SIZE  (4096)
+
+// Circular Buffer Size
+#define NO_OF_WRITE_BUFFERS (5)
+
+#endif
+
+// Buffers to store the data to be written to file
+#pragma DATA_ALIGN(32)
+int writeBuf[NO_OF_WRITE_BUFFERS][SINGLE_BUFFER_SIZE] = {0};
+volatile bool buffAvailable[NO_OF_WRITE_BUFFERS] = {false};
 
 // Forms wave file header
 void updateWavFileHeader(long samplingRate, int noOfChannels)
@@ -87,7 +115,7 @@ void updateWavFileHeader(long samplingRate, int noOfChannels)
 
     /* When the 'recordCounter' value is calculated, it might be in fractions,
        hence set the file size in terms of 'recordCounter' value */
-    audioFileSize = recordCounter * 8 * 1024; // Size of PCM samples 
+    audioFileSize = recordCounter * (2*SINGLE_BUFFER_SIZE); // Size of PCM samples 
     audioFileSize += 44;                      // Size of WAV header
 
     // Update Header with the Chunk Id: "RIFF", in Big Endian Mode
@@ -110,7 +138,7 @@ void updateWavFileHeader(long samplingRate, int noOfChannels)
     waveFileHeader[10] = 'V';
     waveFileHeader[11] = 'E';
 
-    // Update Header with the Sub Chunk Id: "fmt ", in Big Endian Mode 
+    // Update Header with the Sub Chunk Id: "fmt ", in Big Endian Mode
     waveFileHeader[12] = 'f';
     waveFileHeader[13] = 'm';
     waveFileHeader[14] = 't';
@@ -194,24 +222,14 @@ interrupt void dmaIsr(void)
                      writeToFileR, I2S_DMA_BUF_LEN);
         readyForWriting = 1;
     }
-    else if ((ifrValue >> DMA_CHAN_WriteR) & 0x01)
-    {
-        /* Buffers need to be copied to audio out buffers as
-           audio library is configured for non-loopback mode */
-        audioLibWriteBufIndex = (AudioC.activeOutBuf == FALSE)? TRUE: FALSE;
-        copyShortBuf(writeToFileL, AudioC.audioOutLeft[audioLibWriteBufIndex],
-                     I2S_DMA_BUF_LEN);
-        copyShortBuf(writeToFileR, AudioC.audioOutRight[audioLibWriteBufIndex],
-                     I2S_DMA_BUF_LEN);
-    }
-    	
+
     AudioC.isrDma();
 
     if ((false == stopRecording) &&
         (1 == readyForWriting)   &&
         (buffAvailable[codecIndex] == false))
     {
-        if (CHANNEL_STEREO == channelType) // Recording in Stereo mode 
+        if (CHANNEL_STEREO == channelType) // Recording in Stereo mode
         {
             for (index = 0; index < I2S_DMA_BUF_LEN; index++)
             {
@@ -260,8 +278,8 @@ void setup()
     int  status;
 
     pinMode(LED0, OUTPUT);
-    
-    //Initialize OLED module for file name display	
+
+    //Initialize OLED module for file name display
     disp.oledInit();
     disp.clear();
     disp.setOrientation(1);
@@ -279,18 +297,19 @@ void setup()
             // 'recFileSize' will hold the file size in terms of bytes
             recFileSize  = RECORD_DURATION;
             recFileSize *= samplingRate;
-            recFileSize *= 2; // File Size in bytes 
+            recFileSize *= 2; // File Size in bytes
 
             if (CHANNEL_STEREO == channelType)
             {
                 // Double the file size in case of stereo channel
-                recFileSize *= 2;  
+                recFileSize *= 2;
             }
 
-            /* File.write() will write 8KB of data at once, hence the value
-             * (recordCounter * 8KB) will give the recorded file size.
+            /* File.write() will write (2*SINGLE_BUFFER_SIZE) bytes of data at once, 
+             * hence the value (recordCounter * (2*SINGLE_BUFFER_SIZE)) will give the 
+             * recorded file size.
              */
-            recordCounter = recFileSize / (8 * 1024);
+            recordCounter = recFileSize / (2*SINGLE_BUFFER_SIZE);
 
             /* recordCounter value might contain fractional part, which will not
              * be taken into account because of conversion from float to long.
@@ -316,7 +335,7 @@ void setup()
         stopRecording = true;
     }
 
-    status = AudioC.Audio(TRUE);
+    status = AudioC.Audio();
     if (status != 0)
     {
         stopRecording = true;
@@ -324,7 +343,7 @@ void setup()
 
     AudioC.setSamplingRate(samplingRate);
 
-    AudioC.attachIntr(dmaIsr);    
+    AudioC.attachIntr(dmaIsr);
 }
 
 void swapBytes(int *buffer, int length)
@@ -369,10 +388,10 @@ void loop()
 
             fileHandle.close();
             digitalWrite(LED0, 0);
-            
+
 	    disp.setline(1);
 	    disp.clear(1);
-	    disp.print("Stopped");            
+	    disp.print("Stopped");
         }
     }
 }

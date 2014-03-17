@@ -580,7 +580,7 @@ int SPI_Class::read (unsigned long *buffer, int length)
     }
     else
     {
-        swapWords (buffer, length * 2);
+        swapWords (buffer, length);
 
         if (LSBFIRST == order)
         {

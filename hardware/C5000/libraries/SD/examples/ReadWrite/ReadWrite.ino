@@ -40,6 +40,7 @@ void setup()
                 /* Reading data continuously from serial till user enters
                    "$end$" */
                 readString[index++] = Serial.read();
+                readString[index]   = '\0';
                 if (strstr(readString, compareString) != 0)
                 {
                     readString[index - strlen(compareString)] = '\0';

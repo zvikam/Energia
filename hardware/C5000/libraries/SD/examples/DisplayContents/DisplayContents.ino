@@ -17,6 +17,7 @@ void display(void *Handle)
 {
     File *parentHandle;
     File childHandle;
+    char fileName[15];
     int  filecount = 0;
     int  directorycount = 0;
 
@@ -31,9 +32,10 @@ void display(void *Handle)
             if (childHandle.isDirectory())
             {
                 Serial.print("\n\rDirectory Name:");
-                Serial.println(childHandle.fileName);
+                childHandle.getName(fileName);
+                Serial.println(fileName);
                 Serial.print("  Contents of the Directory:");
-                Serial.print(childHandle.fileName);
+                Serial.print(fileName);
                 Serial.println(" ");
 
                 /* Since its a directory display the contents under the
@@ -44,7 +46,8 @@ void display(void *Handle)
             else
             {
                 Serial.print("File Name: ");
-                Serial.print(childHandle.fileName);
+                childHandle.getName(fileName);
+                Serial.print(fileName);
                 Serial.print("\tSize: ");
                 Serial.print(childHandle.size());
                 Serial.println(" Bytes");
@@ -56,7 +59,8 @@ void display(void *Handle)
         else
         {
             Serial.print("  No more Files Under the directory:");
-            Serial.println(parentHandle->fileName);
+            parentHandle->getName(fileName);
+            Serial.println(fileName);
             Serial.print("  File Count: ");
             Serial.print(filecount);
             Serial.print("\tDirectory Count: ");

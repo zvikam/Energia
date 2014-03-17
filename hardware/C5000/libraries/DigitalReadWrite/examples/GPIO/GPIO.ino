@@ -7,10 +7,10 @@
   both the values match, then the test passes.
 */
 
-void setup() 
+void setup()
 {
     int status;
-    
+
     Serial.println("GPIO Pin Configuration Demo");
     Serial.println("Short pin16 and pin18 on port P2 for the test");
 
@@ -27,14 +27,14 @@ void setup()
     if(status == 0)  // Returns 0 on success
     {
         // Configure GPIO13 as output pin
-	gpioPinMode(DSP_GPIO13, OUTPUT);
+        gpioPinMode(DSP_GPIO13, OUTPUT);
     }
 }
 
 /*
  * This API continuosly sets the pin value of DSP_GPIO13 pin high and low one
  * after another. Since DSP_GPIO12 is configured as input pin and DSP_GPIO13
- * is configured as output pin. Value written to DSP_GPIO13 pin should be 
+ * is configured as output pin. Value written to DSP_GPIO13 pin should be
  * sent to DSP_GPIO12 pin, if DSP_GPIO13 and DSP_GPIO12 pins are
  * shorted externally
  */
@@ -43,7 +43,7 @@ void loop()
     unsigned int gpioState;
 
     /* DSP_GPIO12 is configured as input pin, whereas DSP_GPIO13 is configured
-     * as output pin. Value written to DSP_GPIO13 pin will be sent to 
+     * as output pin. Value written to DSP_GPIO13 pin will be sent to
      * DSP_GPIO12 pin, since DSP_GPIO13 and DSP_GPIO12 pins are shorted
      */
 
