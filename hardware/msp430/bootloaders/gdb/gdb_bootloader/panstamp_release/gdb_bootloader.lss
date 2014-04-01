@@ -1,0 +1,423 @@
+
+panstamp_release/gdb_bootloader.elf:     file format elf32-msp430
+
+
+Disassembly of section .text:
+
+00001000 <__watchdog_support>:
+    1000:	b2 40 80 5a 	mov	#23168,	&0x015c	;#0x5a80
+    1004:	5c 01 
+
+00001006 <__init_stack>:
+    1006:	31 40 fe 2b 	mov	#11262,	r1	;#0x2bfe
+
+0000100a <__do_clear_bss>:
+    void __do_clear_bss(void) __attribute__((section(".init4"),naked));
+    void __do_clear_bss() {
+      __asm__(
+          "\n"
+          //"nop; empty __do_clear_bss() {} \n" // someplace to put a breakpoint
+          );
+    100a:	21 82       	sub	#4,	r1	;r2 As==10
+    100c:	f2 f0 fe ff 	and.b	#-2,	&0x0205	;#0xfffe
+    1010:	05 02 
+    1012:	d2 d3 03 02 	bis.b	#1,	&0x0203	;r3 As==01
+    1016:	d2 d3 07 02 	bis.b	#1,	&0x0207	;r3 As==01
+    101a:	5f 42 01 02 	mov.b	&0x0201,r15	
+    101e:	1f f3       	and	#1,	r15	;r3 As==01
+    1020:	09 24       	jz	$+20     	;abs 0x1034
+    1022:	f2 f0 fd ff 	and.b	#-3,	&0x0224	;#0xfffd
+    1026:	24 02 
+    1028:	3e 40 be ff 	mov	#-66,	r14	;#0xffbe
+    102c:	2f 4e       	mov	@r14,	r15	
+    102e:	3f 93       	cmp	#-1,	r15	;r3 As==11
+    1030:	01 24       	jz	$+4      	;abs 0x1034
+    1032:	20 4e       	br	@r14		
+
+00001034 <run_gdb_boot>:
+    1034:	b0 12 4a 13 	call	#0x134a	
+    1038:	e2 d3 24 02 	bis.b	#2,	&0x0224	;r3 As==10
+    103c:	e2 d3 22 02 	bis.b	#2,	&0x0222	;r3 As==10
+    1040:	b2 40 52 2d 	mov	#11602,	&0x01c0	;#0x2d52
+    1044:	c0 01 
+    1046:	a2 d3 c2 01 	bis	#2,	&0x01c2	;r3 As==10
+    104a:	f2 40 12 00 	mov.b	#18,	&0x01ce	;#0x0012
+    104e:	ce 01 
+    1050:	f2 40 11 00 	mov.b	#17,	&0x01cf	;#0x0011
+    1054:	cf 01 
+    1056:	82 43 c0 01 	mov	#0,	&0x01c0	;r3 As==00
+    105a:	f2 d0 40 00 	bis.b	#64,	&0x0204	;#0x0040
+    105e:	04 02 
+    1060:	f2 d0 c0 ff 	bis.b	#-64,	&0x020a	;#0xffc0
+    1064:	0a 02 
+    1066:	d2 43 c0 05 	mov.b	#1,	&0x05c0	;r3 As==01
+    106a:	c2 43 c1 05 	mov.b	#0,	&0x05c1	;r3 As==00
+    106e:	c2 43 d0 05 	mov.b	#0,	&0x05d0	;r3 As==00
+    1072:	c2 43 c7 05 	mov.b	#0,	&0x05c7	;r3 As==00
+    1076:	f2 40 0a 00 	mov.b	#10,	&0x05c6	;#0x000a
+    107a:	c6 05 
+    107c:	f2 40 91 ff 	mov.b	#-111,	&0x05c8	;#0xff91
+    1080:	c8 05 
+    1082:	f2 40 80 ff 	mov.b	#-128,	&0x05c0	;#0xff80
+    1086:	c0 05 
+    1088:	c1 43 02 00 	mov.b	#0,	2(r1)	;r3 As==00, 0x0002(r1)
+    108c:	b0 12 fe 12 	call	#0x12fe	
+    1090:	3f 90 24 00 	cmp	#36,	r15	;#0x0024
+    1094:	fb 23       	jnz	$-8      	;abs 0x108c
+    1096:	0b 43       	clr	r11		
+    1098:	b0 12 fe 12 	call	#0x12fe	
+    109c:	3f 90 23 00 	cmp	#35,	r15	;#0x0023
+    10a0:	0e 20       	jnz	$+30     	;abs 0x10be
+    10a2:	b0 12 fe 12 	call	#0x12fe	
+    10a6:	c1 4f 00 00 	mov.b	r15,	0(r1)	;0x0000(r1)
+    10aa:	b0 12 fe 12 	call	#0x12fe	
+    10ae:	c1 4f 01 00 	mov.b	r15,	1(r1)	;0x0001(r1)
+    10b2:	0f 41       	mov	r1,	r15	
+    10b4:	b0 12 24 13 	call	#0x1324	
+    10b8:	c1 4f 03 00 	mov.b	r15,	3(r1)	;0x0003(r1)
+    10bc:	06 3c       	jmp	$+14     	;abs 0x10ca
+    10be:	cb 4f 00 1c 	mov.b	r15,	7168(r11);0x1c00(r11)
+    10c2:	1b 53       	inc	r11		
+    10c4:	3b 90 80 00 	cmp	#128,	r11	;#0x0080
+    10c8:	e7 23       	jnz	$-48     	;abs 0x1098
+    10ca:	cb 43 00 1c 	mov.b	#0,	7168(r11);r3 As==00, 0x1c00(r11)
+    10ce:	0f 43       	clr	r15		
+    10d0:	3e 40 00 1c 	mov	#7168,	r14	;#0x1c00
+    10d4:	7d 4e       	mov.b	@r14+,	r13	
+    10d6:	0f 5d       	add	r13,	r15	
+    10d8:	3f f0 ff 00 	and	#255,	r15	;#0x00ff
+    10dc:	3b 53       	add	#-1,	r11	;r3 As==11
+    10de:	fa 23       	jnz	$-10     	;abs 0x10d4
+    10e0:	5e 41 03 00 	mov.b	3(r1),	r14	;0x0003(r1)
+    10e4:	0f 9e       	cmp	r14,	r15	
+    10e6:	05 24       	jz	$+12     	;abs 0x10f2
+    10e8:	3f 40 b9 13 	mov	#5049,	r15	;#0x13b9
+    10ec:	b0 12 0c 13 	call	#0x130c	
+    10f0:	cd 3f       	jmp	$-100    	;abs 0x108c
+    10f2:	3f 40 bb 13 	mov	#5051,	r15	;#0x13bb
+    10f6:	b0 12 0c 13 	call	#0x130c	
+    10fa:	59 42 00 1c 	mov.b	&0x1c00,r9	
+    10fe:	79 90 6d 00 	cmp.b	#109,	r9	;#0x006d
+    1102:	06 24       	jz	$+14     	;abs 0x1110
+    1104:	79 90 4d 00 	cmp.b	#77,	r9	;#0x004d
+    1108:	7f 20       	jnz	$+256    	;abs 0x1208
+    110a:	3b 40 01 1c 	mov	#7169,	r11	;#0x1c01
+    110e:	02 3c       	jmp	$+6      	;abs 0x1114
+    1110:	3b 40 01 1c 	mov	#7169,	r11	;#0x1c01
+    1114:	1b 53       	inc	r11		
+    1116:	fb 90 2c 00 	cmp.b	#44,	0(r11)	;#0x002c, 0x0000(r11)
+    111a:	00 00 
+    111c:	fb 23       	jnz	$-8      	;abs 0x1114
+    111e:	cb 43 00 00 	mov.b	#0,	0(r11)	;r3 As==00, 0x0000(r11)
+    1122:	3f 40 01 1c 	mov	#7169,	r15	;#0x1c01
+    1126:	b0 12 24 13 	call	#0x1324	
+    112a:	0a 4f       	mov	r15,	r10	
+    112c:	0f 4b       	mov	r11,	r15	
+    112e:	1f 53       	inc	r15		
+    1130:	1b 53       	inc	r11		
+    1132:	fb 90 3a 00 	cmp.b	#58,	0(r11)	;#0x003a, 0x0000(r11)
+    1136:	00 00 
+    1138:	fb 23       	jnz	$-8      	;abs 0x1130
+    113a:	cb 43 00 00 	mov.b	#0,	0(r11)	;r3 As==00, 0x0000(r11)
+    113e:	b0 12 24 13 	call	#0x1324	
+    1142:	08 4f       	mov	r15,	r8	
+    1144:	79 90 6d 00 	cmp.b	#109,	r9	;#0x006d
+    1148:	2e 20       	jnz	$+94     	;abs 0x11a6
+    114a:	3f 40 bd 13 	mov	#5053,	r15	;#0x13bd
+    114e:	b0 12 0c 13 	call	#0x130c	
+    1152:	09 43       	clr	r9		
+    1154:	7f 4a       	mov.b	@r10+,	r15	
+    1156:	0e 4f       	mov	r15,	r14	
+    1158:	5e 0d       	rram	#4,	r14	
+    115a:	5b 4e a8 13 	mov.b	5032(r14),r11	;0x13a8(r14)
+    115e:	c1 4b 00 00 	mov.b	r11,	0(r1)	;0x0000(r1)
+    1162:	4b 59       	add.b	r9,	r11	
+    1164:	3f f0 0f 00 	and	#15,	r15	;#0x000f
+    1168:	5f 4f a8 13 	mov.b	5032(r15),r15	;0x13a8(r15)
+    116c:	c1 4f 01 00 	mov.b	r15,	1(r1)	;0x0001(r1)
+    1170:	4b 4b       	mov.b	r11,	r11	
+    1172:	0b 5f       	add	r15,	r11	
+    1174:	09 4b       	mov	r11,	r9	
+    1176:	39 f0 ff 00 	and	#255,	r9	;#0x00ff
+    117a:	0f 41       	mov	r1,	r15	
+    117c:	b0 12 0c 13 	call	#0x130c	
+    1180:	38 53       	add	#-1,	r8	;r3 As==11
+    1182:	e8 23       	jnz	$-46     	;abs 0x1154
+    1184:	3b f0 0f 00 	and	#15,	r11	;#0x000f
+    1188:	d1 4b a8 13 	mov.b	5032(r11),1(r1)	;0x13a8(r11), 0x0001(r1)
+    118c:	01 00 
+    118e:	59 0d       	rram	#4,	r9	
+    1190:	d1 49 a8 13 	mov.b	5032(r9),0(r1)	;0x13a8(r9), 0x0000(r1)
+    1194:	00 00 
+    1196:	3f 40 bf 13 	mov	#5055,	r15	;#0x13bf
+    119a:	b0 12 0c 13 	call	#0x130c	
+    119e:	0f 41       	mov	r1,	r15	
+    11a0:	b0 12 0c 13 	call	#0x130c	
+    11a4:	73 3f       	jmp	$-280    	;abs 0x108c
+    11a6:	79 90 4d 00 	cmp.b	#77,	r9	;#0x004d
+    11aa:	2e 20       	jnz	$+94     	;abs 0x1208
+    11ac:	1b 53       	inc	r11		
+    11ae:	b2 40 00 a5 	mov	#-23296,&0x0144	;#0xa500
+    11b2:	44 01 
+    11b4:	b2 40 40 a5 	mov	#-23232,&0x0140	;#0xa540
+    11b8:	40 01 
+    11ba:	3a 90 fe ff 	cmp	#-2,	r10	;#0xfffe
+    11be:	0b 2c       	jc	$+24     	;abs 0x11d6
+    11c0:	e1 4b 00 00 	mov.b	@r11,	0(r1)	;0x0000(r1)
+    11c4:	d1 4b 01 00 	mov.b	1(r11),	1(r1)	;0x0001(r11), 0x0001(r1)
+    11c8:	01 00 
+    11ca:	0f 41       	mov	r1,	r15	
+    11cc:	b0 12 24 13 	call	#0x1324	
+    11d0:	ca 4f 00 00 	mov.b	r15,	0(r10)	;0x0000(r10)
+    11d4:	0a 3c       	jmp	$+22     	;abs 0x11ea
+    11d6:	e1 4b 00 00 	mov.b	@r11,	0(r1)	;0x0000(r1)
+    11da:	d1 4b 01 00 	mov.b	1(r11),	1(r1)	;0x0001(r11), 0x0001(r1)
+    11de:	01 00 
+    11e0:	0f 41       	mov	r1,	r15	
+    11e2:	b0 12 24 13 	call	#0x1324	
+    11e6:	ca 4f c0 ff 	mov.b	r15,	-64(r10);0xffc0(r10)
+    11ea:	1a 53       	inc	r10		
+    11ec:	2b 53       	incd	r11		
+    11ee:	38 53       	add	#-1,	r8	;r3 As==11
+    11f0:	e4 23       	jnz	$-54     	;abs 0x11ba
+    11f2:	b2 40 00 a5 	mov	#-23296,&0x0140	;#0xa500
+    11f6:	40 01 
+    11f8:	b2 40 10 a5 	mov	#-23280,&0x0144	;#0xa510
+    11fc:	44 01 
+    11fe:	3f 40 c1 13 	mov	#5057,	r15	;#0x13c1
+    1202:	b0 12 0c 13 	call	#0x130c	
+    1206:	42 3f       	jmp	$-378    	;abs 0x108c
+    1208:	79 90 71 00 	cmp.b	#113,	r9	;#0x0071
+    120c:	40 20       	jnz	$+130    	;abs 0x128e
+    120e:	5f 41 03 00 	mov.b	3(r1),	r15	;0x0003(r1)
+    1212:	7f 90 2e 00 	cmp.b	#46,	r15	;#0x002e
+    1216:	32 20       	jnz	$+102    	;abs 0x127c
+    1218:	3f 40 00 80 	mov	#-32768,r15	;#0x8000
+    121c:	b2 40 00 a5 	mov	#-23296,&0x0144	;#0xa500
+    1220:	44 01 
+    1222:	b2 40 02 a5 	mov	#-23294,&0x0140	;#0xa502
+    1226:	40 01 
+    1228:	cf 43 00 00 	mov.b	#0,	0(r15)	;r3 As==00, 0x0000(r15)
+    122c:	b2 40 10 a5 	mov	#-23280,&0x0144	;#0xa510
+    1230:	44 01 
+    1232:	3f 50 00 02 	add	#512,	r15	;#0x0200
+    1236:	3f 90 00 f8 	cmp	#-2048,	r15	;#0xf800
+    123a:	f0 23       	jnz	$-30     	;abs 0x121c
+    123c:	b2 40 00 a5 	mov	#-23296,&0x0144	;#0xa500
+    1240:	44 01 
+    1242:	b2 40 02 a5 	mov	#-23294,&0x0140	;#0xa502
+    1246:	40 01 
+    1248:	c2 43 00 fe 	mov.b	#0,	&0xfe00	;r3 As==00
+    124c:	b2 40 10 a5 	mov	#-23280,&0x0144	;#0xa510
+    1250:	44 01 
+    1252:	b2 40 00 a5 	mov	#-23296,&0x0144	;#0xa500
+    1256:	44 01 
+    1258:	b2 40 40 a5 	mov	#-23232,&0x0140	;#0xa540
+    125c:	40 01 
+    125e:	b2 40 00 10 	mov	#4096,	&0xfffe	;#0x1000
+    1262:	fe ff 
+    1264:	b2 40 00 a5 	mov	#-23296,&0x0140	;#0xa500
+    1268:	40 01 
+    126a:	b2 40 10 a5 	mov	#-23280,&0x0144	;#0xa510
+    126e:	44 01 
+    1270:	3f 40 c8 13 	mov	#5064,	r15	;#0x13c8
+    1274:	b0 12 0c 13 	call	#0x130c	
+    1278:	30 40 8c 10 	br	#0x108c	
+    127c:	7f 90 9a ff 	cmp.b	#-102,	r15	;#0xff9a
+    1280:	13 20       	jnz	$+40     	;abs 0x12a8
+    1282:	3f 40 d3 13 	mov	#5075,	r15	;#0x13d3
+    1286:	b0 12 0c 13 	call	#0x130c	
+    128a:	30 40 8c 10 	br	#0x108c	
+    128e:	79 90 6b 00 	cmp.b	#107,	r9	;#0x006b
+    1292:	0a 20       	jnz	$+22     	;abs 0x12a8
+    1294:	3f 40 e5 13 	mov	#5093,	r15	;#0x13e5
+    1298:	b0 12 0c 13 	call	#0x130c	
+    129c:	5f 42 ca 05 	mov.b	&0x05ca,r15	
+    12a0:	1f f3       	and	#1,	r15	;r3 As==01
+    12a2:	fc 23       	jnz	$-6      	;abs 0x129c
+    12a4:	82 43 5c 01 	mov	#0,	&0x015c	;r3 As==00
+    12a8:	5f 42 00 1c 	mov.b	&0x1c00,r15	
+    12ac:	7f 90 67 00 	cmp.b	#103,	r15	;#0x0067
+    12b0:	12 20       	jnz	$+38     	;abs 0x12d6
+    12b2:	3f 40 ea 13 	mov	#5098,	r15	;#0x13ea
+    12b6:	b0 12 0c 13 	call	#0x130c	
+    12ba:	3b 40 3c 00 	mov	#60,	r11	;#0x003c
+    12be:	3f 40 f0 13 	mov	#5104,	r15	;#0x13f0
+    12c2:	b0 12 0c 13 	call	#0x130c	
+    12c6:	3b 53       	add	#-1,	r11	;r3 As==11
+    12c8:	fa 23       	jnz	$-10     	;abs 0x12be
+    12ca:	3f 40 f2 13 	mov	#5106,	r15	;#0x13f2
+    12ce:	b0 12 0c 13 	call	#0x130c	
+    12d2:	30 40 8c 10 	br	#0x108c	
+    12d6:	7f 90 3f 00 	cmp.b	#63,	r15	;#0x003f
+    12da:	06 20       	jnz	$+14     	;abs 0x12e8
+    12dc:	3f 40 f6 13 	mov	#5110,	r15	;#0x13f6
+    12e0:	b0 12 0c 13 	call	#0x130c	
+    12e4:	30 40 8c 10 	br	#0x108c	
+    12e8:	3f 40 e5 13 	mov	#5093,	r15	;#0x13e5
+    12ec:	b0 12 0c 13 	call	#0x130c	
+    12f0:	30 40 8c 10 	br	#0x108c	
+
+000012f4 <__stop_progExec__>:
+    12f4:	32 d0 f0 00 	bis	#240,	r2	;#0x00f0
+    12f8:	fd 3f       	jmp	$-4      	;abs 0x12f4
+
+000012fa <__ctors_end>:
+    12fa:	30 40 a6 13 	br	#0x13a6	
+
+000012fe <_ZN18serial_base_usci_tILm38400ELm6500000E8GPIO_PINILh64E16GPIO_PORT_IC_SELILi1ELZ6PAIN_LELZ7PAOUT_LELZ7PADIR_LELZ7PAIFG_LELZ7PAIES_LELZ6PAIE_LELZ7PASEL_LELZ7PAREN_LEE14gpio_pincaps_tILb0ELb0ELb0ELb0ELb0ELb0EEES0_ILh128ES2_S4_EE4readEv.isra.0>:
+    12fe:	d2 b3 dd 05 	bit.b	#1,	&0x05dd	;r3 As==01
+    1302:	fd 27       	jz	$-4      	;abs 0x12fe
+    1304:	5f 42 cc 05 	mov.b	&0x05cc,r15	
+    1308:	4f 4f       	mov.b	r15,	r15	
+    130a:	30 41       	ret			
+
+0000130c <_ZN7print_tI13usci_serial_tILm38400ELm6500000E8GPIO_PINILh64E16GPIO_PORT_IC_SELILi1ELZ6PAIN_LELZ7PAOUT_LELZ7PADIR_LELZ7PAIFG_LELZ7PAIES_LELZ6PAIE_LELZ7PASEL_LELZ7PAREN_LEE14gpio_pincaps_tILb0ELb0ELb0ELb0ELb0ELb0EEES1_ILh128ES3_S5_EEjmE5_putsEPKc.isra.6>:
+    130c:	07 3c       	jmp	$+16     	;abs 0x131c
+    130e:	1f 53       	inc	r15		
+    1310:	5d 42 dd 05 	mov.b	&0x05dd,r13	
+    1314:	2d f3       	and	#2,	r13	;r3 As==10
+    1316:	fc 27       	jz	$-6      	;abs 0x1310
+    1318:	c2 4e ce 05 	mov.b	r14,	&0x05ce	
+    131c:	6e 4f       	mov.b	@r15,	r14	
+    131e:	4e 93       	tst.b	r14		
+    1320:	f6 23       	jnz	$-18     	;abs 0x130e
+    1322:	30 41       	ret			
+
+00001324 <hexstr2u16(unsigned char*)>:
+ * hexstr2u16() - convert hex strings into uint16
+ *
+ * assumes caller is only passing '0'-'f' digits or null
+ */
+unsigned hexstr2u16(uint8_t *s)
+{
+    1324:	0e 4f       	mov	r15,	r14	
+    uint16_t u16 = 0;
+    1326:	0f 43       	clr	r15		
+
+    do {
+        u16 = u16 << 4;
+    1328:	5f 0e       	rlam	#4,	r15	
+        u16 |= (*s < 'a') ? *s - '0' : *s - 'a' + 10;
+    132a:	6c 4e       	mov.b	@r14,	r12	
+    132c:	4d 4c       	mov.b	r12,	r13	
+    132e:	7c 90 61 00 	cmp.b	#97,	r12	;#0x0061
+    1332:	03 2c       	jc	$+8      	;abs 0x133a
+    1334:	3d 50 d0 ff 	add	#-48,	r13	;#0xffd0
+    1338:	02 3c       	jmp	$+6      	;abs 0x133e
+    133a:	3d 50 a9 ff 	add	#-87,	r13	;#0xffa9
+    133e:	0f dd       	bis	r13,	r15	
+ */
+unsigned hexstr2u16(uint8_t *s)
+{
+    uint16_t u16 = 0;
+
+    do {
+    1340:	1e 53       	inc	r14		
+    1342:	ce 93 00 00 	tst.b	0(r14)		;0x0000(r14)
+    1346:	f0 23       	jnz	$-30     	;abs 0x1328
+        u16 = u16 << 4;
+        u16 |= (*s < 'a') ? *s - '0' : *s - 'a' + 10;
+    } while(*(++s));
+
+    return u16;
+}
+    1348:	30 41       	ret			
+
+0000134a <cpu430_cs_t<6500000ul>::init_clock()>:
+     */
+    RF1AIES = BIT0 | BIT9;
+
+#elif F_CPU == 6500000L
+
+    PMAPPWD = 0x02D52;            // Get write-access to port mapping regs
+    134a:	b2 40 52 2d 	mov	#11602,	&0x01c0	;#0x2d52
+    134e:	c0 01 
+    PMAPCTL |= PMAPRECFG;         // Leave Pin mapping open
+    1350:	a2 d3 c2 01 	bis	#2,	&0x01c2	;r3 As==10
+#ifdef SHOW_CLOCKS
+    P2MAP2 = PM_SMCLK;            // Map SMCLK output to P2.2
+    1354:	f2 40 05 00 	mov.b	#5,	&0x01d2	;#0x0005
+    1358:	d2 01 
+    P2MAP4 = PM_MCLK;             // Map MCLK output to P2.4
+    135a:	e2 42 d4 01 	mov.b	#4,	&0x01d4	;r2 As==10
+    P2MAP5 = PM_ACLK;             // Map SMCLK output to P2.2
+    135e:	f2 40 03 00 	mov.b	#3,	&0x01d5	;#0x0003
+    1362:	d5 01 
+#endif
+    PMAPPWD = 0;                  // Lock port mapping registers
+    1364:	82 43 c0 01 	mov	#0,	&0x01c0	;r3 As==00
+
+#ifdef SHOW_CLOCKS
+    P2DIR |= BIT5 | BIT2 | BIT4;  // ACLK, MCLK, SMCLK set out to pins
+    1368:	f2 d0 34 00 	bis.b	#52,	&0x0205	;#0x0034
+    136c:	05 02 
+    P2SEL |= BIT5 | BIT2 | BIT4;  // P2.5, P2.2, P2.4 for debugging
+    136e:	f2 d0 34 00 	bis.b	#52,	&0x020b	;#0x0034
+    1372:	0b 02 
+#endif
+
+    UCSCTL6 &= ~XT2OFF;                       // Enable XT2
+    1374:	b2 f0 ff fe 	and	#-257,	&0x016c	;#0xfeff
+    1378:	6c 01 
+    UCSCTL3 |= SELREF_2;                      // FLLref = REFO
+    137a:	b2 d0 20 00 	bis	#32,	&0x0166	;#0x0020
+    137e:	66 01 
+                                              // Since LFXT1 is not used,
+                                              // sourcing FLL with LFXT1 can cause
+                                              // XT1OFFG flag to set
+
+    // ACLK=REFO, SMCLK=DCO, MCLK=DCO
+    UCSCTL4 = SELA__REFOCLK | SELS__DCOCLKDIV | SELM__DCOCLKDIV;
+    1380:	b2 40 44 02 	mov	#580,	&0x0168	;#0x0244
+    1384:	68 01 
+    UCSCTL5 = 0b000 << 8 | 0b010 << 4 | 0b010 << 0;
+    1386:	b2 40 22 00 	mov	#34,	&0x016a	;#0x0022
+    138a:	6a 01 
+
+    // Loop until XT1,XT2 & DCO stabilizes
+    do {
+      UCSCTL7 &= ~(XT2OFFG | XT1LFOFFG | DCOFFG);
+    138c:	b2 f0 f4 ff 	and	#-12,	&0x016e	;#0xfff4
+    1390:	6e 01 
+                                              // Clear XT2,DCO fault flags
+      SFRIFG1 &= ~OFIFG;                      // Clear fault flags
+    1392:	b2 f0 fd ff 	and	#-3,	&0x0102	;#0xfffd
+    1396:	02 01 
+    // ACLK=REFO, SMCLK=DCO, MCLK=DCO
+    UCSCTL4 = SELA__REFOCLK | SELS__DCOCLKDIV | SELM__DCOCLKDIV;
+    UCSCTL5 = 0b000 << 8 | 0b010 << 4 | 0b010 << 0;
+
+    // Loop until XT1,XT2 & DCO stabilizes
+    do {
+    1398:	a2 b3 02 01 	bit	#2,	&0x0102	;r3 As==10
+    139c:	f7 23       	jnz	$-16     	;abs 0x138c
+      UCSCTL7 &= ~(XT2OFFG | XT1LFOFFG | DCOFFG);
+                                              // Clear XT2,DCO fault flags
+      SFRIFG1 &= ~OFIFG;                      // Clear fault flags
+    } while (SFRIFG1 & OFIFG);                // Test oscillator fault flag
+
+    UCSCTL4 |= SELA__REFOCLK | SELS__XT2CLK | SELM__XT2CLK;   // SMCLK=MCLK=XT2
+    139e:	b2 d0 55 02 	bis	#597,	&0x0168	;#0x0255
+    13a2:	68 01 
+
+#else
+ #warning F_CPU is not a know frequency value, expecting your code to set clock
+#endif
+  }
+    13a4:	30 41       	ret			
+
+000013a6 <_unexpected_>:
+    13a6:	00 13       	reti			
+
+Disassembly of section .vectors:
+
+0000ff80 <__ivtbl_64>:
+    ff80:	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff     ................
+    ff90:	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff     ................
+    ffa0:	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff     ................
+    ffb0:	ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff     ................
+    ffc0:	fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12     ................
+    ffd0:	fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12     ................
+    ffe0:	fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12     ................
+    fff0:	fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 fa 12 00 10     ................
