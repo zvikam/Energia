@@ -5,6 +5,10 @@
  *	Arduino core files for MSP430
  *		Copyright (c) 2012 Robert Wessels. All right reserved.
  *
+ *  Clock stretching by pulling the SCL line low
+ *		Copyright (c) 2014 Rei Vilo. All right reserved.
+ *      http://embeddedcomputing.weebly.com
+ *
  *
  ***********************************************************************
   Derived from:
@@ -610,7 +614,6 @@ void TwoWire::onRequest( void (*function)(void) )
 }
 
 void TwoWire::I2CIntHandler(void) {
-    digitalWrite(GREEN_LED, HIGH);
 	//clear data interrupt
 	HWREG(SLAVE_BASE + I2C_O_SICR) = I2C_SICR_DATAIC;
 	uint8_t startDetected = 0;
@@ -689,6 +692,32 @@ void TwoWire::setModule(unsigned long _i2cModule)
     if(slaveAddress != 0) begin(slaveAddress);
     else begin();
 }
+
+///
+/// @brief      Turn clock stretching on
+/// @details	Set SCL line low
+///
+void TwoWire::pause()
+{
+    // Standard output
+    GPIOPadConfigSet(g_uli2cBase[i2cModule], g_uli2cSCLPins[i2cModule], GPIO_STRENGTH_4MA, GPIO_PIN_TYPE_STD);
+    GPIODirModeSet(g_uli2cBase[i2cModule], g_uli2cSCLPins[i2cModule], GPIO_DIR_MODE_OUT);
+    // Set LOW
+    GPIOPinWrite(g_uli2cBase[i2cModule], g_uli2cSCLPins[i2cModule], 0);
+}
+
+///
+/// @brief      Turn clock stretching off
+/// @details	Set SCL line high and restore standard settings
+///
+void TwoWire::resume()
+{
+    // Reconfigure for I2C
+    ROM_GPIOPinConfigure(g_uli2cConfig[i2cModule][0]);
+    // Set HIGH
+    ROM_GPIOPinTypeI2CSCL(g_uli2cBase[i2cModule], g_uli2cSCLPins[i2cModule]);
+}
+
 
 //Preinstantiate Object
 TwoWire Wire;
