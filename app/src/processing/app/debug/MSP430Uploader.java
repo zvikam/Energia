@@ -42,12 +42,17 @@ import processing.app.SerialNotFoundException;
 import processing.app.Editor;
 import javax.swing.JOptionPane;
 
-
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 import javax.swing.*;
 import gnu.io.*;
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 public class MSP430Uploader extends Uploader{
 	private Editor editor;
@@ -64,16 +69,24 @@ public class MSP430Uploader extends Uploader{
 
     if (protocol.equals("msp430-gdb")) {
       try {
-        boolean ret = gdbloader(buildPath, className);
-	      if (ret == false) {
+        int ret = gdbloader(buildPath, className);
+	      if (ret == -1) {
 		      JOptionPane.showMessageDialog(editor,
               "Unable to upload new firmware to the target board\n"
               + "Please check connections on your target board\n"
               + "Also check that your panStamp is in programming mode", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+          System.out.println("Upload failed");
+        }
+        else if (ret == -2)
+        {
+		      JOptionPane.showMessageDialog(editor,
+              "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+          System.out.println("Serial port not found");
         }
         else
           System.out.println("Process completed");
-        return ret;
+        if (ret < 0)
+          return false;
       } catch (SerialNotFoundException e) {
 		      JOptionPane.showMessageDialog(editor,
               "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
@@ -166,12 +179,13 @@ public class MSP430Uploader extends Uploader{
 		return executeUploadCommand(commandDownloader);
 	}
 
-	public boolean gdbloader(String buildPath, String className) throws RunnerException, SerialNotFoundException {
+	public int gdbloader(String buildPath, String className) throws RunnerException, SerialNotFoundException {
 
-    String gdbBin, sysPrompt;
-    boolean ret = false;
+    String gdbBin;
+    final String sysPrompt;
+    int ret = -1;
 
-		if ( Base.isLinux()) {
+		if (Base.isLinux()) {
       gdbBin = Base.getMSP430BasePath() + "msp430-gdb";
       sysPrompt = "/bin/bash";
 		}
@@ -185,13 +199,17 @@ public class MSP430Uploader extends Uploader{
 		}
 
     try {
-      String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
+      final String gdbcommand = gdbBin + " -b 38400 " + "-ex 'target remote " + Preferences.get("serial.port") +
       "' -ex 'set debug remote 0' " + buildPath + File.separator + className + ".elf" +
       " -ex 'erase' -ex 'load' -ex 'quit'";
 
       String line;
-setRTS(false);
+
       Process process = Runtime.getRuntime().exec(sysPrompt);
+
+      // Kill GDB process after 25 seconds
+      ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
+      ScheduledFuture scheduledFuture = scheduledExecutorService.schedule(new ProcessKiller(), 25, TimeUnit.SECONDS);
 
       if (process != null) {
         BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -199,19 +217,28 @@ setRTS(false);
 
         out.println(gdbcommand);
         out.flush();
-        out.close();
+        out.close();    
+
+        boolean portFound = false;
 
         String sCurrentLine;
   			while ((sCurrentLine = in.readLine()) != null) {
   				System.out.println(sCurrentLine);
+
+          if (sCurrentLine.startsWith("Remote debugging using"))
+            portFound = true;
+          if (sCurrentLine.startsWith("Erasing"))
+     				ret = 0;            
         }
 
         process.waitFor();
         process.destroy();
-        ret = true;
+
+        if (!portFound)
+          ret = -2;
       }
 
-setRTS(false);
+    flushSerialBuffer();
 
     } catch (SerialNotFoundException e) {
       throw e;
@@ -222,28 +249,22 @@ setRTS(false);
     }    
 	}
 
-  private void setRTS(boolean state) throws RunnerException, SerialException {
-    // Cleanup the serial buffer
-    try {
-      Serial serialPort = new Serial();
-      byte[] readBuffer;
-      while(serialPort.available() > 0) {
-        readBuffer = serialPort.readBytes();
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {}
-      }
+  /**
+   * ProcessKiller callable class. Kill msp430-gdb process
+   */
+  private class ProcessKiller implements Callable
+  {
+    public Object call() throws Exception
+    {
+  		if (Base.isLinux())
+        Runtime.getRuntime().exec("killall msp430-gdb");
+      else if (Base.isMacOS())
+        Runtime.getRuntime().exec("killall msp430-gdb");
+      else
+        Runtime.getRuntime().exec("TASKKILL /F /IM msp430-gdb");
 
-      serialPort.setRTS(state);
-      
-      serialPort.dispose();
-    } catch (SerialNotFoundException e) {
-      throw e;
-    } catch(Exception e) {
-      e.printStackTrace();
-      throw new RunnerException(e.getMessage());
+      return 0;
     }
   }
-
 }
 
