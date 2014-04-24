@@ -76,16 +76,20 @@ public class MSP430Uploader extends Uploader{
               + "Please check connections on your target board\n"
               + "Also check that your panStamp is in programming mode", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
           System.out.println("Upload failed");
+          return false;
         }
         else if (ret == -2)
         {
 		      JOptionPane.showMessageDialog(editor,
               "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
           System.out.println("Serial port not found");
+          return false;
         }
         else
           System.out.println("Process completed");
-        if (ret < 0)
+        if (ret == 0)
+          return true;
+        else
           return false;
       } catch (SerialNotFoundException e) {
 		      JOptionPane.showMessageDialog(editor,
@@ -238,8 +242,7 @@ public class MSP430Uploader extends Uploader{
           ret = -2;
       }
 
-    flushSerialBuffer();
-
+      flushSerialBuffer();
     } catch (SerialNotFoundException e) {
       throw e;
     } catch (Exception e) {
