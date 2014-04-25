@@ -238,6 +238,9 @@ void CC430CORE::init(void)
    * Interrupt Edge select register: 1 == Interrupt on High to Low transition.
    */
   RF1AIES = BIT0 | BIT9;
+
+  // Read UID
+  getUID();
 }
 
 /**
@@ -269,6 +272,24 @@ int CC430CORE::getTemp(void)
   data = data * 1.45 - 6.68;
 
   return data;
+}
+
+/**
+ * getUID
+ * 
+ * Read Die Record from Device Descriptor memory and build UID
+ */
+void CC430CORE::getUID(void)
+{
+  uint8_t *flashPtr = (uint8_t *) 0x1A0A;
+  uid[0] = flashPtr[3]; // Wafer ID
+  uid[1] = flashPtr[2];
+  uid[2] = flashPtr[1];
+  uid[3] = flashPtr[0];
+  uid[6] = flashPtr[5]; // Die X position
+  uid[7] = flashPtr[4];
+  uid[4] = flashPtr[7]; // Die Y position
+  uid[5] = flashPtr[6];
 }
 
 /**

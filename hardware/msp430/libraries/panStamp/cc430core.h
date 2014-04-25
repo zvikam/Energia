@@ -56,7 +56,19 @@ class CC430CORE
      */
     PORTCFG portConfig[3];
 
-  public:   
+    /**
+     * getUID
+     * 
+     * Read Die Record from Device Descriptor memory and build UID
+     */
+    void getUID(void);
+
+  public:
+    /**
+     * Unique ID based on the Die Record
+     */
+    uint8_t uid[8];
+
     /**
      * init
      * 
