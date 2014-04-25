@@ -1,7 +1,5 @@
 /*
- * modem.pde
- *
- * Copyright (c) 2013 Daniel Berenguer <dberenguer@usapiens.com>
+ * Copyright (c) 2014 panStamp S.L.U. <contact@panstamp.com>
  * 
  * This file is part of the panStamp project.
  * 
@@ -279,8 +277,14 @@ void setup()
 
   // Disable address check from the CC1101 IC
   radio.disableAddressCheck();
-
+ 
   delay(100);
+
+  // Config CC1190  
+  P3DIR |= (BIT5 | BIT6 | BIT7);  // PA_EN, LNA_EN and HGM as outputs
+  P3OUT &= ~BIT5;                 // PA disabled
+  P3OUT |= BIT6;                  // LNA enabled
+  P3OUT &= ~BIT7;                 // High Gain Mode (HGM) disabled
 
   timer1.attachInterrupt(isrT1event);
   digitalWrite(ONBOARD_LED, LOW);

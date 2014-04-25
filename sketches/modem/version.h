@@ -1,7 +1,5 @@
-/**
- * version.h
- *
- * Copyright (c) 2013 Daniel Berenguer <dberenguer@usapiens.com>
+/*
+ * Copyright (c) 2014 panStamp S.L.U. <contact@panstamp.com>
  * 
  * This file is part of the panStamp project.
  * 

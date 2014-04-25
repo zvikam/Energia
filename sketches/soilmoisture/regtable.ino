@@ -1,14 +1,12 @@
 /**
- * regtable
- *
- * Copyright (c) 2011 Daniel Berenguer <dberenguer@usapiens.com>
+ * Copyright (c) 2014 panStamp S.L.U. <contact@panstamp.com>
  * 
  * This file is part of the panStamp project.
  * 
  * panStamp  is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * any later version.
+ * (at your option) any later version.
  * 
  * panStamp is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +19,7 @@
  * USA
  * 
  * Author: Daniel Berenguer
- * Creation date: 03/31/2011
+ * Creation date: 04/29/2013
  */
 
 #include "product.h"
