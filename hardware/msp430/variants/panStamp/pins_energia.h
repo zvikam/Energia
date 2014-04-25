@@ -67,11 +67,11 @@ static const uint8_t A5  = 5;  // Connected to onboard 10K NTC
 //                      +-----------+
 //               GND   1|    ||||   |24  GND
 //         (D16) P3.0  2|           |23  P1.0 (D0)
-//         (D17) P3.1  3|           |22  P1.1 (D1)
-//         (D18) P3.2  4|           |21  P1.2 (D2)
-//         (D15) P2.7  5|           |20  P1.3 (SPI_MOSI) (D3)
-//         (D14) P2.6  6|           |19  P1.4 (SPI_MISO / I2C_SDA) (D4)
-//               GND   7|           |18  P1.5 (SPI_SCK / I2C_SCL) (D5)
+//   (PWM) (D17) P3.1  3|           |22  P1.1 (D1)
+//   (PWM) (D18) P3.2  4|           |21  P1.2 (D2) (PWM)
+//         (D15) P2.7  5|           |20  P1.3 (SPI_MOSI) (D3) (PWM)
+//         (D14) P2.6  6|           |19  P1.4 (SPI_MISO / I2C_SDA) (D4) (PWM)
+//               GND   7|           |18  P1.5 (SPI_SCK / I2C_SCL) (D5) (PWM)
 //      (D12/A4) P2.4  8|           |17  P1.6 (UART_TX) (D6)
 //      (D11/A3) P2.3  9|           |16  P1.7 (UART_RX) (D7)
 //      (D10/A2) P2.2 10|           |15  GND
@@ -166,35 +166,31 @@ const uint16_t port_to_pmap[] = {
 	NOT_A_PORT,	/* PMAP starts at port P1 */
 	(uint16_t) &P1MAP0,
 	(uint16_t) &P2MAP0,
-	NOT_A_PORT, // No P3MAP0
+	(uint16_t) &P3MAP0,
 	NOT_A_PORT, // No P5MAP0
 	NOT_A_PORT, // No PJMAP0
 };
 
-/* 
- * Defines for devices with 2x TA3 timers (e.g. MSP430g2553). On the 20pin devices, upto 3 analog outputs are available
- * T0A1, T1A1 and T1A2 
- */
 const uint8_t digital_pin_to_timer[] = {
 	NOT_ON_TIMER, /* P1.0 */
-	NOT_ON_TIMER, /* P1.1 */
-	NOT_ON_TIMER, /* P1.2 */
-	NOT_ON_TIMER, /* P1.3 */
-	NOT_ON_TIMER, /* P1.4 */
-	NOT_ON_TIMER, /* P1.5 */
+	T0A0,         /* P1.1 - note: A0 output cannot be used with analogWrite */
+	T0A1,         /* P1.2 */
+	T0A2,         /* P1.3 */
+	T0A3,         /* P1.4 */
+	T0A4,         /* P1.5 */
 	NOT_ON_TIMER, /* P1.6 */
 	NOT_ON_TIMER, /* P1.7 */
 	NOT_ON_TIMER, /* P2.0 */
-	T1A0,         /* P2.1 */
-	T1A1,         /* P2.2 */
-	T1A2,         /* P2.3 */
+	NOT_ON_TIMER, /* P2.1 */
+	NOT_ON_TIMER, /* P2.2 */
+	NOT_ON_TIMER, /* P2.3 */
 	NOT_ON_TIMER, /* P2.4 */
 	NOT_ON_TIMER, /* TEMPSENSOR */
 	NOT_ON_TIMER, /* P2.6 */
 	NOT_ON_TIMER, /* P2.7 */
-	NOT_ON_TIMER, /* P3.0 */
-	T0A0,         /* P3.1 */
-	T0A1,         /* P3.2 */
+	T1A0,         /* P3.0 - note: A0 output cannot be used with analogWrite */
+	T1A1,         /* P3.1 */
+	T1A2,         /* P3.2 */
 	NOT_ON_TIMER, /* ONBOARD_LED */
 };
 
@@ -243,6 +239,38 @@ const uint8_t digital_pin_to_bit_mask[] = {
 	BV(2),        /* P3.2 */
 	BV(1),        /* ONBOARD_LED */
 };
+
+/* MSP430's with Port Mappers (F5xxx series, etc) need the correct Port Mapping ID for their timers. */
+const uint8_t pmap_timer_ids[] = {
+   9,	 // T0A0
+   10, // T0A1
+   11, // T0A2
+   12, // T0A3
+   13, // T0A4
+   14, // T1A0
+   15, // T1A1
+   16, // T1A2
+   0,	 // T1A3
+   0,	 // T1A4
+   0,	 // T1A5
+   0,	 // T2A0
+   0,	 // T2A1
+   0,	 // T2A2
+   0,	 // T0B0
+   0,	 // T0B1
+   0,	 // T0B2
+   0,	 // T0B3
+   0,	 // T0B4
+   0,	 // T0B5
+   0,	 // T0B6
+   0,	 // T1B0
+   0,	 // T1B1
+   0,	 // T1B2
+   0,	 // T2B0
+   0,	 // T2B1
+   0,	 // T2B2
+};
+
 
 #endif
 #endif
