@@ -240,6 +240,29 @@ const uint8_t digital_pin_to_bit_mask[] = {
 	BV(1),        /* ONBOARD_LED */
 };
 
+const uint32_t digital_pin_to_analog_in[] = {
+	NOT_ON_ADC,   /* P1.0 */
+	NOT_ON_ADC,   /* P1.1 */
+	NOT_ON_ADC,   /* P1.2 */
+	NOT_ON_ADC,   /* P1.3 */
+	NOT_ON_ADC,   /* P1.4 */
+	NOT_ON_ADC,   /* P1.5 */
+	NOT_ON_ADC,   /* P1.6 */
+	NOT_ON_ADC,   /* P1.7 */
+	0,            /* P2.0 */
+	1,            /* P2.1 */
+	2,            /* P2.2 */
+	3,            /* P2.3 */
+	4,            /* P2.4 */
+	5,            /* TEMPSENSOR */
+	NOT_ON_ADC,   /* P2.6 */
+	NOT_ON_ADC,   /* P2.7 */
+	NOT_ON_ADC,   /* P3.0 */
+	NOT_ON_ADC,   /* P3.1 */
+	NOT_ON_ADC,   /* P3.2 */
+	NOT_ON_ADC,   /* ONBOARD_LED */
+};
+
 /* MSP430's with Port Mappers (F5xxx series, etc) need the correct Port Mapping ID for their timers. */
 const uint8_t pmap_timer_ids[] = {
    9,	 // T0A0
