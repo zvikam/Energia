@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2014 panStamp S.L.U. <contact@panstamp.com>
+ * soilmoisture
+ *
+ * Copyright (c) 2011 Daniel Berenguer <dberenguer@usapiens.com>
  * 
  * This file is part of the panStamp project.
  * 
  * panStamp  is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * any later version.
  * 
  * panStamp is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +17,7 @@
  * 
  * You should have received a copy of the GNU General Public License
  * along with panStamp; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
  * USA
  * 
  * Author: Daniel Berenguer
@@ -47,10 +49,15 @@
 //#define VOLT_SUPPLY_A7
 
 /**
+ * LED pin
+ */
+#define LEDPIN        4
+
+/**
  * Sensor pins
  */
 #define SENSOR_0_PIN  3     // Analog pin - sensor 0
-#define POWER_0_PIN   16    // Digital pin used to powwer sensor 0
+#define POWER_0_PIN   6    // Digital pin used to powwer sensor 0
 #define SENSOR_1_PIN  5     // Analog pin - sensor 1
 #define POWER_1_PIN   18    // Digital pin used to powwer sensor 1
 
@@ -63,6 +70,9 @@ void setup()
 {
   int i;
 
+  pinMode(LEDPIN, OUTPUT);
+  digitalWrite(LEDPIN, LOW);
+
   // Initialize power pins
   pinMode(POWER_0_PIN, OUTPUT);
   digitalWrite(POWER_0_PIN, LOW);
@@ -71,6 +81,7 @@ void setup()
 
   // Init panStamp
   panstamp.init();
+PJOUT &= ~BIT1;
 
   // Transmit product code
   getRegister(REGI_PRODUCTCODE)->getData();
@@ -81,9 +92,9 @@ void setup()
   // During 3 seconds, listen the network for possible commands whilst the LED blinks
   for(i=0 ; i<6 ; i++)
   {
-    digitalWrite(ONBOARD_LED, HIGH);
+    digitalWrite(LEDPIN, HIGH);
     delay(100);
-    digitalWrite(ONBOARD_LED, LOW);
+    digitalWrite(LEDPIN, LOW);
     delay(400);
   }
 
@@ -102,12 +113,12 @@ void setup()
  */
 void loop()
 {
-  // Update and transmit sensor data
+  // Transmit sensor data
   getRegister(REGI_SENSOR)->getData();
-  // Update and transmit power voltage
+  // Transmit power voltage
   getRegister(REGI_VOLTSUPPLY)->getData();
 
-  // Sleep for txInterval seconds
-  panstamp.goToSleep();
+  // Sleep
+panstamp.goToSleep();
 }
 

@@ -1,12 +1,14 @@
 /**
- * Copyright (c) 2014 panStamp S.L.U. <contact@panstamp.com>
+ * product.h
+ *
+ * Copyright (c) 2011 Daniel Berenguer <dberenguer@usapiens.com>
  * 
  * This file is part of the panStamp project.
  * 
  * panStamp  is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * any later version.
  * 
  * panStamp is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,22 +30,22 @@
 /**
  * Hardware version
  */
-#define HARDWARE_VERSION        0x00000100
+#define HARDWARE_VERSION        0x00000100L
 
 /**
  * Firmware version
  */
-#define FIRMWARE_VERSION        0x00000100
+#define FIRMWARE_VERSION        0x00000100L
 
 /**
  * Manufacturer SWAP ID
  */
-#define SWAP_MANUFACT_ID        0x00000001
+#define SWAP_MANUFACT_ID        0x00000001L
 
 /**
  * Product SWAP ID
  */
-#define SWAP_PRODUCT_ID         0x0000000E
+#define SWAP_PRODUCT_ID         0x0000000EL
 
 #endif
 
