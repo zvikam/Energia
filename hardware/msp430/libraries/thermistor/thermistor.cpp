@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011 panStamp <contact@panstamp.com>
+ * Copyright (c) 2014 panStamp <contact@panstamp.com>
  * 
  * This file is part of the panStamp project.
  * 
@@ -20,46 +20,39 @@
  * 
  * Author: Daniel Berenguer
  * Creation date: 11/05/2013
+ *
+ * This library simplifies the use of NTC thermistors by using Steinhart
+ * simplified formula.
+ * http://en.wikipedia.org/wiki/Steinhart%E2%80%93Hart_equation
+ *
+ * Based on procedure explained by Adafruit:
+ * https://learn.adafruit.com/thermistor/using-a-thermistor
  */
 
 #include "thermistor.h"
+    
+// Temperature for nominal resistance (almost always 25 C)
+#define TEMPERATURENOMINAL 25
 
-//#define VERBOSE_SENSOR_ENABLED
-/**
- * Thermistor
- */
-// Thermistor power pin
-//#define THERMISTOR_PWRPIN 15
-// which analog pin to connect
-#define THERMISTORPIN A5       
-// resistance at 25 degrees C
-#define THERMISTORNOMINAL 10000      
-// temp. for nominal resistance (almost always 25 C)
-#define TEMPERATURENOMINAL 25   
-// how many samples to take and average, more takes longer
-// but is more 'smooth'
-#define NUMSAMPLES 5
-// The beta coefficient of the thermistor (usually 3000-4000)
-#define BCOEFFICIENT 3380 //3950
-// The value of the 'other' resistor
-#define SERIESRESISTOR 10000
-// Macros
-#define powerThermistorOn()   PJOUT |= BIT2
-#define powerThermistorOff()  PJOUT &= ~BIT2
+// Number of ADC samples
+#define NUMSAMPLES         5 
 
 /**
- * init
+ * THERMISTOR
  * 
- * Initialize thermistor pins
+ * Class constructor
+ *
+ * @param adcPin Analog pin where the thermistor is connected
+ * @param nomRes Nominal resistance at 25 degrees Celsius
+ * @param bCoef beta coefficient of the thermistor
+ * @param serialRes Value of the serial resistor
  */
-void THERMISTOR::init(void) 
+THERMISTOR::THERMISTOR(uint8_t adcPin, uint16_t nomRes, uint16_t bCoef, uint16_t serialRes) 
 {
-  PJDIR |= BIT2;          // Set power pin as output
-  powerThermistorOff();   // Unpower sensor by default
-
-  P2DIR &= ~BIT5;         // Set analog pin as input
-  P2MAP5 = PM_ANALOG;
-  P2SEL |= BIT5;
+  analogPin = adcPin;
+  nominalResistance = nomRes;
+  bCoefficient = bCoef;
+  serialResistance = serialRes;
 }
 
 /**
@@ -71,29 +64,19 @@ void THERMISTOR::init(void)
  */
 int THERMISTOR::read(void)
 {
-  // Power thermistor circuit
-  powerThermistorOn();
-  delay(10);
-
   uint8_t i;
-  uint16_t samples[NUMSAMPLES];
-  float average;
+  uint16_t sample;
+  float average = 0;
 
   analogReference(DEFAULT);
 
   // take N samples in a row, with a slight delay
   for (i=0; i< NUMSAMPLES; i++)
   {
-    samples[i] = analogRead(THERMISTORPIN);
+    sample = analogRead(analogPin);
+    average += sample;
     delay(10);
   }
- 
-  powerThermistorOff();
- 
-  // average all the samples out
-  average = 0;
-  for (i=0; i< NUMSAMPLES; i++)
-     average += samples[i];
   average /= NUMSAMPLES;
 
   #ifdef VERBOSE_SENSOR_ENABLED  
@@ -103,7 +86,7 @@ int THERMISTOR::read(void)
  
   // convert the value to resistance
   average = 0xFFF / average - 1;
-  average = SERIESRESISTOR * average;
+  average = serialResistance * average;
 
   #ifdef VERBOSE_SENSOR_ENABLED
   Serial.print("Thermistor resistance "); 
@@ -111,9 +94,9 @@ int THERMISTOR::read(void)
   #endif
  
   float steinhart;
-  steinhart = average / THERMISTORNOMINAL;     // (R/Ro)
+  steinhart = average / nominalResistance;     // (R/Ro)
   steinhart = logf(steinhart);                 // ln(R/Ro)
-  steinhart /= BCOEFFICIENT;                   // 1/B * ln(R/Ro)
+  steinhart /= bCoefficient;                   // 1/B * ln(R/Ro)
   steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
   steinhart = 1.0 / steinhart;                 // Invert
   steinhart -= 273.15;                         // convert to C

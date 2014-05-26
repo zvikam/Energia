@@ -28,7 +28,6 @@
 #include "cc430core.h"
 #include "cc430radio.h"
 #include "cc430rtc.h"
-#include "thermistor.h"
 #include "register.h"
 #include "swpacket.h"
 #include "config.h"
@@ -98,12 +97,7 @@ class PANSTAMP
      * Radio interface
      */
     CC430RADIO radio;
-
-    /**
-     * Onboard thermistor
-     */
-    THERMISTOR thermistor; 
-   
+  
     #ifdef SWAP_EXTENDED_ADDRESS
     /**
      * SWAP extended address
