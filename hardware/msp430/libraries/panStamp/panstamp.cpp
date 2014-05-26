@@ -238,9 +238,6 @@ void PANSTAMP::init()
   PJDIR |= BIT1;
   PJOUT &= ~BIT1;
 
-  // Initialize temperature sensor
-  thermistor.init();
-
   // Intialize registers
   for(i=0 ; i<regTableSize ; i++)
     regTable[i]->init();
