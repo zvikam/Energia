@@ -58,7 +58,8 @@ void setup()
   // Init panStamp
   panstamp.init();
 
-Serial.begin(38400);
+  //Serial.begin(38400);
+
   // Transmit product code
   getRegister(REGI_PRODUCTCODE)->getData();
 
@@ -88,17 +89,14 @@ Serial.begin(38400);
  */
 void loop()
 {
-  digitalWrite(ONBOARD_LED, HIGH);
+//  digitalWrite(ONBOARD_LED, HIGH);
   // Transmit sensor data
   getRegister(REGI_VOLTSUPPLY)->getData();
   // Transmit power voltage
   getRegister(REGI_SENSOR)->getData();
-  digitalWrite(ONBOARD_LED, LOW);
+//  digitalWrite(ONBOARD_LED, LOW);
 
   // Sleep
-  panstamp.goToSleep();
-  
-//  panstamp.thermistor.read();
-//  delay(1000);
+  panstamp.goToSleep(); 
 }
 
