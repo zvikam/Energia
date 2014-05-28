@@ -39,12 +39,26 @@
  
 #include "regtable.h"
 #include "panstamp.h"
+#include "thermistor.h"
 
 /**
  * Uncomment if you are reading Vcc from A7. All battery-boards do this
  */
 //#define VOLT_SUPPLY_A0
 
+// Digital output used to power the thermistor circuit
+#define NTC_POWER_PIN         10
+// Analog pin used to read the NTC
+#define NTC_PIN               1
+// Macros
+#define powerThermistorOn()   digitalWrite(NTC_POWER_PIN, HIGH)
+#define powerThermistorOff()  digitalWrite(NTC_POWER_PIN, LOW)
+
+// Thermistor object
+THERMISTOR thermistor(NTC_PIN,        // Analog pin
+                      10000,          // Nominal resistance at 25 ºC
+                      3950,           // thermistor's beta coefficient
+                      10000);         // Value of the series resistor
 
 /**
  * setup
@@ -58,7 +72,14 @@ void setup()
   // Init panStamp
   panstamp.init();
 
-  //Serial.begin(38400);
+  pinMode(NTC_POWER_PIN, OUTPUT);    // Configure power pin. This pin will be used to power the thermistor
+  powerThermistorOff();          // Unpower sensor by default
+
+/*
+  P2DIR &= ~BIT5;                // Set analog pin as an input
+  P2MAP5 = PM_ANALOG;
+  P2SEL |= BIT5;
+*/  
 
   // Transmit product code
   getRegister(REGI_PRODUCTCODE)->getData();
@@ -89,14 +110,15 @@ void setup()
  */
 void loop()
 {
-//  digitalWrite(ONBOARD_LED, HIGH);
-  // Transmit sensor data
-  getRegister(REGI_VOLTSUPPLY)->getData();
+  digitalWrite(ONBOARD_LED, HIGH);
   // Transmit power voltage
+  getRegister(REGI_VOLTSUPPLY)->getData();
+   
+  // Transmit temperature value
   getRegister(REGI_SENSOR)->getData();
-//  digitalWrite(ONBOARD_LED, LOW);
+  digitalWrite(ONBOARD_LED, LOW);
 
   // Sleep
-  panstamp.goToSleep(); 
+  panstamp.goToSleep();
 }
 

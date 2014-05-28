@@ -106,7 +106,10 @@ const void updtSensor(byte rId)
 {
   uint16_t temp;
   
-  temp = panstamp.thermistor.read();
+  powerThermistorOn();        // Power thermistor
+  temp = thermistor.read();   // Read temperature
+  powerThermistorOff();       // Unpower thermistor
+
   temp += 500;
 
   // Fill register
