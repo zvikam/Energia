@@ -253,7 +253,7 @@ void CC430CORE::init(void)
 uint16_t CC430CORE::getVcc(void)
 {
   analogReference(INTERNAL2V0);
-  uint16_t data = map(analogRead(11), 0, 4095, 0, 4000);
+  uint16_t data = map(analogRead(A11), 0, 4095, 0, 4000);
 
   return data;
 }
@@ -268,7 +268,7 @@ uint16_t CC430CORE::getVcc(void)
 int CC430CORE::getTemp(void)
 {
   analogReference(INTERNAL2V0);
-  int data = analogRead(10);
+  int data = analogRead(A10);
   data = data * 1.45 - 6.68;
 
   return data;
