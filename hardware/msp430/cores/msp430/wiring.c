@@ -130,7 +130,7 @@ void enableXtal()
 	}
 #endif
 
-#if defined(__MSP430_HAS_UCS__)
+#if defined(__MSP430_HAS_UCS__) || defined(__MSP430_HAS_UCS_RF__)
 	/* LFXT can take up to 1000ms to start.
 	 * Go to the loop below 4 times for a total of 2 sec timout.
 	 * If a timeout happens due to no XTAL present or a faulty XTAL
@@ -282,7 +282,7 @@ void initClocks(void)
 //    CSCTL0 = 0;                    // Disable Access to CS Registers
 #endif // __MSP430_HAS_CS__
 
-#if defined(__MSP430_HAS_UCS__)
+#if defined(__MSP430_HAS_UCS__) || defined(__MSP430_HAS_UCS_RF__)
      PMMCTL0_H = PMMPW_H;             // open PMM
 	 SVSMLCTL &= ~SVSMLRRL_7;         // reset
 	 PMMCTL0_L = PMMCOREV_0;          //
