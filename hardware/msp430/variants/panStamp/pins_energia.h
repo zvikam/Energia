@@ -57,12 +57,14 @@ static const uint8_t SCK     = 5; /* P1.5 */
 // Debug UART is on USCIA0 so offset is 0
 #define DEBUG_UART_MODULE_OFFSET 0x0
 
-static const uint8_t A0  = 0;
-static const uint8_t A1  = 1;
-static const uint8_t A2  = 2;
-static const uint8_t A3  = 3;
-static const uint8_t A4  = 4;
-static const uint8_t A5  = 5;  // Connected to onboard 10K NTC
+static const uint8_t A0  = 8;
+static const uint8_t A1  = 9;
+static const uint8_t A2  = 10;
+static const uint8_t A3  = 11;
+static const uint8_t A4  = 12;
+static const uint8_t A5  = 13;  // Connected to onboard 10K NTC
+static const uint8_t A10 = 128 + 10; // special. This is the internal temp sensor
+static const uint8_t A11 = 128 + 11; // special. This is Vcc/2
 
 //                      +-----------+
 //               GND   1|    ||||   |24  GND
