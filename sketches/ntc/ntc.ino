@@ -49,7 +49,7 @@
 // Digital output used to power the thermistor circuit
 #define NTC_POWER_PIN         10
 // Analog pin used to read the NTC
-#define NTC_PIN               1
+#define NTC_PIN               A1
 // Macros
 #define powerThermistorOn()   digitalWrite(NTC_POWER_PIN, HIGH)
 #define powerThermistorOff()  digitalWrite(NTC_POWER_PIN, LOW)
@@ -74,12 +74,6 @@ void setup()
 
   pinMode(NTC_POWER_PIN, OUTPUT);    // Configure power pin. This pin will be used to power the thermistor
   powerThermistorOff();          // Unpower sensor by default
-
-/*
-  P2DIR &= ~BIT5;                // Set analog pin as an input
-  P2MAP5 = PM_ANALOG;
-  P2SEL |= BIT5;
-*/  
 
   // Transmit product code
   getRegister(REGI_PRODUCTCODE)->getData();
