@@ -43,7 +43,6 @@ extern unsigned char regTableSize;
 __attribute__((interrupt(CC1101_VECTOR)))
 void radioISR(void)
 {
-  static CCPACKET ccPacket;
   unsigned int coreIntSource = RF1AIV;            // Radio Core      interrupt register
 
   // Radio Core interrupt
