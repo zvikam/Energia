@@ -56,7 +56,11 @@ import java.util.concurrent.TimeUnit;
 
 public class MSP430Uploader extends Uploader{
 	private Editor editor;
-
+  private enum STATUS_CODE {
+    RUNNING, SERIAL_NOK, PROGRAMMING, COMPLETED, HALTED
+  }
+  private STATUS_CODE status;
+    
 	public MSP430Uploader(Editor editor) {
 		this.editor = editor;
 	}
@@ -69,28 +73,25 @@ public class MSP430Uploader extends Uploader{
 
     if (protocol.equals("msp430-gdb")) {
       try {
-        int ret = gdbloader(buildPath, className);
-	      if (ret == -1) {
-		      JOptionPane.showMessageDialog(editor,
-              "Unable to upload new firmware to the target board\n"
-              + "Please check connections on your target board\n"
-              + "Also check that your panStamp is in programming mode", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
-          System.out.println("Upload failed");
-          return false;
-        }
-        else if (ret == -2)
-        {
-		      JOptionPane.showMessageDialog(editor,
-              "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
-          System.out.println("Serial port not found");
-          return false;
+        boolean result;
+	      if (!(result = gdbloader(buildPath, className))) {
+          if (status == STATUS_CODE.HALTED) { 
+            JOptionPane.showMessageDialog(editor,
+                "Unable to upload new firmware to the target board\n"
+                + "Please check connections on your target board\n"
+                + "Also check that your panStamp is in programming mode", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+            System.out.println("Upload failed");
+          }
+          else if (status == STATUS_CODE.SERIAL_NOK)
+          {
+            JOptionPane.showMessageDialog(editor,
+                "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
+            System.out.println("Serial port not found");
+          }
         }
         else
           System.out.println("Process completed");
-        if (ret == 0)
-          return true;
-        else
-          return false;
+        return result;        
       } catch (SerialNotFoundException e) {
 		      JOptionPane.showMessageDialog(editor,
               "Serial port not found\n", "Unable to upload new firmware", JOptionPane.ERROR_MESSAGE);
@@ -183,11 +184,12 @@ public class MSP430Uploader extends Uploader{
 		return executeUploadCommand(commandDownloader);
 	}
 
-	public int gdbloader(String buildPath, String className) throws RunnerException, SerialNotFoundException {
+	public boolean gdbloader(String buildPath, String className) throws RunnerException, SerialNotFoundException {
 
     String gdbBin;
     final String sysPrompt;
-    int ret = -1;
+    
+    status = STATUS_CODE.RUNNING; // Initial status;
 
 		if (Base.isLinux()) {
       gdbBin = Base.getMSP430BasePath() + "msp430-gdb";
@@ -208,17 +210,15 @@ public class MSP430Uploader extends Uploader{
       " -ex 'erase' -ex 'load' -ex 'quit'";
 
       String line;
-
       Process process = Runtime.getRuntime().exec(sysPrompt);
 
-      // Kill GDB process after 25 seconds
+      // Kill GDB process after 5 seconds in case of programming failure
       ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
-      ScheduledFuture scheduledFuture = scheduledExecutorService.schedule(new ProcessKiller(), 25, TimeUnit.SECONDS);
+      ScheduledFuture scheduledFuture = scheduledExecutorService.schedule(new ProcessKiller(), 5, TimeUnit.SECONDS);
 
       if (process != null) {
         BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
         PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(process.getOutputStream())),true);
-
         out.println(gdbcommand);
         out.flush();
         out.close();    
@@ -226,46 +226,60 @@ public class MSP430Uploader extends Uploader{
         boolean portFound = false;
 
         String sCurrentLine;
-  			while ((sCurrentLine = in.readLine()) != null) {
+  			while ((sCurrentLine = in.readLine()) != null)
+        {
   				System.out.println(sCurrentLine);
 
-          if (sCurrentLine.startsWith("Remote debugging using"))
+          if (sCurrentLine.startsWith("Reading symbols from"))
+            System.out.println("Trying to contact target board...");
+          else if (sCurrentLine.startsWith("Remote debugging using"))
             portFound = true;
-          if (sCurrentLine.startsWith("Erasing"))
-     				ret = 0;            
+          else if (sCurrentLine.startsWith("Erasing"))
+     				status = STATUS_CODE.PROGRAMMING;            
         }
 
         process.waitFor();
         process.destroy();
 
         if (!portFound)
-          ret = -2;
+          status = STATUS_CODE.SERIAL_NOK;
       }
 
       flushSerialBuffer();
+      
+      if (status == STATUS_CODE.PROGRAMMING)
+        status = STATUS_CODE.COMPLETED;
+      else if (status == STATUS_CODE.RUNNING)
+        status = STATUS_CODE.HALTED;
     } catch (SerialNotFoundException e) {
       throw e;
     } catch (Exception e) {
         e.printStackTrace();
     } finally {
-      return ret;
-    }    
+      if (status == STATUS_CODE.COMPLETED)
+        return true;
+      else
+        return false;
+    }
 	}
 
   /**
    * ProcessKiller callable class. Kill msp430-gdb process
    */
   private class ProcessKiller implements Callable
-  {
+  {      
     public Object call() throws Exception
     {
-  		if (Base.isLinux())
-        Runtime.getRuntime().exec("killall msp430-gdb");
-      else if (Base.isMacOS())
-        Runtime.getRuntime().exec("killall msp430-gdb");
-      else
-        Runtime.getRuntime().exec("TASKKILL /F /IM msp430-gdb");
-
+      if (status != STATUS_CODE.PROGRAMMING)
+      {
+        if (Base.isLinux())
+          Runtime.getRuntime().exec("killall msp430-gdb");
+        else if (Base.isMacOS())
+          Runtime.getRuntime().exec("killall msp430-gdb");
+        else
+          Runtime.getRuntime().exec("TASKKILL /F /IM msp430-gdb");
+      }
+      
       return 0;
     }
   }
