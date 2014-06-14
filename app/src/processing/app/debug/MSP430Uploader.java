@@ -234,7 +234,7 @@ public class MSP430Uploader extends Uploader{
             System.out.println("Trying to contact target board...");
           else if (sCurrentLine.startsWith("Remote debugging using"))
             portFound = true;
-          else if (sCurrentLine.startsWith("Erasing"))
+          else if (sCurrentLine.startsWith("_reset_vector__"))
      				status = STATUS_CODE.PROGRAMMING;            
         }
 
