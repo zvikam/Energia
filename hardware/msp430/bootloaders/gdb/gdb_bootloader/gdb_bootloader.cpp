@@ -99,9 +99,21 @@ uint16_t compute_checksum(unsigned char* data, unsigned count)
 
 void setup()
 {
-    PUSH2::setmode_inputpullup();
+    ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
+    ADC12CTL1 = ADC12SHP;                     // Use sampling timer
+    ADC12IE = 0x01;                           // Enable interrupt
+    P2SEL |= BIT0;                            // P2.0 ADC option select
+    ADC12CTL0 |= ADC12ENC | ADC12SC;          // Enable ADC and start conversion
 
-    if (!PUSH2::is_low()) {
+    while (ADC12CTL1 & ADC12BUSY)            // sleep and wait for completion
+        __bis_SR_register(CPUOFF + GIE);      // LPM0 with interrupts enabled
+        
+    ADC12IFG = 0;
+    //------------- 
+    //PUSH2::setmode_inputpullup();
+
+    //if (!PUSH2::is_low()) {
+    if (ADC12MEM0 > 15) {    // If A0 < 12 mV
       RED_LED::setmode_input();
       // check for an reset_vector entry at 0xffbe, if not just run gdb_bootloader
       __asm__ (
@@ -116,7 +128,7 @@ void setup()
         : "cc"
       );
     }
-
+    
     /*
      * gdb_bootloader - GDB Remote Serial Protocol (RSP) server loop
      */
