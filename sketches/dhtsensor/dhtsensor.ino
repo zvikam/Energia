@@ -44,11 +44,14 @@
 /**
  * Uncomment if you are reading Vcc from A0. All battery-boards do this
  */
-//#define VOLT_SUPPLY_A0
+#define VOLT_SUPPLY_A0   1
+
+#define LEDPIN 4
 
 #define DHTPIN 14
 DHT dht(DHTPIN, DHT22);
 #define PWRPIN 15
+
 
 /**
  * setup
@@ -61,6 +64,9 @@ void setup()
 
   // Init panStamp
   panstamp.init();
+
+  // Initialize LED pins
+  pinMode(LEDPIN, OUTPUT);
 
   // Initialize sensor pins
   dht.begin();
@@ -75,9 +81,9 @@ void setup()
   // During 3 seconds, listen the network for possible commands whilst the LED blinks
   for(i=0 ; i<6 ; i++)
   {
-    digitalWrite(ONBOARD_LED, HIGH);
+    digitalWrite(LEDPIN, HIGH);
     delay(100);
-    digitalWrite(ONBOARD_LED, LOW);
+    digitalWrite(LEDPIN, LOW);
     delay(400);
   }
 
@@ -96,12 +102,12 @@ void setup()
  */
 void loop()
 {
-//  digitalWrite(ONBOARD_LED, HIGH);
+//  digitalWrite(LEDPIN, HIGH);
   // Transmit sensor data
   getRegister(REGI_SENSOR)->getData();
   // Transmit power voltage
   getRegister(REGI_VOLTSUPPLY)->getData();
-//  digitalWrite(ONBOARD_LED, LOW);
+//  digitalWrite(LEDPIN, LOW);
 
   // Sleep
   panstamp.goToSleep();

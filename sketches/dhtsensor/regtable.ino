@@ -46,6 +46,7 @@ static unsigned long voltageSupply = 3300;
 static byte dtVoltSupply[2];
 REGISTER regVoltSupply(dtVoltSupply, sizeof(dtVoltSupply), &updtVoltSupply, NULL);
 // Sensor value register
+static byte dtSensor[4];
 REGISTER regSensor(dtSensor, sizeof(dtSensor), &updtSensor, NULL);
 
 /**
@@ -79,7 +80,7 @@ const void updtVoltSupply(byte rId)
   #ifdef VOLT_SUPPLY_A0 
   // Read voltage supply from A0
   unsigned short ref = voltageSupply;
-  result = analogRead(0);
+  result = analogRead(A0);
   result *= ref;
   result /= 4095;
   #else
@@ -107,7 +108,7 @@ const void updtSensor(byte rId)
 {
   // Power sensor
   digitalWrite(PWRPIN, HIGH);
-  delay(1000);
+  delay(1500);
   // Read humidity
   float h = dht.readHumidity();
   // Read temperature

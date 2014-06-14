@@ -27,8 +27,6 @@
 #ifndef _PRODUCT_H
 #define _PRODUCT_H
 
-#include "sensor.h"
-
 /**
  * Hardware version
  */
