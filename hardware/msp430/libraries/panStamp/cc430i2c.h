@@ -27,46 +27,57 @@
 
 #include "datatypes.h"
 
-#define I2C_TIMEOUT     0xFF
+#define I2C_TIMEOUT     0xFFF
 
 class CC430I2C
 {
-  private:
+  public:
+    /**
+     * Slave address
+     */
+    uint16_t address;
+  
     /**
      * init
      * 
      * Initialize I2C port
-     *
-     * @param address I2C slave address
      */
-    void init(uint16_t address);
+    void init(void);
 
-  public:
     /**
-     * send
+     * beginTransmission
+     * 
+     * Start I2C transaction
+     *
+     * @param slaAddr I2C slave address
+     */
+    void beginTransmission(uint16_t slaAddr);
+
+    /**
+     * write
      * 
      * Send data to I2C slave
      *
-     * @param address I2C slave address
-     * @param buf Array of bytes to be sent
+     * @param buf Buffer to be sent
      * @param len Amount of bytes to be transferred
+     * @param stop If true, transmit stop condition
      *
      * @return Amount of bytes transmitted
      */
-    uint16_t send(uint16_t address, uint8_t *buf, uint16_t len);
+    uint16_t write(uint8_t *buf, uint16_t len, bool stop=true);
 
     /**
-     * receive
+     * read
      * 
      * Receive data from I2C slave
      *
-     * @param address I2C slave address
      * @param buf Buffer received
      * @param len Amount of bytes to be read
+     * @param stop If true, transmit stop condition
      *
      * @return Amount of bytes received
      */
-    uint16_t receive(uint16_t address, uint8_t *buf, uint16_t len);
+    uint16_t read(uint8_t *buf, uint16_t len, bool stop=true);
 };
 
 #endif
