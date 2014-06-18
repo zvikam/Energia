@@ -36,6 +36,7 @@
 #define INFOMEM_SYNC_WORD          0x02   // 2-byte register
 #define INFOMEM_DEVICE_ADDR        0x04   // 1 or 2 byte register
 #define INFOMEM_TX_INTERVAL        0x06   // 2-byte register
+#define INFOMEM_CARRIER_FREQ       0x06   // 1-byte register
 #define INFOMEM_FIRST_CUSTOM       0x20
 
 #ifdef SWAP_EXTENDED_ADDRESS
