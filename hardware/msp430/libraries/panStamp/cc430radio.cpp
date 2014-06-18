@@ -60,12 +60,12 @@ CC430RADIO::CC430RADIO(void)
  * 
  * Initialize CC1101
  *
- * @param ch RF channel
- * @param sw Sync word
- * @param addr Device address
+ * @param freq Carrier frequency
  */
-void CC430RADIO::init(void)
+void CC430RADIO::init(uint8_t freq)
 {
+  carrierFreq = freq;
+  
   // Reset radio interface
   reset();
 
@@ -125,8 +125,8 @@ void CC430RADIO::setCCregs(void)
   WriteSingleReg(FSCTRL1,  CCDEF_FSCTRL1);
   WriteSingleReg(FSCTRL0,  CCDEF_FSCTRL0);    
 
-  // Set default carrier frequency = 868 MHz
-  setCarrierFreq(CFREQ_868);
+  // Set carrier frequency
+  setCarrierFreq(carrierFreq);
 
   WriteSingleReg(MDMCFG4,  CCDEF_MDMCFG4);
   WriteSingleReg(MDMCFG3,  CCDEF_MDMCFG3);

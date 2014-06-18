@@ -178,8 +178,10 @@ class PANSTAMP
      * init
      * 
      * Initialize panStamp board
+     *
+     * @param freq Carrier frequency
      */
-    void init(void);
+    void init(uint8_t freq=CFREQ_868);
 
     /**
      * reset

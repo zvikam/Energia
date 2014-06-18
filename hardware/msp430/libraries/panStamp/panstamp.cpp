@@ -225,8 +225,10 @@ REGISTER * getRegister(unsigned char regId)
  * init
  * 
  * Initialize panStamp board
+ * 
+ * @param freq Carrier frequency
  */
-void PANSTAMP::init() 
+void PANSTAMP::init(uint8_t freq) 
 {
   unsigned char i;
 
@@ -242,7 +244,7 @@ void PANSTAMP::init()
     regTable[i]->init();
 
   // Setup radio interface
-  radio.init();
+  radio.init(freq);
 
   // Security disabled by default
   security = 0;

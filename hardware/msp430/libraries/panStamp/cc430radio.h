@@ -35,6 +35,7 @@ enum CFREQ
 {
   CFREQ_868 = 0,
   CFREQ_915,
+  CFREQ_918,
   CFREQ_433,
   CFREQ_LAST
 };
@@ -70,6 +71,10 @@ enum RFSTATE
 #define CCDEF_FREQ2_915  0x22   // Frequency Control Word, High Byte
 #define CCDEF_FREQ1_915  0xB1   // Frequency Control Word, Middle Byte
 #define CCDEF_FREQ0_915  0x3B   // Frequency Control Word, Low Byte
+// Carrier frequency = 918 MHz
+#define CCDEF_FREQ2_918  0x23   // Frequency Control Word, High Byte
+#define CCDEF_FREQ1_918  0x4E   // Frequency Control Word, Middle Byte
+#define CCDEF_FREQ0_918  0xC4   // Frequency Control Word, Low Byte
 // Carrier frequency = 433 MHz
 #define CCDEF_FREQ2_433  0x10   // Frequency Control Word, High Byte
 #define CCDEF_FREQ1_433  0xA7   // Frequency Control Word, Middle Byte
@@ -199,8 +204,10 @@ class CC430RADIO
      * init
      * 
      * Initialize CC1101
+     *
+     * @param freq Carrier frequency
      */
-    void init(void);
+    void init(uint8_t freq=CFREQ_868);
     
     /**
      * setRxOnState
