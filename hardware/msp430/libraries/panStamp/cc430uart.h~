@@ -40,7 +40,7 @@ class CC430UART
   void init(uint16_t baud);
 
   /**
-   * write
+   * send
    * 
    * Send data buffer
    *
@@ -49,10 +49,10 @@ class CC430UART
    *
    * @return Amount of bytes transmitted
    */
-  uint16_t write(uint8_t *buf, unsigned int len);
+  uint16_t send(uint8_t *buf, unsigned int len);
 
   /**
-   * read
+   * receive
    * 
    * Read string from the Rx FIFO
    *
@@ -60,18 +60,8 @@ class CC430UART
    *
    * @return amount of bytes read or -1 if the Rx FIFO is empty
    */
-  int read(uint8_t *buf);
-  
-  /**
-   * available
-   * 
-   * Return true if there is any byte waiting to be read from the
-   * UART Rx FIFO
-   *
-   * @return true if at least one byte is waiting to be read
-   */
-  bool available(void);
-};
+  int receive(uint8_t *buf);
+  };
 
 #endif
 

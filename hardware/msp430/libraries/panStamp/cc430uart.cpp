@@ -49,7 +49,7 @@ void CC430UART::init(uint16_t baud)
 	PMAPPWD = 0;		      // Lock port mapping registers
 
   pinUARTconfig();
-/*
+
 	UCA0CTL1 = UCSWRST;
 	UCA0CTL1 = UCSSEL_2;  // SMCLK
 	UCA0CTL0 = 0;
@@ -64,11 +64,10 @@ void CC430UART::init(uint16_t baud)
 
 	UCA0CTL1 &= ~UCSWRST;
 	UCA0IE |= UCRXIE | UCTXIE;           // Enable Rx and Tx interrupts
-*/
 }
 
 /**
- * send
+ * write
  * 
  * Send data buffer
  *
@@ -77,7 +76,7 @@ void CC430UART::init(uint16_t baud)
  *
  * @return Amount of bytes transmitted
  */
-uint16_t CC430UART::send(uint8_t *buf, uint16_t len) 
+uint16_t CC430UART::write(uint8_t *buf, uint16_t len) 
 {
   uint16_t i, res = len;
 
@@ -94,7 +93,7 @@ uint16_t CC430UART::send(uint8_t *buf, uint16_t len)
 }
 
 /**
- * receive
+ * read
  * 
  * Read string from the Rx FIFO
  *
@@ -102,7 +101,7 @@ uint16_t CC430UART::send(uint8_t *buf, uint16_t len)
  *
  * @return amount of bytes read or -1 if the Rx FIFO is empty
  */
-int CC430UART::receive(uint8_t *buf) 
+int CC430UART::read(uint8_t *buf)
 {
   int i = -1;
 
@@ -113,6 +112,19 @@ int CC430UART::receive(uint8_t *buf)
 
   rxAvailable = false;
   return i;
+}
+
+/**
+ * available
+ * 
+ * Return true if there is any byte waiting to be read from the
+ * UART Rx FIFO
+ *
+ * @return true if at least one byte is waiting to be read
+ */
+bool CC430UART::available(void)
+{
+  return rxAvailable;
 }
 
 /**
