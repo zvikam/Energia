@@ -57,6 +57,7 @@ class HardwareSerial : public Stream
 		, txPin(txPin) {}
 		void begin(unsigned long);
 		void end();
+		void setBufferSize(unsigned int txSize, unsigned int rxSize);
 		virtual int available(void);
 		virtual int peek(void);
 		virtual int read(void);

@@ -73,25 +73,26 @@
 #endif
 #define UCAxIV        UCA0IV
 
-#define SERIAL_BUFFER_SIZE 16
+#define SERIAL_BUFFER_SIZE_DEFAULT 16
 
 struct ring_buffer
 {
-	unsigned char buffer[SERIAL_BUFFER_SIZE];
+	unsigned char *buffer;
 	volatile unsigned int head;
 	volatile unsigned int tail;
+	unsigned int size;
 };
 
-ring_buffer rx_buffer  =  { { 0 }, 0, 0 };
-ring_buffer tx_buffer  =  { { 0 }, 0, 0 };
+ring_buffer rx_buffer  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
+ring_buffer tx_buffer  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
 #ifdef SERIAL1_AVAILABLE
-ring_buffer rx_buffer1  =  { { 0 }, 0, 0 };
-ring_buffer tx_buffer1  =  { { 0 }, 0, 0 };
+ring_buffer rx_buffer1  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
+ring_buffer tx_buffer1  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
 #endif
 
 inline void store_char(unsigned char c, ring_buffer *buffer)
 {
-	unsigned int i = (unsigned int)(buffer->head + 1) % SERIAL_BUFFER_SIZE;
+	unsigned int i = (unsigned int)(buffer->head + 1) % buffer->size;
 
 	// if we should be storing the received character into the location
 	// just before the tail (meaning that the head would advance to the
@@ -127,6 +128,30 @@ void HardwareSerial::begin(unsigned long baud)
 	unsigned long divider;
 	unsigned char oversampling;
 	
+	// Allocate TX & RX buffers
+	if (_tx_buffer->buffer != NULL)
+		free(_tx_buffer->buffer);
+	_tx_buffer->buffer = (unsigned char *)malloc(_tx_buffer->size);
+	if (_tx_buffer->buffer == NULL) {  // Not enough space available?
+		_tx_buffer->size = SERIAL_BUFFER_SIZE_DEFAULT;  // Fallback to the default
+		_tx_buffer->buffer = (unsigned char *)malloc(_tx_buffer->size);
+		if (_tx_buffer->buffer == NULL)
+			return;  // Give up.
+	}
+
+	if (_rx_buffer->buffer != NULL)
+		free(_rx_buffer->buffer);
+	_rx_buffer->buffer = (unsigned char *)malloc(_rx_buffer->size);
+	if (_rx_buffer->buffer == NULL) {  // Not enough space available?
+		_rx_buffer->size = SERIAL_BUFFER_SIZE_DEFAULT;  // Fallback to the default
+		_rx_buffer->buffer = (unsigned char *)malloc(_rx_buffer->size);
+		if (_rx_buffer->buffer == NULL) {
+			free(_tx_buffer->buffer);
+			return;  // Give up.
+		}
+	}
+
+
 	/* Calling this dummy function prevents the linker
 	 * from stripping the USCI interupt vectors.*/ 
 	usci_isr_install();
@@ -188,11 +213,14 @@ void HardwareSerial::end()
 	while (_tx_buffer->head != _tx_buffer->tail);
 
 	_rx_buffer->head = _rx_buffer->tail;
+
+	free(_tx_buffer->buffer);
+	free(_rx_buffer->buffer);
 }
 
 int HardwareSerial::available(void)
 {
-	return (unsigned int)(SERIAL_BUFFER_SIZE + _rx_buffer->head - _rx_buffer->tail) % SERIAL_BUFFER_SIZE;
+	return (unsigned int)(_rx_buffer->size + _rx_buffer->head - _rx_buffer->tail) % _rx_buffer->size;
 }
 
 int HardwareSerial::peek(void)
@@ -211,7 +239,7 @@ int HardwareSerial::read(void)
 		return -1;
 	} else {
 		unsigned char c = _rx_buffer->buffer[_rx_buffer->tail];
-		_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % SERIAL_BUFFER_SIZE;
+		_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % _rx_buffer->size;
 		return c;
 	}
 }
@@ -223,7 +251,7 @@ void HardwareSerial::flush()
 
 size_t HardwareSerial::write(uint8_t c)
 {
-	unsigned int i = (_tx_buffer->head + 1) % SERIAL_BUFFER_SIZE;
+	unsigned int i = (_tx_buffer->head + 1) % _tx_buffer->size;
 	
 	// If the output buffer is full, there's nothing for it other than to
 	// wait for the interrupt handler to empty it a bit
@@ -240,6 +268,16 @@ size_t HardwareSerial::write(uint8_t c)
 #endif	
 
 	return 1;
+}
+
+void HardwareSerial::setBufferSize(unsigned int txSize, unsigned int rxSize)
+{
+	if (txSize == 0)
+		txSize = 2;  // prevent inadvertent divide by 0 errors
+	if (rxSize == 0)
+		rxSize = 2;
+	_tx_buffer->size = txSize;
+	_rx_buffer->size = rxSize;
 }
 
 HardwareSerial::operator bool() {
@@ -278,7 +316,7 @@ void uart_tx_isr(uint8_t offset)
 	}
 
 	unsigned char c = tx_buffer_ptr->buffer[tx_buffer_ptr->tail];
-	tx_buffer_ptr->tail = (tx_buffer_ptr->tail + 1) % SERIAL_BUFFER_SIZE;
+	tx_buffer_ptr->tail = (tx_buffer_ptr->tail + 1) % tx_buffer_ptr->size;
 	*(&(UCAxTXBUF) + offset) = c;
 }
 // Preinstantiate Objects //////////////////////////////////////////////////////
