@@ -28,6 +28,21 @@
 #include "config.h"
 #include "Energia.h"
 
+#ifndef Energia_h
+/**
+ * Generic data types
+ */
+typedef uint8_t unsigned char
+typedef uint16_t unsigned int
+typedef uint32_t unsigned long
+
+/**
+ * Binary states
+ */
+#define HIGH  1
+#define LOW   0
+#endif 
+
 /**
  * SWADDR : SWAP address data type
  */
