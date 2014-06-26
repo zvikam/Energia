@@ -100,16 +100,14 @@ uint16_t compute_checksum(unsigned char* data, unsigned count)
 void setup()
 {
     P2SEL |= BIT0;                            // P2.0 ADC option select
-    ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
+    ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time=64 cycles, ADC12 on
     ADC12CTL1 = ADC12SHP;                     // Use sampling timer
     ADC12IE = 0x01;                           // Enable interrupt
-    ADC12MCTL0 = ADC12SREF_1;                 // Vr+=Vref+ and Vr-=AVss
     ADC12CTL0 |= ADC12ENC | ADC12SC;          // Enable ADC and start conversion
 
     __delay_cycles(250);
 
-    while (ADC12CTL1 & ADC12BUSY)            // sleep and wait for completion
-        __bis_SR_register(CPUOFF + GIE);      // LPM0 with interrupts enabled
+    while (!(ADC12IFG & BIT0));
 
     ADC12IFG = 0;
     //------------- 
