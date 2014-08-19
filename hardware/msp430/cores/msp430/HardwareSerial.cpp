@@ -80,19 +80,46 @@ struct ring_buffer
 	unsigned char *buffer;
 	volatile unsigned int head;
 	volatile unsigned int tail;
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	unsigned int size;
+	#endif
 };
 
+/* Non-dynamic allocation/adjustable buffer sized chips need to have a
+ * SERIAL_BUFFER_SIZE_DEFAULT-sized pair of buffers preallocated.
+ */
+#ifndef HARDWARESERIAL_MSP430_USE_MALLOC
+unsigned char rx0_buff[SERIAL_BUFFER_SIZE_DEFAULT];
+unsigned char tx0_buff[SERIAL_BUFFER_SIZE_DEFAULT];
+#ifdef SERIAL1_AVAILABLE
+unsigned char rx1_buff[SERIAL_BUFFER_SIZE_DEFAULT];
+unsigned char tx1_buff[SERIAL_BUFFER_SIZE_DEFAULT];
+#endif
+#endif
+
+#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 ring_buffer rx_buffer  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
 ring_buffer tx_buffer  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
 #ifdef SERIAL1_AVAILABLE
 ring_buffer rx_buffer1  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
 ring_buffer tx_buffer1  =  { NULL, 0, 0, SERIAL_BUFFER_SIZE_DEFAULT };
 #endif
+#else
+ring_buffer rx_buffer  =  { rx0_buff, 0, 0 };
+ring_buffer tx_buffer  =  { tx0_buff, 0, 0 };
+#ifdef SERIAL1_AVAILABLE
+ring_buffer rx_buffer1  =  { rx1_buff, 0, 0 };
+ring_buffer tx_buffer1  =  { tx1_buff, 0, 0 };
+#endif
+#endif
 
 inline void store_char(unsigned char c, ring_buffer *buffer)
 {
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	unsigned int i = (unsigned int)(buffer->head + 1) % buffer->size;
+	#else
+	unsigned int i = (unsigned int)(buffer->head + 1) % SERIAL_BUFFER_SIZE_DEFAULT;
+	#endif
 
 	// if we should be storing the received character into the location
 	// just before the tail (meaning that the head would advance to the
@@ -128,28 +155,16 @@ void HardwareSerial::begin(unsigned long baud)
 	unsigned long divider;
 	unsigned char oversampling;
 	
-	// Allocate TX & RX buffers
+	// Allocate TX & RX buffers (malloc-use only)
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	if (_tx_buffer->buffer != NULL)
 		free(_tx_buffer->buffer);
 	_tx_buffer->buffer = (unsigned char *)malloc(_tx_buffer->size);
-	if (_tx_buffer->buffer == NULL) {  // Not enough space available?
-		_tx_buffer->size = SERIAL_BUFFER_SIZE_DEFAULT;  // Fallback to the default
-		_tx_buffer->buffer = (unsigned char *)malloc(_tx_buffer->size);
-		if (_tx_buffer->buffer == NULL)
-			return;  // Give up.
-	}
 
 	if (_rx_buffer->buffer != NULL)
 		free(_rx_buffer->buffer);
 	_rx_buffer->buffer = (unsigned char *)malloc(_rx_buffer->size);
-	if (_rx_buffer->buffer == NULL) {  // Not enough space available?
-		_rx_buffer->size = SERIAL_BUFFER_SIZE_DEFAULT;  // Fallback to the default
-		_rx_buffer->buffer = (unsigned char *)malloc(_rx_buffer->size);
-		if (_rx_buffer->buffer == NULL) {
-			free(_tx_buffer->buffer);
-			return;  // Give up.
-		}
-	}
+	#endif
 
 
 	/* Calling this dummy function prevents the linker
@@ -214,13 +229,19 @@ void HardwareSerial::end()
 
 	_rx_buffer->head = _rx_buffer->tail;
 
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	free(_tx_buffer->buffer);
 	free(_rx_buffer->buffer);
+	#endif
 }
 
 int HardwareSerial::available(void)
 {
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	return (unsigned int)(_rx_buffer->size + _rx_buffer->head - _rx_buffer->tail) % _rx_buffer->size;
+	#else
+	return (unsigned int)(SERIAL_BUFFER_SIZE_DEFAULT + _rx_buffer->head - _rx_buffer->tail) % SERIAL_BUFFER_SIZE_DEFAULT;
+	#endif
 }
 
 int HardwareSerial::peek(void)
@@ -239,7 +260,11 @@ int HardwareSerial::read(void)
 		return -1;
 	} else {
 		unsigned char c = _rx_buffer->buffer[_rx_buffer->tail];
+		#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 		_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % _rx_buffer->size;
+		#else
+		_rx_buffer->tail = (unsigned int)(_rx_buffer->tail + 1) % SERIAL_BUFFER_SIZE_DEFAULT;
+		#endif
 		return c;
 	}
 }
@@ -251,7 +276,11 @@ void HardwareSerial::flush()
 
 size_t HardwareSerial::write(uint8_t c)
 {
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	unsigned int i = (_tx_buffer->head + 1) % _tx_buffer->size;
+	#else
+	unsigned int i = (_tx_buffer->head + 1) % SERIAL_BUFFER_SIZE_DEFAULT;
+	#endif
 	
 	// If the output buffer is full, there's nothing for it other than to
 	// wait for the interrupt handler to empty it a bit
@@ -272,12 +301,14 @@ size_t HardwareSerial::write(uint8_t c)
 
 void HardwareSerial::setBufferSize(unsigned int txSize, unsigned int rxSize)
 {
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	if (txSize == 0)
 		txSize = 2;  // prevent inadvertent divide by 0 errors
 	if (rxSize == 0)
 		rxSize = 2;
 	_tx_buffer->size = txSize;
 	_rx_buffer->size = rxSize;
+	#endif
 }
 
 HardwareSerial::operator bool() {
@@ -316,7 +347,11 @@ void uart_tx_isr(uint8_t offset)
 	}
 
 	unsigned char c = tx_buffer_ptr->buffer[tx_buffer_ptr->tail];
+	#ifdef HARDWARESERIAL_MSP430_USE_MALLOC
 	tx_buffer_ptr->tail = (tx_buffer_ptr->tail + 1) % tx_buffer_ptr->size;
+	#else
+	tx_buffer_ptr->tail = (tx_buffer_ptr->tail + 1) % SERIAL_BUFFER_SIZE_DEFAULT;
+	#endif
 	*(&(UCAxTXBUF) + offset) = c;
 }
 // Preinstantiate Objects //////////////////////////////////////////////////////
