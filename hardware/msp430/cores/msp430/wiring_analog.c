@@ -188,7 +188,7 @@ void analogWrite(uint8_t pin, int val)
 					TA0CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA0CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA0CCTL0)) ;
+					while (!(CCIFG & TA0CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA0CCR1 = ccrval;
 				}
                                 break;
@@ -203,7 +203,7 @@ void analogWrite(uint8_t pin, int val)
 					TA0CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA0CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA0CCTL0)) ;
+					while (!(CCIFG & TA0CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA0CCR2 = ccrval;
 				}
                                 break;
@@ -219,7 +219,7 @@ void analogWrite(uint8_t pin, int val)
 					TA0CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA0CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA0CCTL0)) ;
+					while (!(CCIFG & TA0CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA0CCR3 = ccrval;
 				}
                                 break;
@@ -233,7 +233,7 @@ void analogWrite(uint8_t pin, int val)
 					TA0CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA0CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA0CCTL0)) ;
+					while (!(CCIFG & TA0CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA0CCR4 = ccrval;
 				}
                                 break;
@@ -250,7 +250,7 @@ void analogWrite(uint8_t pin, int val)
 					TA1CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA1CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA1CCTL0)) ;
+					while (!(CCIFG & TA1CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA1CCR1 = ccrval;
 				}
                                 break;
@@ -264,7 +264,7 @@ void analogWrite(uint8_t pin, int val)
 					TA1CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA1CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA1CCTL0)) ;
+					while (!(CCIFG & TA1CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA1CCR2 = ccrval;
 				}
                                 break;
@@ -281,7 +281,7 @@ void analogWrite(uint8_t pin, int val)
 					TA2CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA2CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA2CCTL0)) ;
+					while (!(CCIFG & TA2CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA2CCR1 = ccrval;
 				}
                                 break;
@@ -295,7 +295,7 @@ void analogWrite(uint8_t pin, int val)
 					TA2CTL = TASSEL_2 | MC_1 | analog_div;       // SMCLK, up mode
 				} else {
 					TA2CCTL0 &= ~CCIFG;
-					while (!(CCIFG & TA2CCTL0)) ;
+					while (!(CCIFG & TA2CCTL0)) ;  // Busy-wait until Timer rolls over
 					TA2CCR2 = ccrval;
 				}
                                 break;
