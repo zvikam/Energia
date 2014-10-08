@@ -50,7 +50,7 @@ Version Modified By Date     Comments
 #include "Energia.h"
 
 // local funcions
-static void initTimers();
+static void initToneTimers();
 static void setTimer(uint8_t n, unsigned int frequency, unsigned long duration);
 static void stopTimer(uint8_t n);
 interrupt void cpu_timer1_isr(void);
@@ -109,7 +109,7 @@ void tone(uint8_t _pin, unsigned int frequency, unsigned long duration)
       tone_bit[i] = digitalPinToBitMask(_pin);
       tone_out[i] = portOutputRegister(port);
       if ( tone_state == 0 ) 
-        initTimers();
+        initToneTimers();
       pinMode(_pin, OUTPUT);
       setTimer(i, frequency, duration);
       return; // we are done, timer set
@@ -137,7 +137,7 @@ void noTone(uint8_t _pin)
 
 
 // Initialize the timers - Set mode and Enable IRQ
-static void inline initTimers()
+static void inline initToneTimers()
 {
    EALLOW;  // This is needed to write to EALLOW protected registers
    PieVectTable.TINT1 = &cpu_timer1_isr;
@@ -205,9 +205,11 @@ static void inline stopTimer(uint8_t n)
   {
     case 0:
     	CpuTimer1Regs.TCR.bit.TSS = 1;
+    	CpuTimer1Regs.TCR.bit.TIE = 0;
     	break;
     case 1:
     	CpuTimer2Regs.TCR.bit.TSS = 1;
+    	CpuTimer2Regs.TCR.bit.TIE = 0;
     	break;
   }
   *tone_out[n] &= ~tone_bit[n];

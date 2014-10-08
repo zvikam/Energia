@@ -25,6 +25,8 @@ package processing.app;
 import processing.app.debug.*;
 import processing.app.syntax.*;
 import processing.app.tools.*;
+import processing.app.ToolsInstall;
+
 import processing.core.*;
 import static processing.app.I18n._;
 import processing.app.debug.Compiler;
@@ -1254,6 +1256,14 @@ public class Editor extends JFrame implements RunnerListener {
       });
     menu.add(item);
 
+    item = new JMenuItem(_("Install C55 Tools"));
+    item.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+        	ToolsInstall.runDialog();
+        }
+    });
+    menu.add(item);
+    
     item = new JMenuItem(_("Download Compiler Tools for DSP Shield"));
     item.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {

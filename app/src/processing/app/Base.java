@@ -43,9 +43,9 @@ import static processing.app.I18n._;
  */
 public class Base {
   public static final int REVISION = 101;
-  public static final int EREVISION = 11;
+  public static final int EREVISION = 13;
   /** This might be replaced by main() if there's a lib/version.txt file. */
-  static String VERSION_NAME = "0101E0011";
+  static String VERSION_NAME = "0101E0013";
   /** Set true if this a proper release rather than a numbered revision. */
   static public boolean RELEASE = false;
 
@@ -70,6 +70,7 @@ public class Base {
     archMap.put("lm4f", "lm4f");
     archMap.put("c2000", "c2000");
     archMap.put("C5000", "C5000");
+    archMap.put("cc3200", "cc3200");
   }
   static Platform platform;
 
@@ -261,6 +262,8 @@ public class Base {
     	targetLibDir = "hardware/c2000/";
     else if (Preferences.get("target").equals("C5000"))
     	targetLibDir = "hardware/C5000/";
+    else if (Preferences.get("target").equals("cc3200")) 
+    	targetLibDir = "hardware/cc3200/";
     librariesFolder = getContentFile(targetLibDir + "libraries");
     toolsFolder = getContentFile("tools");
 
@@ -1107,10 +1110,12 @@ public class Base {
             		  targetLibDir = "hardware/msp430/";
             	  else if(n.equals("lm4f"))
             		  targetLibDir = "hardware/lm4f/";
-				  else if(n.equals("c2000")) 
+            	  else if(n.equals("c2000")) 
             		  targetLibDir = "hardware/c2000/";
 				  else if(n.equals("C5000"))
             		  targetLibDir = "hardware/C5000/";
+				  else if(n.equals("cc3200")) 
+            		  targetLibDir = "hardware/cc3200/";
             	  librariesFolder = getContentFile(targetLibDir + "libraries");
             	  onArchChanged();
               }
@@ -1375,14 +1380,19 @@ public class Base {
     for (String target : list) {
     	
     	//Check to ensure compiler is installed before displaying C2000 Support
-    	if(target.equals("c2000")){
+    	if(target.equals("c2000")) {
     		if(Base.getC2000BasePath() != ""){
       	      File subfolder = new File(folder, target);
       	      targetsTable.put(target, new Target(target, subfolder));
     		}
-    	}else{
-    	      File subfolder = new File(folder, target);
-    	      targetsTable.put(target, new Target(target, subfolder));
+    	} else if(target.equals("C5000")){
+    		if(Base.getC5000BasePath() != ""){
+      	      File subfolder = new File(folder, target);
+      	      targetsTable.put(target, new Target(target, subfolder));
+    		}
+    	} else {
+			File subfolder = new File(folder, target);
+			targetsTable.put(target, new Target(target, subfolder));
     	}
     }
     
@@ -1685,7 +1695,7 @@ public class Base {
 	    String path = getHardwarePath() + File.separator + "tools" +
 	                  File.separator + "c2000" + File.separator + "bin" + File.separator;
 	    
-	    if (Base.isLinux() || !(new File(path)).exists()) {
+	    if(!(new File(path)).exists()){
 	      return "";  // use msp430-gcc and mspdebug in PATH instead of platform version
 	    }
 	    return path;
@@ -1694,7 +1704,7 @@ public class Base {
   static public String getC5000BasePath() {
 	    String path = getHardwarePath() + File.separator + "tools" +
 	                  File.separator + "C5000" + File.separator + "bin" + File.separator;
-	    if (Base.isLinux() && !(new File(path)).exists()) {
+	    if (!(new File(path)).exists()) {
 	      return "";  // use lm4f-gcc and mspdebug in PATH instead of platform version
 	    }
 	    return path;
@@ -1753,7 +1763,7 @@ public class Base {
         String hwPath = getMSP430BasePath();
         return hwPath;
       }
-      else if (getArch() == "lm4f") {
+      else if (getArch() == "lm4f" || getArch() == "cc3200") {
     	  String hwPath = getLM4FBasePath();
     	  return hwPath;
       }
@@ -1770,22 +1780,27 @@ public class Base {
           + getArch() + File.separator + "bin" + File.separator;
       }
     } else if (Base.isWindows()) {
-      String ret;
-        if (getArch() != "C5000"){
-		  ret = getHardwarePath() + File.separator + "tools"
-          + File.separator + getArch() + File.separator + "bin"
-          + File.separator;
-	  } else{
-		  ret = C5000CompilersPath;
-	  }
-      return ret;
+		String arch = getArch();
+		String ret;
+        if (arch != "C5000"){
+        	if (arch == "cc3200")
+        		arch = "lm4f";
+        	return getHardwarePath() + File.separator + "tools"
+          + File.separator + arch + File.separator + "bin" + File.separator;
+        }
+        
+        return C5000CompilersPath;
     } else {
-      	if (getArch() != "C5000"){
-			return getHardwarePath() + File.separator + "tools" + File.separator
-          		+ getArch() + File.separator + "bin" + File.separator;
-		} else {
-			return C5000CompilersPath;
+		String arch = getArch();
+
+		if (arch != "C5000"){
+        	if (arch == "cc3200")
+        		arch = "lm4f";
+      		return getHardwarePath() + File.separator + "tools" + File.separator
+          		+ arch + File.separator + "bin" + File.separator;
 		}
+		
+		return C5000CompilersPath;
     }
   }
   

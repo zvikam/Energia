@@ -28,6 +28,7 @@ import processing.app.debug.MSP430Uploader;
 import processing.app.debug.LM4FUploader;
 import processing.app.debug.C2000Uploader;
 import processing.app.debug.C5000Uploader;
+import processing.app.debug.CC3200Uploader;
 import processing.app.debug.Compiler;
 import processing.app.debug.RunnerException;
 import processing.app.debug.Sizer;
@@ -1723,6 +1724,7 @@ public class Sketch {
 
     Uploader uploader;
 
+    String foo = Base.getArch();
     // download the program
     //
     if(Base.getArch() == "msp430"){
@@ -1733,6 +1735,8 @@ public class Sketch {
     	uploader = new C2000Uploader();
     } else if(Base.getArch() == "C5000"){
     	uploader = new C5000Uploader();
+    } else if(Base.getArch() == "cc3200"){
+    	uploader = new CC3200Uploader();
     }else {
     	uploader = new AvrdudeUploader();
     }
@@ -2140,7 +2144,7 @@ public class Sketch {
    * systems, i.e. uploading from a Windows machine to a Linux server,
    * or reading a FAT32 partition in OS X and using a thumb drive.
    * <p/>
-   * This helper function replaces everything but A-Z, a-z, and 0-9 with
+   * This helper function replaces everything but A-Z, a-z, 0-9 and hyphen with
    * underscores. Also disallows starting the sketch name with a digit.
    */
   static public String sanitizeName(String origName) {
@@ -2154,7 +2158,8 @@ public class Sketch {
     for (int i = 0; i < c.length; i++) {
       if (((c[i] >= '0') && (c[i] <= '9')) ||
           ((c[i] >= 'a') && (c[i] <= 'z')) ||
-          ((c[i] >= 'A') && (c[i] <= 'Z'))) {
+          ((c[i] >= 'A') && (c[i] <= 'Z')) ||
+          c[i] == '-') {
         buffer.append(c[i]);
 
       } else {

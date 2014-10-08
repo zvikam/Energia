@@ -115,10 +115,21 @@ public class Compiler implements MessageConsumer {
 
     String rtsIncPath = null;
     String rtsLibPath = null;
+    
     if (arch == "c2000") {
     	Target t = Base.getTarget();
-    	File rtsIncFolder = new File(new File(new File(t.getFolder(), "..\\tools"), "c2000"), "include");
-    	File rtsLibFolder = new File(new File(new File(t.getFolder(), "..\\tools"), "c2000"), "lib");
+     	File rtsIncFolder;
+     	File rtsLibFolder;
+    	if(Base.isLinux())
+    	{
+     	    rtsIncFolder = new File(new File(new File(t.getFolder(), "..//tools"), "c2000"), "include");
+     	    rtsLibFolder = new File(new File(new File(t.getFolder(), "..//tools"), "c2000"), "lib");
+    	}
+    	else
+    	{
+         	rtsIncFolder = new File(new File(new File(t.getFolder(), "..\\tools"), "c2000"), "include");
+         	rtsLibFolder = new File(new File(new File(t.getFolder(), "..\\tools"), "c2000"), "lib");
+    	}
     	rtsIncPath = rtsIncFolder.getAbsolutePath();
     	rtsLibPath = rtsLibFolder.getAbsolutePath();
     }
@@ -181,7 +192,49 @@ public class Compiler implements MessageConsumer {
 
    // 3. compile the core, outputting .o files to <buildPath> and then
    // collecting them into the core.a library file.
+   List<File> coreObjectFiles;
+   //For c2000 cores, includes only the necessary files for the specific core
+   if(arch == "c2000")
+   {
+	  sketch.setCompilingProgress(50);
+	  includePaths.clear();
+	  includePaths.add(corePath);  // include path for core only
+	  if (rtsIncPath != null) includePaths.add(rtsIncPath);
+	  if (variantPath != null) includePaths.add(variantPath);
+	  //add specific header folders to paths
+	  String core_headersPath = corePath;
+	  String core_commonPath = corePath; 
+	  if( boardPreferences.get("build.mcu").equals("TMS320F28027"))
+      {
+		  core_commonPath += "/f2802x_common";
+		  core_headersPath += "/f2802x_headers";
+      }
+      else if( boardPreferences.get("build.mcu").equals("TMS320F28069"))
+      {
 
+
+			  core_commonPath += "/F2806x_common";
+			  core_headersPath += "/F2806x_headers";
+      
+
+      }
+	  ArrayList<File> corePathfiles_S = findFilesInPath(corePath, "S", false);
+	  corePathfiles_S.addAll(findFilesInPath(core_commonPath, "S", true));
+	  corePathfiles_S.addAll(findFilesInPath(core_headersPath, "S", true));
+	  ArrayList<File> corePathfiles_c = findFilesInPath(corePath, "c", false);
+	  corePathfiles_c.addAll(findFilesInPath(core_commonPath, "c", true));
+	  corePathfiles_c.addAll(findFilesInPath(core_headersPath, "c", true));
+	  ArrayList<File> corePathfiles_cpp = findFilesInPath(corePath, "cpp", false);
+	  corePathfiles_cpp.addAll(findFilesInPath(core_commonPath, "cpp", true));
+	  corePathfiles_cpp.addAll(findFilesInPath(core_headersPath, "cpp", true));
+	  coreObjectFiles =
+	    compileFiles(basePath, buildPath, includePaths,
+	    			corePathfiles_S,
+	    			corePathfiles_c,
+	    			corePathfiles_cpp,
+	              boardPreferences);
+   }
+   //other cores do not have to worry about not including all the files in the core path
    sketch.setCompilingProgress(50);
 
    String runtimeLibraryName;
@@ -194,13 +247,12 @@ if(arch != "C5000")
   includePaths.add(corePath);  // include path for core only
   if (rtsIncPath != null) includePaths.add(rtsIncPath);
   if (variantPath != null) includePaths.add(variantPath);
-  List<File> coreObjectFiles =
+	  coreObjectFiles =
     compileFiles(basePath, buildPath, includePaths,
               findFilesInPath(corePath, asmExt, true),
               findFilesInPath(corePath, "c", true),
               findFilesInPath(corePath, "cpp", true),
               boardPreferences);
-
 
   runtimeLibraryName = buildPath + File.separator + "core.a";
   if(arch == "msp430")  {
@@ -209,7 +261,7 @@ if(arch != "C5000")
       "rcs",
       runtimeLibraryName
     }));
-    } else if(arch == "lm4f") {
+    } else if(arch == "lm4f" || arch == "cc3200") {
       baseCommandAR = new ArrayList(Arrays.asList(new String[] { 
         basePath + "arm-none-eabi-ar",
         "rcs",
@@ -230,11 +282,22 @@ if(arch != "C5000")
   }
 
 //  if(arch != "c2000"){
+    if(arch == "c2000")
+    {
+  	  for(File file : coreObjectFiles) {
+ 	     List commandAR = new ArrayList(baseCommandAR);
+ 	     commandAR.add(file.getAbsolutePath());
+ 	     execAsynchronouslyShell(commandAR);
+ 	   }
+    }
+    else
+    {
 	  for(File file : coreObjectFiles) {
 	     List commandAR = new ArrayList(baseCommandAR);
 	     commandAR.add(file.getAbsolutePath());
 	     execAsynchronously(commandAR);
 	   }
+    }
 //  }
 }
 else
@@ -279,19 +342,25 @@ else
         "-o",
         buildPath + File.separator + primaryClassName + ".elf"
       }));
-    }else if (arch == "lm4f") { 
+    }else if (arch == "lm4f" || arch == "cc3200") { 
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "arm-none-eabi-g++",
         "-Os",
         "-nostartfiles","-nostdlib",
         "-Wl,--gc-sections",
-        "-T", corePath + File.separator + "lm4fcpp.ld",
+        "-T", corePath + File.separator + boardPreferences.get("ldscript"),
         "-Wl,--entry=ResetISR",
         "-mthumb", "-mcpu=cortex-m4",
-        "-mfloat-abi=hard","-mfpu=fpv4-sp-d16","-fsingle-precision-constant",
-        "-o",
-        buildPath + File.separator + primaryClassName + ".elf",
-      }));
+        }));
+
+		if(arch == "lm4f") {
+			baseCommandLinker.add("-mfloat-abi=hard");
+			baseCommandLinker.add("-mfpu=fpv4-sp-d16");
+			baseCommandLinker.add("-fsingle-precision-constant");
+		}
+
+        baseCommandLinker.add("-o");
+        baseCommandLinker.add(buildPath + File.separator + primaryClassName + ".elf");
     } else if (arch == "c2000") { 
         List objects = new ArrayList(baseCommandAR);
         
@@ -312,6 +381,7 @@ else
         baseCommandLinker.add("--gcc");//compile for unified memory model
         baseCommandLinker.add("--define=ENERGIA=" + Base.EREVISION);
         baseCommandLinker.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
+        baseCommandLinker.add("--define=" + boardPreferences.get("build.mcu"));
         baseCommandLinker.add("--define=ARDUINO=" + Base.REVISION);
         baseCommandLinker.add("--diag_warning=225");//compile for unified memory model
         baseCommandLinker.add("--display_error_number");//compile for unified memory model
@@ -331,13 +401,6 @@ else
         baseCommandLinker.add("-o" + buildPath + File.separator + primaryClassName + ".out");
 //        "-o",
 //        buildPath + File.separator + primaryClassName + ".elf"
-        
-        
-
-
-
-
-
     } else if (arch == "C5000") {
 //        List objects = new ArrayList(baseCommandAR);
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
@@ -369,39 +432,74 @@ else
         buildPath + File.separator + primaryClassName + ".elf"
         }));
     }
-
-    if (arch == "C5000")
+    
+    for (File file : objectFiles) {
+        baseCommandLinker.add(file.getAbsolutePath());
+    }
+    
+    baseCommandLinker.add(runtimeLibraryName);
+    if(arch == "lm4f" || arch == "cc3200"){
+      baseCommandLinker.add("-L" + buildPath);
+      baseCommandLinker.add("-lm");
+      baseCommandLinker.add("-lc");
+      baseCommandLinker.add("-lgcc");
+    } 
+    //Obtain the correct linker files for the specific chip
+    if(arch == "c2000"){
+        baseCommandLinker.add("-l" + boardPreferences.get("build.rts"));
+        if( boardPreferences.get("build.mcu").equals("TMS320F28027"))
+        {
+        	if(Base.isLinux())
+        	{
+        		baseCommandLinker.add(corePath + "/f2802x_common/cmd/F28027.cmd");
+            	baseCommandLinker.add(corePath + "/f2802x_headers/cmd/F2802x_Headers_nonBIOS.cmd");
+        	}
+        	else
+        	{
+        		baseCommandLinker.add(corePath + "\\f2802x_common\\cmd\\F28027.cmd");
+        		baseCommandLinker.add(corePath + "\\f2802x_headers\\cmd\\F2802x_Headers_nonBIOS.cmd");
+        	}
+        }
+        else if( boardPreferences.get("build.mcu").equals("TMS320F28069"))
+        {
+        	if(Base.isLinux())
+        	{
+        		baseCommandLinker.add(corePath + "/F2806x_common/cmd/F28069.cmd");
+	        	baseCommandLinker.add(corePath + "/F2806x_headers/cmd/F2806x_Headers_nonBIOS.cmd");
+        	}
+        	else
+        	{
+	        	baseCommandLinker.add(corePath + "\\F2806x_common\\cmd\\F28069.cmd");
+	        	baseCommandLinker.add(corePath + "\\F2806x_headers\\cmd\\F2806x_Headers_nonBIOS.cmd");
+        	}
+        }
+        else
+        {
+        	if(Base.isLinux())
+        	{
+        		baseCommandLinker.add(corePath + "/f2802x_common/cmd/F28027.cmd");
+            	baseCommandLinker.add(corePath + "/f2802x_headers/cmd/F2802x_Headers_nonBIOS.cmd");
+        	}
+        	else
+        	{
+        baseCommandLinker.add(corePath + "\\f2802x_common\\cmd\\F28027.cmd");
+        baseCommandLinker.add(corePath + "\\f2802x_headers\\cmd\\F2802x_Headers_nonBIOS.cmd");
+        	}    
+        }
+    }else if (arch == "C5000"){
+    
+    } else {
+      baseCommandLinker.add("-L" + buildPath);
+      baseCommandLinker.add("-lm");
+    }
+    if(arch == "c2000")
     {
-        //baseCommandLinker.add("linkx.cmd")
-    	//do nothing!
-
-  	    //baseCommandLinker.add(runtimeLibraryName);
-  	    //baseCommandLinker.add("-L" + buildPath);
-  	    //baseCommandLinker.add("-lm");
+    	execAsynchronouslyShell(baseCommandLinker);
     }
     else
     {
-		for (File file : objectFiles) {
-		  baseCommandLinker.add(file.getAbsolutePath());
-		}
-
-		baseCommandLinker.add(runtimeLibraryName);
-		if(arch == "lm4f"){
-		  baseCommandLinker.add("-L" + buildPath);
-		  baseCommandLinker.add("-lm");
-		  baseCommandLinker.add("-lc");
-		  baseCommandLinker.add("-lgcc");
-		} if(arch == "c2000"){
-			baseCommandLinker.add("-l" + boardPreferences.get("build.rts"));
-			baseCommandLinker.add(corePath + "\\f2802x_common\\cmd\\F28027.cmd");
-			baseCommandLinker.add(corePath + "\\f2802x_headers\\cmd\\F2802x_Headers_nonBIOS.cmd");
-		}else {
-		  baseCommandLinker.add("-L" + buildPath);
-		  baseCommandLinker.add("-lm");
-		}
-	}
     execAsynchronously(baseCommandLinker);
-
+    }
     List baseCommandObjcopy;
     if (arch == "msp430") {
     baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
@@ -409,7 +507,7 @@ else
       "-O",
       "-R",
     }));
-    } else if (arch == "lm4f") {
+    } else if (arch == "lm4f" || arch == "cc3200") {
       baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
         basePath + "arm-none-eabi-objcopy",
         "-O",
@@ -438,11 +536,9 @@ else
 
     }
     List commandObjcopy;
-    if ((arch == "msp430") || (arch == "lm4f") || (arch == "c2000")) {
+    if ((arch == "msp430") || (arch == "lm4f") || (arch == "c2000") || (arch == "cc3200") || (arch == "C5000")) {
       //nothing 
-    } else if (arch == "C5000") {
-        //nothing
-      } else {
+    } else {
         // 5. extract EEPROM data (from EEMEM directive) to .eep file.
       sketch.setCompilingProgress(70);
       commandObjcopy = new ArrayList(baseCommandObjcopy);
@@ -460,7 +556,7 @@ else
     // 6. build the .hex or .bin file
     sketch.setCompilingProgress(80);
     commandObjcopy = new ArrayList(baseCommandObjcopy);
-    if (arch == "lm4f"){
+    if (arch == "lm4f" || arch == "cc3200"){
 	  	commandObjcopy.add(2, "binary");
     	commandObjcopy.add(buildPath + File.separator + primaryClassName + ".elf");
     	commandObjcopy.add(buildPath + File.separator + primaryClassName + ".bin");
@@ -476,8 +572,14 @@ else
 	  	commandObjcopy.add(buildPath + File.separator + primaryClassName + ".elf");
 	    commandObjcopy.add(buildPath + File.separator + primaryClassName + ".hex");
     }
+    if(arch == "c2000")
+    {
+    	execAsynchronouslyShell(commandObjcopy);
+    }
+    else
+    {
 	execAsynchronously(commandObjcopy);
-    
+    }
     sketch.setCompilingProgress(90);
    
     return true;
@@ -568,7 +670,6 @@ else
     throws RunnerException {
 
     List<File> objectPaths = new ArrayList<File>();
-    
     String arch = Base.getArch();
 
 	String objectExtension = ".o";
@@ -580,41 +681,79 @@ else
     }
 
 
+    if(Base.getArch() == "c2000")
+	{
     for (File file : sSources) {
       String objectPath = buildPath + File.separator + file.getName() + objectExtension;
       objectPaths.add(new File(objectPath));
+	      execAsynchronouslyShell(getCommandCompilerS(basePath, includePaths,
+	                                             file.getAbsolutePath(),
+	                                             objectPath,
+	                                             boardPreferences));
+	    }
+	 		
+	    for (File file : cSources) {
+	        String objectPath = buildPath + File.separator + file.getName() + objectExtension;
+	        String dependPath = buildPath + File.separator + file.getName() + dependExtension;
+	        File objectFile = new File(objectPath);
+	        File dependFile = new File(dependPath);
+	        objectPaths.add(objectFile);
+	        if (is_already_compiled(file, objectFile, dependFile, boardPreferences)) continue;
+	        execAsynchronouslyShell(getCommandCompilerC(basePath, includePaths,
+	                                               file.getAbsolutePath(),
+	                                               objectPath,
+	                                               boardPreferences));
+	    }
+	
+	    for (File file : cppSources) {
+	        String objectPath = buildPath + File.separator + file.getName() + objectExtension;
+	        String dependPath = buildPath + File.separator + file.getName() + dependExtension;
+	        File objectFile = new File(objectPath);
+	        File dependFile = new File(dependPath);
+	        objectPaths.add(objectFile);
+	        if (is_already_compiled(file, objectFile, dependFile, boardPreferences)) continue;
+	        execAsynchronouslyShell(getCommandCompilerCPP(basePath, includePaths,
+	                                                 file.getAbsolutePath(),
+	                                                 objectPath,
+	                                                 boardPreferences));
+	    }
+	}
+	else
+	{
+	    for (File file : sSources) {
+	      String objectPath = buildPath + File.separator + file.getName() + ".o";
+	      objectPaths.add(new File(objectPath));
       execAsynchronously(getCommandCompilerS(basePath, includePaths,
                                              file.getAbsolutePath(),
                                              objectPath,
                                              boardPreferences));
-    }
- 		
-    for (File file : cSources) {
-        String objectPath = buildPath + File.separator + file.getName() + objectExtension;
-        String dependPath = buildPath + File.separator + file.getName() + dependExtension;
-        File objectFile = new File(objectPath);
-        File dependFile = new File(dependPath);
-        objectPaths.add(objectFile);
-        if (is_already_compiled(file, objectFile, dependFile, boardPreferences)) continue;
-        execAsynchronously(getCommandCompilerC(basePath, includePaths,
-                                               file.getAbsolutePath(),
-                                               objectPath,
-                                               boardPreferences));
-    }
+	    }
+	    for (File file : cSources) {
+	        String objectPath = buildPath + File.separator + file.getName() + ".o";
+	        String dependPath = buildPath + File.separator + file.getName() + ".d";
+	        File objectFile = new File(objectPath);
+	        File dependFile = new File(dependPath);
+	        objectPaths.add(objectFile);
+	        if (is_already_compiled(file, objectFile, dependFile, boardPreferences)) continue;
+	        execAsynchronously(getCommandCompilerC(basePath, includePaths,
+	                                               file.getAbsolutePath(),
+	                                               objectPath,
+	                                               boardPreferences));
+	    }
 
-    for (File file : cppSources) {
-        String objectPath = buildPath + File.separator + file.getName() + objectExtension;
-        String dependPath = buildPath + File.separator + file.getName() + dependExtension;
-        File objectFile = new File(objectPath);
-        File dependFile = new File(dependPath);
-        objectPaths.add(objectFile);
-        if (is_already_compiled(file, objectFile, dependFile, boardPreferences)) continue;
-        execAsynchronously(getCommandCompilerCPP(basePath, includePaths,
-                                                 file.getAbsolutePath(),
-                                                 objectPath,
-                                                 boardPreferences));
-    }
-    
+	    for (File file : cppSources) {
+	        String objectPath = buildPath + File.separator + file.getName() + ".o";
+	        String dependPath = buildPath + File.separator + file.getName() + ".d";
+	        File objectFile = new File(objectPath);
+	        File dependFile = new File(dependPath);
+	        objectPaths.add(objectFile);
+	        if (is_already_compiled(file, objectFile, dependFile, boardPreferences)) continue;
+	        execAsynchronously(getCommandCompilerCPP(basePath, includePaths,
+	                                                 file.getAbsolutePath(),
+	                                                 objectPath,
+	                                                 boardPreferences));
+	    }
+	}
     return objectPaths;
   }
 
@@ -688,6 +827,7 @@ else
    * Either succeeds or throws a RunnerException fit for public consumption.
    */
   private void execAsynchronously(List commandList) throws RunnerException {
+    String arch = Base.getArch();
     String[] command = new String[commandList.size()];
     commandList.toArray(command);
     int result = 0;
@@ -702,11 +842,97 @@ else
 
     firstErrorFound = false;  // haven't found any errors yet
     secondErrorFound = false;
-
     Process process;
-    
     try {
+        	process = Runtime.getRuntime().exec(command);
+        	
+    } catch (IOException e) {
+      RunnerException re = new RunnerException(e.getMessage());
+      re.hideStackTrace();
+      throw re;
+    }
+
+    MessageSiphon in = new MessageSiphon(process.getInputStream(), this);
+    MessageSiphon err = new MessageSiphon(process.getErrorStream(), this);
+
+    // wait for the process to finish.  if interrupted
+    // before waitFor returns, continue waiting
+    boolean compiling = true;
+    while (compiling) {
+      try {
+        if (in.thread != null)
+          in.thread.join();
+        if (err.thread != null)
+          err.thread.join();
+        result = process.waitFor();
+        //System.out.println("result is " + result);
+        compiling = false;
+      } catch (InterruptedException ignored) { }
+    }
+
+    // an error was queued up by message(), barf this back to compile(),
+    // which will barf it back to Editor. if you're having trouble
+    // discerning the imagery, consider how cows regurgitate their food
+    // to digest it, and the fact that they have five stomaches.
+    //
+    //System.out.println("throwing up " + exception);
+    if (exception != null) { throw exception; }
+
+    if (result > 1) {
+      // a failure in the tool (e.g. unable to locate a sub-executable)
+      System.err.println(
+	  I18n.format(_("{0} returned {1}"), command[0], result));
+    }
+
+    if (result != 0) {
+      RunnerException re = new RunnerException(_("Error compiling."));
+      re.hideStackTrace();
+      throw re;
+    }
+  }
+
+  /**
+   * Either succeeds or throws a RunnerException fit for public consumption.
+   */
+  private void execAsynchronouslyShell(List commandList) throws RunnerException {
+    String arch = Base.getArch();
+	String[] command = new String[commandList.size()];
+    commandList.toArray(command);
+    int result = 0;
+
+    if (verbose || Preferences.getBoolean("build.verbose")) {
+      for(int j = 0; j < command.length; j++) {
+        System.out.print(command[j] + " ");
+      }
+      System.out.println();
+    }
+    System.out.println(Arrays.toString(command));   
+    firstErrorFound = false;  // haven't found any errors yet
+    secondErrorFound = false;
+    Process process;
+    try {
+        if(arch == "c2000")
+        {
+        	if(Base.isLinux())
+        	{
+        	    String command_line = "";
+        	    for(String str:command)
+        	    {
+        	    	command_line += str+" ";
+    
+        	    }
+    	    	process = Runtime.getRuntime().exec(new String[]{"bash","-c",command_line});
+    	    	System.out.println(command_line);
+        	}
+        	else
+        	{
+        		process = Runtime.getRuntime().exec(command);
+        	}
+        }
+        else
+        {
       process = Runtime.getRuntime().exec(command);
+        }
     } catch (IOException e) {
       RunnerException re = new RunnerException(e.getMessage());
       re.hideStackTrace();
@@ -865,26 +1091,43 @@ else
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
           basePath + "msp430-gcc",
           "-c", // compile, don't link
-          "-g", // include debugging info (so errors include line numbers)
+//          "-g", // include debugging info (so errors include line numbers)
           "-assembler-with-cpp",
           "-mmcu=" + boardPreferences.get("build.mcu"),
           "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
           "-DARDUINO=" + Base.REVISION,
           "-DENERGIA=" + Base.EREVISION,
         }));
-    } else if (arch == "lm4f") {
+        
+        if(Preferences.getBoolean("build.debug"))
+        	baseCommandCompiler.add("-g");
+
+    } else if (arch == "lm4f" || arch == "cc3200") {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
           basePath + "arm-none-eabi-gcc",
           "-c",
-          "-g",
+//          "-g",
+//          "-gdwarf-2",
           "-assembler-with-cpp",
           Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
-          "-mthumb", "-mcpu=cortex-m4",
-          "-mfloat-abi=hard","-mfpu=fpv4-sp-d16","-fsingle-precision-constant",
-          "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
-          "-DARDUINO=" + Base.REVISION,
-          "-DENERGIA=" + Base.EREVISION,
+          "-mthumb", "-mcpu=cortex-m4"
         }));
+
+		if(arch == "lm4f") {
+			baseCommandCompiler.add("-mfloat-abi=hard");
+			baseCommandCompiler.add("-mfpu=fpv4-sp-d16");
+			baseCommandCompiler.add("-fsingle-precision-constant");
+		}
+
+        baseCommandCompiler.add("-DF_CPU=" + boardPreferences.get("build.f_cpu"));
+        baseCommandCompiler.add("-DARDUINO=" + Base.REVISION);
+        baseCommandCompiler.add("-DENERGIA=" + Base.EREVISION);
+
+        if(Preferences.getBoolean("build.debug")) {
+        	baseCommandCompiler.add("-g");
+        	baseCommandCompiler.add("-gdwarf-2");
+        }
+
     } else if (arch == "c2000") {
     	
         String[] filePrefix = new String[2];
@@ -902,8 +1145,10 @@ else
         baseCommandCompiler.add("--gcc");//enable gcc extensions
         baseCommandCompiler.add("--define=ENERGIA=" + Base.EREVISION);
         baseCommandCompiler.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
+        baseCommandCompiler.add("--define=" + boardPreferences.get("build.mcu"));
         baseCommandCompiler.add("--define=ARDUINO=" + Base.REVISION);
         baseCommandCompiler.add("--diag_warning=225");
+        baseCommandCompiler.add("--gen_func_subsections=on");
         baseCommandCompiler.add("--display_error_number");
         baseCommandCompiler.add("--diag_wrap=off");
         baseCommandCompiler.add("--preproc_with_compile");
@@ -972,7 +1217,7 @@ else
       baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
         basePath + "msp430-gcc",
         "-c", // compile, don't link
-        "-g", // include debugging info (so errors include line numbers)
+//        "-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -983,22 +1228,39 @@ else
         "-DARDUINO=" + Base.REVISION,
         "-DENERGIA=" + Base.EREVISION,
       }));
-      }else if (arch == "lm4f") {
+
+      if(Preferences.getBoolean("build.debug"))
+      	baseCommandCompiler.add("-g");
+
+      }else if (arch == "lm4f" || arch == "cc3200") {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
         basePath + "arm-none-eabi-gcc",
         "-c",
-        "-g",
+//        "-g",
+//        "-gdwarf-2",
         "-Os",
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections",
         "-fdata-sections",
         "-mthumb", "-mcpu=cortex-m4",
-        "-mfloat-abi=hard","-mfpu=fpv4-sp-d16","-fsingle-precision-constant",
-        "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
-        "-MMD", // output dependancy info
-        "-DARDUINO=" + Base.REVISION,
-        "-DENERGIA=" + Base.EREVISION,
       }));
+
+	if(arch == "lm4f") {
+		baseCommandCompiler.add("-mfloat-abi=hard");
+		baseCommandCompiler.add("-mfpu=fpv4-sp-d16");
+		baseCommandCompiler.add("-fsingle-precision-constant");
+	}
+
+        baseCommandCompiler.add("-DF_CPU=" + boardPreferences.get("build.f_cpu"));
+        baseCommandCompiler.add("-MMD"); // output dependancy info
+        baseCommandCompiler.add("-DARDUINO=" + Base.REVISION);
+        baseCommandCompiler.add("-DENERGIA=" + Base.EREVISION);
+
+        if(Preferences.getBoolean("build.debug")) {
+        	baseCommandCompiler.add("-g");
+        	baseCommandCompiler.add("-gdwarf-2");
+        }
+
       } else if (arch == "c2000") {
       	
           String[] filePrefix = new String[2];
@@ -1016,8 +1278,10 @@ else
           baseCommandCompiler.add("--gcc");//enable gcc extensions
           baseCommandCompiler.add("--define=ENERGIA=" + Base.EREVISION);
           baseCommandCompiler.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
+          baseCommandCompiler.add("--define=" + boardPreferences.get("build.mcu"));
           baseCommandCompiler.add("--define=ARDUINO=" + Base.REVISION);
           baseCommandCompiler.add("--diag_warning=225");
+          baseCommandCompiler.add("--gen_func_subsections=on");
           baseCommandCompiler.add("--display_error_number");
           baseCommandCompiler.add("--diag_wrap=off");
           baseCommandCompiler.add("--preproc_with_compile");
@@ -1098,7 +1362,7 @@ else
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
         basePath + "msp430-g++",
         "-c", // compile, don't link
-        "-g", // include debugging info (so errors include line numbers)
+//        "-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -1109,25 +1373,41 @@ else
         "-DARDUINO=" + Base.REVISION,
         "-DENERGIA=" + Base.EREVISION,
       }));
+      
+      if(Preferences.getBoolean("build.debug"))
+      	baseCommandCompilerCPP.add("-g");
     } 
-    else if (arch == "lm4f") {
+    else if (arch == "lm4f" || arch == "cc3200") {
         baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
           basePath + "arm-none-eabi-g++",
           "-c",
-          "-g", // include debugging info (so errors include line numbers)
-          "-Os", // optimize for size
+//          "-g", // include debugging info (so errors include line numbers)
+//          "-gdwarf-2",
+          "-Os",
           Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
           "-fno-rtti",
           "-fno-exceptions",
           "-ffunction-sections", // place each function in its own section
           "-fdata-sections",
           "-mthumb", "-mcpu=cortex-m4",
-          "-mfloat-abi=hard","-mfpu=fpv4-sp-d16","-fsingle-precision-constant",
-          "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
-          "-MMD", // output dependancy info
-          "-DARDUINO=" + Base.REVISION,
-          "-DENERGIA=" + Base.EREVISION,
         }));
+
+	if(arch == "lm4f") {
+		baseCommandCompilerCPP.add("-mfloat-abi=hard");
+		baseCommandCompilerCPP.add("-mfpu=fpv4-sp-d16");
+		baseCommandCompilerCPP.add("-fsingle-precision-constant");
+	}
+
+        baseCommandCompilerCPP.add("-DF_CPU=" + boardPreferences.get("build.f_cpu"));
+        baseCommandCompilerCPP.add("-MMD"); // output dependancy info
+        baseCommandCompilerCPP.add("-DARDUINO=" + Base.REVISION);
+        baseCommandCompilerCPP.add("-DENERGIA=" + Base.EREVISION);
+
+        if(Preferences.getBoolean("build.debug")) {
+        	baseCommandCompilerCPP.add("-g");
+        	baseCommandCompilerCPP.add("-gdwarf-2");
+        }
+
     }else if (arch == "c2000") {
     	
       String[] filePrefix = new String[2];
@@ -1145,8 +1425,10 @@ else
       baseCommandCompilerCPP.add("--gcc");//enable gcc extensions
       baseCommandCompilerCPP.add("--define=ENERGIA=" + Base.EREVISION);
       baseCommandCompilerCPP.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
+      baseCommandCompilerCPP.add("--define=" + boardPreferences.get("build.mcu"));
       baseCommandCompilerCPP.add("--define=ARDUINO=" + Base.REVISION);
       baseCommandCompilerCPP.add("--diag_warning=225");
+      baseCommandCompilerCPP.add("--gen_func_subsections=on");
       baseCommandCompilerCPP.add("--display_error_number");
       baseCommandCompilerCPP.add("--diag_wrap=off");
       baseCommandCompilerCPP.add("--preproc_with_compile");
@@ -1268,4 +1550,5 @@ else
     
     return files;
   }
+  
 }
