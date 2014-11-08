@@ -47,6 +47,11 @@
 #include "csl_sysctrl.h"
 #include "core.h"
 
+static Uint16 expander1_pinstatus = 0x0;
+static Uint16 expander2_pinstatus = 0x0;
+static Uint8 digitalWrite_exp1firstCall = 0x0; 
+static Uint8 digitalWrite_exp2firstCall = 0x0; 
+
 /**
  *
  *  handleErrors(status)
@@ -82,6 +87,8 @@ int pinMode(unsigned short pinNumber, unsigned short direction);
  *                                  1 : IO Expander Pin output is logic high
  */
 int digitalWrite(unsigned short pinNumber, unsigned short wValue);
+
+int digitalWritePort(unsigned char portNumber, unsigned char bValue);
 
 /**
  *

@@ -47,21 +47,21 @@
 AudioClass AudioC;
 
 #pragma DATA_SECTION("audio_buffers");
-#pragma DATA_ALIGN(32);
+#pragma DATA_ALIGN(1024);//I2S_DMA_BUF_LEN);
 /** DMA left channel buffer */
 Uint16 i2sDmaLeftBuff1[2][I2S_DMA_BUF_LEN];
 
 #pragma DATA_SECTION("audio_buffers");
-#pragma DATA_ALIGN(32);
+#pragma DATA_ALIGN(1024);//I2S_DMA_BUF_LEN);
 /** DMA right channel buffer */
 Uint16 i2sDmaRightBuff1[2][I2S_DMA_BUF_LEN];
 
 #pragma DATA_SECTION("audio_buffers");
-#pragma DATA_ALIGN(32);
+#pragma DATA_ALIGN(1024);//I2S_DMA_BUF_LEN);
 /** DMA left channel buffer 2 */
 Uint16 i2sDmaLeftBuff2[2][I2S_DMA_BUF_LEN];
 #pragma DATA_SECTION("audio_buffers");
-#pragma DATA_ALIGN(32);
+#pragma DATA_ALIGN(1024);//I2S_DMA_BUF_LEN);
 /** DMA right channel buffer 2 */
 Uint16 i2sDmaRightBuff2[2][I2S_DMA_BUF_LEN];
 
