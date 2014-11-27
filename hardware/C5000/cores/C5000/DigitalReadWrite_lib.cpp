@@ -310,133 +310,8 @@ int pinMode(unsigned short pinNumber, unsigned short direction)
 }
 
 
-int digitalWritePort(unsigned char portNumber, unsigned char bValue)
+int digitalWrite_port(unsigned short pinNumber, unsigned short wValue)
 {
-    CSL_Status   status;
-    Uint16       port;
-    Uint16       expander;
-    Uint16       pin;
-    Uint16       i2cWriteBuf[2];
-    Uint16       driveOld;
-    Uint16       wValue=0x0;
-
-    if(portNumber>3)
-        return (-1);
-    expander = portNumber < 2?IO_EXPANDER1:IO_EXPANDER2;
-
-    /* Read Old values of all the pins of the desired port */
-    if (0 == portNumber%2)
-    {
-        i2cWriteBuf[0] = 0x02; /* Port0 Output Cmd */
-    }
-    else if (1 == portNumber%2)
-    {
-        i2cWriteBuf[0] = 0x03; /* Port1 Output Cmd */
-    }
-    
-    if( (expander==IO_EXPANDER1 && !digitalWrite_exp1firstCall) ||
-        (expander==IO_EXPANDER2 && !digitalWrite_exp2firstCall) )
-    {
-        if (expander==IO_EXPANDER1)
-            digitalWrite_exp1firstCall=0x1;
-        else if (expander==IO_EXPANDER2)
-            digitalWrite_exp2firstCall=0x1;
-
-        status = Wire.beginTransmission(expander);
-        if (status != 0)
-        {
-            return (status);
-        }
-        status = Wire.write((unsigned int *)i2cWriteBuf, 1);
-        if (1 != status)
-        {
-            return (1);
-        }
-        status = Wire.endTransmission();
-        if (status != CSL_SOK)
-        {
-            return (status);
-        }
-
-        status = Wire.requestFrom(expander, 1, (unsigned int *)i2cWriteBuf, 1);
-        if (status != CSL_SOK)
-        {
-            return (status);
-        }
-
-        if (1 != Wire.available())
-        {
-            return (-1);
-        }
-
-        driveOld = Wire.read();
-
-        if (expander==IO_EXPANDER1)
-        {
-            expander1_pinstatus=driveOld;
-        }
-        else if (expander==IO_EXPANDER2)
-        {
-            expander2_pinstatus=driveOld;
-        }
-        
-        
-    }
-
-    /* Write the requested value to the IO Expander Pin */
-    if (0 == portNumber%2)
-    {
-        i2cWriteBuf[0] = 0x02; /* Port0 Output Cmd */
-    }
-    else if (1 == portNumber%2)
-    {
-        i2cWriteBuf[0] = 0x03; /* Port1 Output Cmd */
-    }
-
-    //i2cWriteBuf[1] = driveOld;
-    if (expander==IO_EXPANDER1)
-    {
-        i2cWriteBuf[1]=expander1_pinstatus;
-    }
-    else if (expander==IO_EXPANDER2)
-    {
-        i2cWriteBuf[1]=expander2_pinstatus;
-    }
-
-
-        if(portNumber%2==0)
-        {
-            i2cWriteBuf[1] &= 0xFF00;
-            i2cWriteBuf[1] |= bValue;
-        }
-        else if(portNumber%2==1)
-        {
-            i2cWriteBuf[1] &= 0x00FF;
-            i2cWriteBuf[1] |= ((wValue | bValue) << 8);
-        }
-
-    status = Wire.beginTransmission(expander);
-    if (status != 0)
-    {
-        return (status);
-    }
-    status = Wire.write((unsigned int *)i2cWriteBuf, 2);
-    if (2 != status)
-    {
-        return (1);
-    }
-    status = Wire.endTransmission();
-
-    if (expander==IO_EXPANDER1)
-    {
-        expander1_pinstatus=i2cWriteBuf[1];
-    }
-    else if (expander==IO_EXPANDER2)
-    {
-        expander2_pinstatus=i2cWriteBuf[1];
-    }
-
-    return (status);
 }
 
 /**
@@ -482,6 +357,8 @@ unsigned int digitalRead(int pinNumber)
 
     if (status != CSL_SOK)
     {
+        Wire.endTransmission();
+        Wire.begin();
         return (2);
     }
 

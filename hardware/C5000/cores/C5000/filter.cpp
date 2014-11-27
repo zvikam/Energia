@@ -87,7 +87,7 @@ void filter_iirSecondOrder(const int length,
                            const int *input,
                            int       *output,
                            const int *coeffs,
-                           int       *delayBuf)
+                           long       *delayBuf)
 {
 	register int n;
 	register int a_0, a_1, a_2, b_0, b_1, b_2;
@@ -105,10 +105,16 @@ void filter_iirSecondOrder(const int length,
     y_1 = (long)delayBuf[2];
     y_2 = (long)delayBuf[3];
 
+  long roundPt = delayBuf[4];//0x01 << (a_0-1);
+  long ones = (1<<a_0) - 1;
 	for(n = 0; n < length; n++)
 	{
 		x_0 = (long)input[n];
-		y_0 = (x_0 * b_0 + x_1 * b_1 + x_2 * b_2 - y_1 * a_1 - y_2 * a_2) >> a_0;
+    x_0 = x_0 - x_1; //differentiator
+    x_0 = ((x_1 * 26214) >> 15) + x_0; //leaky integrator
+		y_0 = ((x_0 * b_0 + x_1 * b_1 + x_2 * b_2 - y_1 * a_1 - y_2 * a_2) + (roundPt));
+    roundPt = y_0 & ones; //compute fraction saving;
+    y_0 >>= a_0; //perform Q.15 scaling
         output[n] = (int)y_0;
 		x_2 = x_1;
 		x_1 = x_0;
@@ -116,10 +122,11 @@ void filter_iirSecondOrder(const int length,
 		y_1 = y_0;
 	}
 
-	delayBuf[0] = (int)x_1;
-	delayBuf[1] = (int)x_2;
-	delayBuf[2] = (int)y_1;
-	delayBuf[3] = (int)y_2;
+	delayBuf[0] = x_1;
+	delayBuf[1] = x_2;
+	delayBuf[2] = y_1;
+	delayBuf[3] = y_2;
+  delayBuf[4] = roundPt;
 }
 
 /** ===========================================================================
@@ -168,13 +175,13 @@ void filter_iirArbitraryOrder(int       length,
                               int       *input,
                               int       *output,
                               const int *coeffs,
-                              int       *delayBuf,
+                              long       *delayBuf,
                               int       order)
 {
     register int index;
     register int size;
     const int iirCoeffCount = 6;
-    const int iirDelayCount = 4;
+    const int iirDelayCount = 5;
 
     for (index = 0; index < order/2; index++)
     {

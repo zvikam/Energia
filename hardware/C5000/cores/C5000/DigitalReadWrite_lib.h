@@ -88,8 +88,6 @@ int pinMode(unsigned short pinNumber, unsigned short direction);
  */
 int digitalWrite(unsigned short pinNumber, unsigned short wValue);
 
-int digitalWritePort(unsigned char portNumber, unsigned char bValue);
-
 /**
  *
  *  digitalRead(pinNumber)

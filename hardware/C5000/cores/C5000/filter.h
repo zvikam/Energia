@@ -90,7 +90,7 @@ void filter_iirSecondOrder(const int length,
                            const int *input,
                            int       *output,
                            const int *coeffs,
-                           int       *delayBuf);
+                           long       *delayBuf);
 
 /** ===========================================================================
  *
@@ -138,7 +138,7 @@ void filter_iirArbitraryOrder(int       length,
                               int       *input,
                               int       *output,
                               const int *coeffs,
-                              int       *delayBuf,
+                              long       *delayBuf,
                               int       order);
 
 /** ===========================================================================
