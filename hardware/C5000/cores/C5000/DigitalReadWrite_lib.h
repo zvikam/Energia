@@ -90,6 +90,19 @@ int digitalWrite(unsigned short pinNumber, unsigned short wValue);
 
 /**
  *
+ *  digitalWritePort(unsigned char portNumber, unsigned char bValue)
+ *
+ *      Sets all 8 pins on an IO Expander port to high or low state. The IO Expander Pins affected must
+ *      be configured as output to show changes.
+ *
+ *      unsigned char portNumber <- IO Expander Port number
+ *      unsigned char bValue     <- byte containing bit flags for each of 8 pins on the port.
+ *
+ */
+int digitalWrite_port(unsigned char portNumber, unsigned char bValue);
+
+/**
+ *
  *  digitalRead(pinNumber)
  *
  *      Returns 0 if the IO Expander Pin is in the low state and 1 if it is
