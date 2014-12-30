@@ -9,7 +9,7 @@
  *
  * This sketch dmonstrates usage of function Timer.initialize
  */
-
+
 #include <Timers.h>
 
 void setup() {
