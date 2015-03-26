@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta content="HTML Tidy for Windows (vers 15 August 2007), see www.w3.org" name="generator">
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii"><!-- /* * Copyright 2007 by Texas Instruments Incorporated. * All rights reserved. Property of Texas Instruments Incorporated. * Restricted rights to use, duplicate or disclose this code are * granted through contract. * * */ -->
+
+
+
+<title>MSP430 Java HID Demo App -- Release Notes</title><!-- For now, we use the doxygen style sheet --><link href="docs/html/doxygen.css" rel="stylesheet" type="text/css"></head>
+<body>
+<table width="100%">
+<tbody>
+<tr>
+<td bgcolor="black" width="1"><a href="http://www.ti.com/"><img style="border: 0px solid ; width: 222px; height: 54px;" src="icons/tilogo.gif" alt="Texas Instruments"></a></td>
+<td bgcolor="red"><img style="width: 314px; height: 26px;" alt="Inovation" src="icons/titagline.gif"></td>
+</tr>
+</tbody>
+</table>
+<h1>MSP430 Energia USB HID -- Release Notes</h1>
+<h2><a name="Introduction" id="Introduction">Introduction</a></h2>
+<p>Welcome to the&nbsp;USB HID example for Energia. &nbsp;The example
+is&nbsp;designed to use the
+USB HID-Datapipe format (see the MSP430 USB
+Developer's&nbsp;Programmer's Guide for more information) to send and
+receive data to and from the host while running Energia on the MSP430
+Launch Pad.<br>
+</p>
+<p>The project is composed of
+Energia framework with USB HID example and the HidDemo tool that
+supports communication between the host and MSP430 Launchpad. &nbsp;
+The HidDemo tool is available
+in MSP430 USB Developers Package. &nbsp;&nbsp; &nbsp;&nbsp; </p>
+This document is divided into the following sections:
+<ul>
+<li><a href="#Prerequisites">Prerequisites</a></li>
+<li><a href="#Run_USBHID_Example">Running the USBHID Example</a></li>
+<li><a href="#Run_HID_Demo">Running the HID Demo App</a></li><li><a href="#Example_and_Library">USBHID Example and Library</a></li>
+<li><a href="#Validation">Validation Information</a></li>
+<li><a href="#Known_Issues">Known Issues</a></li>
+<li><a href="#Versioning">Versioning</a></li>
+<li><a href="#Support">Support</a></li>
+</ul>
+<br>
+<hr><br>
+<h2><a name="Prerequisites" id="Prerequisites">Prerequisites</a></h2>
+<h3><a name="Prerequisites" id="Prerequisites">To
+run the USB HID example:</a></h3>
+<ul>
+<li><a name="Prerequisites" id="Prerequisites">Download Energia<br></a></li>
+</ul>
+<h3><a name="Prerequisites" id="Prerequisites">To communicate with the LaunchPad:</a></h3>
+<ul>
+<li><a name="Prerequisites" id="Prerequisites">Download the latest release of the MSP430 USB Developers Package and run the HidDemo tool &nbsp;
+</a><br></li><ul></ul>
+</ul>
+<br>
+<br>
+<a name="Prerequisites" id="Prerequisites"></a>
+<hr><a name="Prerequisites" id="Prerequisites"></a><h2><a name="Run_USBHID_Example" id="Running">Running
+the USBHID example</a></h2>
+<p><a name="Running" id="Running">Bring up Energia and click on File
+-&gt; Examples -&gt; USBHID
+-&gt; USBHidExample_Echo_To_Host. &nbsp;When the sketch appears in the
+workspace, click on Tools -&gt; Board -&gt;Launchpad w/ MSP430F5529 and
+then click on the&nbsp;button with the right arrow to compile and
+download the sketch to the LaunchPad. &nbsp;Power cycle the Launchpad
+by disconnecting and re-connecting the USB connection. &nbsp;</a></p><a name="Running" id="Running"></a> Bring up the HID Demo tool and type&nbsp;text into the 'Send and Receive' text box. &nbsp;<a name="Running" id="Running"><br>
+</a>
+<hr><a name="Running" id="Running"><br>
+</a>
+<h2><a name="Run_HID_Demo" id="Running">Running
+the HID Demo App</a></h2><h2><a name="Rebuilding" id="Rebuilding"></a></h2><a name="Running" id="Running">The Hid
+Demo App can be executed from a command line, by navigating to the
+directory in
+which this *.jar file is located, and type "java
+-jar HidDemo.jar". &nbsp;&nbsp;</a><a name="Running" id="Running">The
+HID
+Demo App can can also be started by double-clicking on hidDemo-java.jar. &nbsp; Double clicking assumes that
+your
+system, Java version, and path are configured correctly so it is
+recommended&nbsp; to try&nbsp;command line execution first. </a>
+<a name="Running" id="Running"><br></a><br><img style="width: 875px; height: 567px;" alt="Hid Demo" src="icons/HidDemo_Tool.png"><br><br>
+<br><hr style="width: 100%; height: 2px;"><br><h2><a name="Example_and_Library" id="Running">USBHID example and library</a></h2>
+The MSP430 USB Developers Package contains examples that show various
+implementation of USB HID interface. &nbsp;The Energia USBHID example
+sketch and the USBHumanInterface.cpp file can be updated to implement
+the HID functionalities as represented in the examples. &nbsp; The
+intent of the&nbsp;USBHumanInterface.cpp file was to provide functions
+that allowed for wrapping and manipulating the USB stack API calls and
+to provide the user with flexibility to add additional user created
+APIs. <br><br>
+<br>
+<br>
+<hr><br>
+<h2><a name="Validation" id="Validation">Validation</a></h2>
+This release of the USBHID example has been tested on Windows&nbsp;7 64-bit machine.<br>
+<br>
+<hr><br>
+<h2><a name="Known_Issues" id="Known_Issues">Known
+Issues</a></h2>None. &nbsp; <br>
+<br>
+<hr><br>
+<h2><a name="Versioning" id="Versioning">Versioning</a></h2>
+<p>This is demo code, and therefore there is no versioning.</p>
+<hr>
+<h2><a name="Support" id="Support">Support</a></h2>
+<a name="Support" id="Support">First check the
+Examples Guide and MSP430 USB API Programmer's Guide in the USB
+Developers Package for more information on MSP430 HID interface. If you still need support,
+please
+visit the </a><a href="http://e2e.ti.com/support/microcontrollers/msp430/default.aspx">MSP430
+E2E forum</a>.
+or e-mail us directly at&nbsp;<font face="Times New Roman" size="3"><span style="font-size: 12pt;"><a title="mailto:msp430ware@list.ti.com" href="mailto:msp430ware@list.ti.com">msp430ware@list.ti.com.</a><o:p></o:p></span></font>
+<br>
+<br>
+</body></html>
