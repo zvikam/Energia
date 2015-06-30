@@ -5,10 +5,10 @@
  got inspired by Arduino MsTimer2 by Javier Valencia <javiervalencia80@gmail.com>
  11/Nov/14 - Made more flexible for MSP430 variants
              set to 1ms overflow time -> change to OneMsTaskTimer
-			 by Stefan Sch
+          by Stefan Sch
  17/Nov/14 - restructured code to support mulitple tasks 
              added suppport for CC3200
-			 by Stefan Sch
+          by Stefan Sch
  
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -171,42 +171,42 @@ void OneMsTaskTimer_int(void)
 uint32_t timer_index_ = DEFAULT_TIMER;
 
 //#if defined(__MSP430_HAS_T1A2__) || defined(__MSP430_HAS_T1A3__) || defined(__MSP430_HAS_T1A5__) || defined(__MSP430_HAS_T1A7__)
-	#if DEFAULT_TIMER == 0
-	#define TAxCCTL0 TA0CCTL0
-	#define TAxCCR0 TA0CCR0
-	#define TAxCTL TA0CTL
-	#define TIMERx_A0_VECTOR TIMER0_A0_VECTOR
-	#endif
-	#if DEFAULT_TIMER == 1
-	#define TAxCCTL0 TA1CCTL0
-	#define TAxCCR0 TA1CCR0
-	#define TAxCTL TA1CTL
-	#define TIMERx_A0_VECTOR TIMER1_A0_VECTOR
-	#endif
-	#if DEFAULT_TIMER == 2
-	#define TAxCCTL0 TA2CCTL0
-	#define TAxCCR0 TA2CCR0
-	#define TAxCTL TA2CTL
-	#define TIMERx_A0_VECTOR TIMER2_A0_VECTOR
-	#endif
-	#if DEFAULT_TIMER == 3
-	#define TAxCCTL0 TA3CCTL0
-	#define TAxCCR0 TA3CCR0
-	#define TAxCTL TA3CTL
-	#define TIMERx_A0_VECTOR TIMER3_A0_VECTOR
-	#endif
-	#if DEFAULT_TIMER == 4
-	#define TAxCCTL0 TA4CCTL0
-	#define TAxCCR0 TA4CCR0
-	#define TAxCTL TA4CTL
-	#define TIMERx_A0_VECTOR TIMER4_A0_VECTOR
-	#endif
-	#if DEFAULT_TIMER == 10
-	#define TAxCCTL0 TB0CCTL0
-	#define TAxCCR0 TB0CCR0
-	#define TAxCTL TB0CTL
-	#define TIMERx_A0_VECTOR TIMER0_B0_VECTOR
-	#endif
+   #if DEFAULT_TIMER == 0
+   #define TAxCCTL0 TA0CCTL0
+   #define TAxCCR0 TA0CCR0
+   #define TAxCTL TA0CTL
+   #define TIMERx_A0_VECTOR TIMER0_A0_VECTOR
+   #endif
+   #if DEFAULT_TIMER == 1
+   #define TAxCCTL0 TA1CCTL0
+   #define TAxCCR0 TA1CCR0
+   #define TAxCTL TA1CTL
+   #define TIMERx_A0_VECTOR TIMER1_A0_VECTOR
+   #endif
+   #if DEFAULT_TIMER == 2
+   #define TAxCCTL0 TA2CCTL0
+   #define TAxCCR0 TA2CCR0
+   #define TAxCTL TA2CTL
+   #define TIMERx_A0_VECTOR TIMER2_A0_VECTOR
+   #endif
+   #if DEFAULT_TIMER == 3
+   #define TAxCCTL0 TA3CCTL0
+   #define TAxCCR0 TA3CCR0
+   #define TAxCTL TA3CTL
+   #define TIMERx_A0_VECTOR TIMER3_A0_VECTOR
+   #endif
+   #if DEFAULT_TIMER == 4
+   #define TAxCCTL0 TA4CCTL0
+   #define TAxCCR0 TA4CCR0
+   #define TAxCTL TA4CTL
+   #define TIMERx_A0_VECTOR TIMER4_A0_VECTOR
+   #endif
+   #if DEFAULT_TIMER == 10
+   #define TAxCCTL0 TB0CCTL0
+   #define TAxCCR0 TB0CCR0
+   #define TAxCTL TB0CTL
+   #define TIMERx_A0_VECTOR TIMER0_B0_VECTOR
+   #endif
 //#else
 //#error Board not supported
 //#endif
@@ -252,15 +252,16 @@ void OneMsTaskTimer_int(void)
 #endif //if defined(__MSP430__)
 
 
-#if defined(__CC3200R1M1RGC__)
+#if defined(__CC3200R1M1RGC__) || defined(TARGET_IS_CC3200) 
 
+#include <inc/hw_types.h>
+#include <inc/hw_memmap.h>
+#include <inc/hw_gprcm.h>
+#include "inc/hw_timer.h"
 #include <driverlib/prcm.h>
 #include <driverlib/rom_map.h>
 #include <driverlib/pin.h>
 #include <driverlib/timer.h>
-#include <inc/hw_memmap.h>
-#include <inc/hw_gprcm.h>
-#include "inc/hw_timer.h"
 
 #define DEFAULT_TIMER 1
 uint32_t timer_index_ = DEFAULT_TIMER;
@@ -310,7 +311,7 @@ void OneMsTaskTimer_int(void)
   OneMsTaskTimer::_ticHandler();
 }
 
-#endif //if defined(__CC3200R1M1RGC__)
+#endif //#if defined(__CC3200R1M1RGC__) || defined(TARGET_IS_CC3200) 
 
 
 #if defined(__TM4C123GH6PM__)
@@ -386,7 +387,7 @@ void OneMsTaskTimer_int(void)
 // ---------------------------------------------------------------------
 
 void OneMsTaskTimer::set_timer_index(uint32_t timer_index) {
-	timer_index_ = timer_index;
+   timer_index_ = timer_index;
 }
 
 // configure the registers
@@ -399,18 +400,18 @@ void OneMsTaskTimer::start() {
 void OneMsTaskTimer::add(OneMsTaskTimer_t * task) {
   OneMsTaskTimer_t * p_task = p_initial_OneMsTaskTimer;
   if (p_task == 0){
-	  p_initial_OneMsTaskTimer = task;
+     p_initial_OneMsTaskTimer = task;
   }else{
-	while (p_task->nextTask != 0){
-	  p_task = p_task->nextTask;
-	}
-	p_task->nextTask = task;
+   while (p_task->nextTask != 0){
+     p_task = p_task->nextTask;
+   }
+   p_task->nextTask = task;
   }
   p_task = task;
-	
+   
   // ensure save initialisation
   if (task->msecs == 0)
-  	task->msecs = 1;
+     task->msecs = 1;
   task->count = 0;
   task->nextTask = 0;
 }
@@ -427,15 +428,15 @@ void OneMsTaskTimer::remove(OneMsTaskTimer_t * task) {
     p_nexttask = p_task->nextTask;
   }
   if (p_nexttask != 0){
-	  if (p_nexttask == p_initial_OneMsTaskTimer){
-		  if (p_nexttask != 0){
-			  p_initial_OneMsTaskTimer = p_nexttask->nextTask;
-		  }else{
-			  p_initial_OneMsTaskTimer = 0;
-		  }
-	  }else{
-		  p_task->nextTask = p_nexttask->nextTask;
-	  }
+     if (p_nexttask == p_initial_OneMsTaskTimer){
+        if (p_nexttask != 0){
+           p_initial_OneMsTaskTimer = p_nexttask->nextTask;
+        }else{
+           p_initial_OneMsTaskTimer = 0;
+        }
+     }else{
+        p_task->nextTask = p_nexttask->nextTask;
+     }
   }
 }
 
