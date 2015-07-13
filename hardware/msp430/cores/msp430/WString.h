@@ -27,7 +27,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <avr/pgmspace.h>
-
+#include <itoa.h>
 // When compiling programs with this class, the following gcc parameters
 // dramatically increase performance and memory (RAM) efficiency, typically
 // with little or no increase in code size.
