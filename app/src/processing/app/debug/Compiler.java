@@ -296,13 +296,13 @@ public class Compiler implements MessageConsumer {
   List baseCommandAR;
   if(arch == "msp430")  {
     baseCommandAR = new ArrayList(Arrays.asList(new String[] {
-      basePath + "msp430-ar",
+      "msp430-elf-ar",
       "rcs",
       runtimeLibraryName
     }));
     } else if(arch == "lm4f" || arch == "cc3200" || arch == "cc3200emt" || arch == "msp432") {
       baseCommandAR = new ArrayList(Arrays.asList(new String[] { 
-        basePath + "arm-none-eabi-ar",
+        "arm-stellaris-eabi-ar",
         "rcs",
         runtimeLibraryName
     }));  	
@@ -314,7 +314,7 @@ public class Compiler implements MessageConsumer {
     }));
     }else {
       baseCommandAR = new ArrayList(Arrays.asList(new String[] {
-        basePath + "avr-ar",
+        "avr-ar",
         "rcs",
         runtimeLibraryName
     }));
@@ -351,8 +351,9 @@ public class Compiler implements MessageConsumer {
     List baseCommandLinker;
     if (arch == "msp430") { 
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
-        basePath + "msp430-gcc",
+        "msp430-elf-g++",
         "-Os",
+	"-g",
         // msp430 linker has an issue with main residing in an archive, cora.a in this case.
         // -u,main works around this by forcing the linker to find a definition for main.
         "-Wl,-gc-sections,-u,main", 
@@ -362,8 +363,9 @@ public class Compiler implements MessageConsumer {
       }));
     }else if (arch == "lm4f" || arch == "cc3200" || arch == "cc3200emt" || arch == "msp432") { 
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
-        basePath + "arm-none-eabi-g++",
+        "arm-stellaris-eabi-g++",
         "-Os",
+	"-g",
         "-nostartfiles","-nostdlib",
         "-Wl,--gc-sections",
         "-T", corePath + File.separator + boardPreferences.get("ldscript"),
@@ -428,6 +430,7 @@ public class Compiler implements MessageConsumer {
       baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-gcc",
         "-Os",
+	"-g",
         "-Wl,--gc-sections"+optRelax,
         "-mmcu=" + boardPreferences.get("build.mcu"),
         "-o",
@@ -494,13 +497,13 @@ public class Compiler implements MessageConsumer {
     List baseCommandObjcopy;
     if (arch == "msp430") {
     baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
-      basePath + "msp430-objcopy",
+      "msp430-elf-objcopy",
       "-O",
       "-R",
     }));
     } else if (arch == "lm4f" || arch == "cc3200" || arch == "cc3200emt" || arch == "msp432") {
       baseCommandObjcopy = new ArrayList(Arrays.asList(new String[] {
-        basePath + "arm-none-eabi-objcopy",
+        "arm-stellaris-eabi-objcopy",
         "-O",
       }));
     }
@@ -1055,9 +1058,9 @@ public class Compiler implements MessageConsumer {
     	//as per
     	//http://mspgcc.sourceforge.net/manual/x1522.html
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
-          basePath + "msp430-gcc",
+          "msp430-elf-gcc",
           "-c", // compile, don't link
-//          "-g", // include debugging info (so errors include line numbers)
+          "-g", // include debugging info (so errors include line numbers)
           "-assembler-with-cpp",
           "-mmcu=" + boardPreferences.get("build.mcu"),
           "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
@@ -1070,9 +1073,9 @@ public class Compiler implements MessageConsumer {
 
     } else if (arch == "lm4f" || arch == "cc3200" || arch == "cc3200emt" || arch == "msp432") {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
-          basePath + "arm-none-eabi-gcc",
+          "arm-stellaris-eabi-gcc",
           "-c",
-//          "-g",
+          "-g",
 //          "-gdwarf-2",
           "-assembler-with-cpp",
           Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
@@ -1159,9 +1162,9 @@ public class Compiler implements MessageConsumer {
 
       if (arch == "msp430") {
       baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
-        basePath + "msp430-gcc",
+        "msp430-elf-gcc",
         "-c", // compile, don't link
-//        "-g", // include debugging info (so errors include line numbers)
+        "-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -1178,7 +1181,7 @@ public class Compiler implements MessageConsumer {
 
       }else if (arch == "lm4f" || arch == "cc3200" || arch == "cc3200emt" || arch == "msp432") {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
-        basePath + "arm-none-eabi-gcc",
+        "arm-stellaris-eabi-gcc",
         "-c",
 //        "-g",
 //        "-gdwarf-2",
@@ -1276,9 +1279,9 @@ public class Compiler implements MessageConsumer {
     List baseCommandCompilerCPP;
     if (arch == "msp430") {  
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
-        basePath + "msp430-g++",
+        "msp430-elf-g++",
         "-c", // compile, don't link
-//        "-g", // include debugging info (so errors include line numbers)
+        "-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -1295,9 +1298,9 @@ public class Compiler implements MessageConsumer {
     } 
     else if (arch == "lm4f" || arch == "cc3200" || arch == "cc3200emt" || arch == "msp432") {
         baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
-          basePath + "arm-none-eabi-g++",
+          "arm-stellaris-eabi-g++",
           "-c",
-//          "-g", // include debugging info (so errors include line numbers)
+          "-g", // include debugging info (so errors include line numbers)
 //          "-gdwarf-2",
           "-Os",
           Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose

@@ -34,11 +34,11 @@
   <fileset dir=".." id="runtime.jars">
     <include name="core/core.jar" />
     <include name="app/pde.jar" />
-    <include name="app/lib/ecj.jar" />
-    <include name="app/lib/jna.jar" />
-    <include name="app/lib/RXTXcomm.jar" />
-    <include name="app/lib/ant.jar" />
-    <include name="app/lib/ant-launcher.jar" />
+    <include name="app/lib/ecj.jar" unless="linux" />
+    <include name="app/lib/jna.jar" unless="linux" />
+    <include name="app/lib/RXTXcomm.jar" unless="linux" />
+    <include name="app/lib/ant.jar" unless="linux" />
+    <include name="app/lib/ant-launcher.jar" unless="linux" />
   </fileset>
 
   <property name="closure-version" value="emt-a61"/>
@@ -409,8 +409,8 @@
     
     <fail message="wrong platform (${os.name})" />
   </target>
-  
-  <target name="linux-build" depends="revision-check, linux-checkos, subprojects-build, unzip-common-tools-linux" description="Build linux version">
+
+  <target name="linux-build" depends="revision-check, linux-checkos, subprojects-build" description="Build linux version">
     <mkdir dir="linux/work" />
     
     <copy todir="linux/work">
@@ -419,7 +419,9 @@
     </copy>
     
     <copy todir="linux/work">
-      <fileset dir="linux/dist" includes="lib/**" />
+      <fileset dir="linux/dist" includes="lib/**" >
+	<exclude name="**/*.so" />
+      </fileset>
     </copy>
 
     <copy todir="linux/work/lib" flatten="true">
@@ -441,87 +443,11 @@
   </target>
 
   <!-- Linux 32 build -->
-  <property name="arm.tools.linux.local" value="arm_tools_linux32.tar.bz2"/>
-  <property name="msp430.tools.linux.local" value="msp430_tools_linux32_05_2015.tar.bz2"/>
-
-  <condition property="exists.tools.linux">
-  <and>
-  <available property="exists.dep.arm.linux" file="linux/${arm.tools.linux.local}"/>
-  <available property="exists.dep.msp430.linux" file="linux/${msp430.tools.linux.local}"/>
-  </and>
-  </condition>
-  <property name="dep.arm.default.ok" value="true"/>
-    <target name="download-common-tools-linux" depends="check-common-tools" unless="common-tools.exists">
-      <echo message="Downloading common tools"/>
-      <get src="http://energia.nu/files/tools-common-${platform}.tar.bz2" dest="${build-dir}/tools-common.tar.bz2"/>
-    </target>
-
-    <target name="unzip-common-tools-linux" if="dep.common.default.ok" depends="download-common-tools-linux">
-	    <untar src="${build-dir}/tools-common.tar.bz2" dest="${common-tools-dest}" compression="bzip2" overwrite="false"/>
-            <chmod file="linux/work/tools/common/DSLite/DebugServer/bin/DSLite" perm="755" />
-    </target>
-
-  <target name="check.deps.linux"
-    if="dep.arm.default.ok"
-    unless="exists.tools.linux">
-    <property name="arm.tools.linux.remote" value="http://energia.nu/files/arm_tools_linux32.tar.bz2"/>
-	<property name="msp430.tools.linux.remote" value="http://energia.nu/files/msp430_tools_linux32_05_2015.tar.bz2"/>
-    <!-- Get tools -->
-	<get src="${arm.tools.linux.remote}" dest="linux/${arm.tools.linux.local}"/>
-	<get src="${msp430.tools.linux.remote}" dest="linux/${msp430.tools.linux.local}"/>
-  </target>
-
-  <target name="linux32-build" depends="linux-build, check.deps.linux" description="Build linux (32-bit) version">
-<echo>${user.dir}</echo>
-    <!-- Unzip msp430 tools -->
-    <exec executable="tar" dir="linux/work/hardware/tools">
-      <arg value="-xjf"/>
-      <arg value="${user.dir}/linux/msp430_tools_linux32_05_2015.tar.bz2"/>
-    </exec>
-    <!-- Unzip lm4f tools -->
-    <exec executable="tar" dir="linux/work/hardware/tools">
-      <arg value="-xjf"/>
-      <arg value="${user.dir}/linux/arm_tools_linux32.tar.bz2"/>
-    </exec>
-  </target>
+  <target name="linux32-build" depends="linux-build" />
 
   <!-- Linux 64 build -->
-  <property name="arm.tools.linux64.local" value="arm_tools_linux64.tar.bz2"/>
-  <property name="msp430.tools.linux64.local" value="msp430_tools_linux64_05_2015.tar.bz2"/>
+  <target name="linux64-build" depends="linux-build" />
 
-  <condition property="exists.tools.linux64">
-  <and>
-  <available property="exists.dep.arm.linux64" file="linux/${arm.tools.linux64.local}"/>
-  <available property="exists.dep.msp430.linux64" file="linux/${msp430.tools.linux64.local}"/>
-  </and>
-  </condition>
-  <property name="dep.arm.default.ok" value="true"/>
-
-  <target name="check.deps.linux64"
-    if="dep.arm.default.ok"
-    unless="exists.tools.linux64">
-    <property name="arm.tools.linux64.remote" value="http://energia.nu/files/arm_tools_linux64.tar.bz2"/>
-	<property name="msp430.tools.linux64.remote" value="http://energia.nu/files/msp430_tools_linux64_05_2015.tar.bz2"/>
-    <!-- Get tools -->
-	<get src="${arm.tools.linux64.remote}" dest="linux/${arm.tools.linux64.local}"/>
-	<get src="${msp430.tools.linux64.remote}" dest="linux/${msp430.tools.linux64.local}"/>
-  </target>
-
-
-  <target name="linux64-build" depends="linux-build, check.deps.linux64" description="Build linux (64-bit) version">
-    <copy tofile="linux/work/lib/librxtxSerial.so" file="linux/dist/lib/librxtxSerial64.so" overwrite="true" />
-    <exec executable="tar" dir="linux/work/hardware/tools">
-      <arg value="-xjf"/>
-      <arg value="${user.dir}/linux/msp430_tools_linux64_05_2015.tar.bz2"/>
-    </exec>
-
-    <!-- Unzip lm4f tools -->
-    <exec executable="tar" dir="linux/work/hardware/tools">
-      <arg value="-xjf"/>
-      <arg value="${user.dir}/linux/arm_tools_linux64.tar.bz2"/>
-    </exec>
-  </target> 
-  
   <target name="linux32-run" depends="linux32-build" 
 	  description="Run Linux (32-bit) version">
     <exec executable="./linux/work/energia" spawn="false"/>
@@ -532,60 +458,6 @@
     <exec executable="./linux/work/energia" spawn="false"/>
   </target>
 
-  <target name="linux-dist" depends="build" 
-	  description="Build .tar.gz of linux version">
-
-    <!--get src="http://dev.processing.org/build/jre-tools-6u18-linux-i586.tgz" 
-	 dest="linux/jre.tgz" 
-	 usetimestamp="true" />    
-    <untar compression="gzip" 
-	   dest="linux/work" 
-	   src="linux/jre.tgz" 
-	   overwrite="false"/-->
-
-<!--
-    <tar compression="gzip" basedir="linux/work" 
-	 destfile="linux/energia-${version}.tgz" />
-
-    <tar compression="gzip" destfile="linux/energia-${version}-linux.tgz">
-      <tarfileset dir="linux/work" 
-		  prefix="energia-${version}" 
-		  excludes="energia, 
-			    hardware/tools/avrdude,
-			    java/**"
-		  /> 
-      <tarfileset file="linux/work/energia" filemode="755" prefix="energia-${version}" />
-      <tarfileset file="linux/work/hardware/tools/avrdude" filemode="755" 
-		  prefix="energia-${version}/hardware/tools" />
-    </tar>
--->
-    <move file="linux/work" tofile="linux/energia-${version}" />
-
-    <exec executable="tar" dir="linux">
-      <arg value="-z"/>
-      <arg value="-c"/>
-      <arg value="-f"/>
-      <arg value="energia-${version}-linux.tgz"/>
-      <arg value="energia-${version}"/>
-    </exec>
-
-    <move file="linux/energia-${version}" tofile="linux/work" />
-
-    <echo>
-      =======================================================
-      Energia for Linux was built. Grab the archive from   
-      
-      build/linux/energia-${version}-linux.tgz
-      =======================================================
-    </echo>
-  </target>
-
-  <target name="linux32-dist" depends="linux-dist" 
-	  description="Build .tar.gz of linux version" />
-  
-  <target name="linux64-dist" depends="linux-dist" 
-	  description="Build .tar.gz of linux version" />
-  
   <!-- - - - - - - - -->
   <!-- Windows       -->
   <!-- - - - - - - - -->

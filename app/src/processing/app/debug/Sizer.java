@@ -56,7 +56,7 @@ public class Sizer implements MessageConsumer {
     else if (arch == "lm4f" || arch == "cc3200") {
       String basePath = Base.getLM4FBasePath();
       commandSize = new String[] {
-        basePath + "arm-none-eabi-size",
+        "arm-stellaris-eabi-size",
         " "
       };
     } else if(arch == "c2000") {

@@ -23,6 +23,21 @@
     <property environment="env" />
     <property name="java_home" value="${env.JAVA_HOME}" />
 
+    <exec executable="java-config" outputproperty="jar.rxtx">
+        <arg value="-dp"/>
+        <arg value="rxtx-2"/>
+    </exec>
+
+    <exec executable="java-config" outputproperty="jar.ecj">
+        <arg value="-dp"/>
+        <arg value="eclipse-ecj-4.4"/>
+    </exec>
+
+    <exec executable="java-config" outputproperty="jar.jna">
+        <arg value="-dp"/>
+        <arg value="jna"/>
+    </exec>
+
     <condition property="linux"><os family="unix" /></condition>
     <fail if="linux" unless="java_home" 
 	  message="The JAVA_HOME variable must be set to the location of a full JDK. For instance, on Ubuntu Linux, this might be /usr/lib/jvm/java-6-sun." />
@@ -44,7 +59,7 @@
 	   encoding="UTF-8"
 	   includeAntRuntime="false"
 	   debug="true"
-	   classpath="../core/core.jar; ${env.JAVA_HOME}/lib/tools.jar; lib/ant.jar; lib/ant-launcher.jar; lib/apple.jar; lib/ecj.jar; lib/jna.jar; lib/RXTXcomm.jar" />
+	   classpath="../core/core.jar; ${env.JAVA_HOME}/lib/tools.jar; lib/apple.jar; ${jar.ecj}; ${jar.jna}; ${jar.rxtx} " />
     <copy todir="bin" overwrite="true" verbose="true">
       <fileset dir="src" includes="**/*.properties" />
     </copy>
