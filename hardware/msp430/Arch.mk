@@ -5,12 +5,13 @@ CPPFLAGS := $(CFLAGS) -fno-threadsafe-statics -funsigned-bitfields -fpack-struct
 ASFLAGS := -DF_CPU=$(F_CPU) -x assembler-with-cpp
 LDFLAGS := $(MCU_FLAG) -Os -Wl,--gc-sections,-u,main $(EXTRA_LDFLAGS)
 TOOLS_PATH := $(APPLICATION_PATH)/hardware/tools/msp430/bin
-CC := $(TOOLS_PATH)/msp430-gcc
-CXX := $(TOOLS_PATH)/msp430-g++
-AR := $(TOOLS_PATH)/msp430-ar
-SIZE := $(TOOLS_PATH)/msp430-size
-MSPDEBUG := LD_LIBRARY_PATH=$(APPLICATION_PATH)/hardware/tools/msp430/mspdebug $(LD_LIBRARY_PATH) $(APPLICATION_PATH)/hardware/tools/msp430/mspdebug/mspdebug
-OBJCOPY := $(TOOLS_PATH)/msp430-objcopy
+CC := msp430-elf-gcc
+CXX := msp430-elf-g++
+AR := msp430-elf-ar
+SIZE := msp430-elf-size
+#MSPDEBUG := LD_LIBRARY_PATH=$(APPLICATION_PATH)/hardware/tools/msp430/mspdebug $(LD_LIBRARY_PATH) $(APPLICATION_PATH)/hardware/tools/msp430/mspdebug/mspdebug
+MSPDEBUG := mspdebug
+OBJCOPY := msp430-elf-objcopy
 OBJCOPY_FLAGS := -O ihex -R .eeprom
-OBJDUMP := $(TOOLS_PATH)/msp430-objdump
+OBJDUMP := msp430-elf-objdump
 ######################################
