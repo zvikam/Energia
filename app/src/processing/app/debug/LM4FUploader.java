@@ -46,7 +46,7 @@ public class LM4FUploader extends Uploader{
 		List commandDownloader = new ArrayList();
 
 		if ( Base.isLinux()) {
-			commandDownloader.add(Base.getLM4FBasePath() + "lm4flash");
+			commandDownloader.add("lm4flash");
 		} 
 		else if (Base.isMacOS()) {
 			commandDownloader.add(Base.getLM4FBasePath() + "lm4flash");
