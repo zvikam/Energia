@@ -86,6 +86,14 @@ void analogReference(uint16_t mode)
 }
 #endif
 
+static void __inline__ __delay_cycles(register unsigned int n)
+{
+	__asm__ __volatile__ (
+		"1: \n"
+		" dec        %[n] \n"
+		" jne        1b \n"
+		: [n] "+r"(n));
+}
 
 //TODO: Can be a lot more efficiant.
 //      - lower clock rated / input devider to conserve Energia.
