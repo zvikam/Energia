@@ -1,7 +1,17 @@
 <?xml version="1.0"?>
 <project name="Processing Core" default="build">
 
-  <target name="clean" description="Clean out the build directories">
+  <target name="subprojects-clean">
+    <subant buildpath="methods" target="clean"/>
+    <subant buildpath="preproc" target="clean"/>
+  </target>
+
+  <target name="subprojects-compile">
+    <subant buildpath="methods" target="task-lib"/>
+    <subant buildpath="preproc" target="task-lib"/>
+  </target>
+
+  <target name="clean" description="Clean out the build directories" depends="subprojects-clean">
     <delete dir="bin" />
     <delete file="core.jar" />
   </target>
@@ -19,7 +29,7 @@
 	   srcdir="src" destdir="bin"/>
   </target>		
 
-  <target name="build" depends="compile" description="Build core library">
+  <target name="build" depends="subprojects-compile, compile" description="Build core library">
     <jar basedir="bin" destfile="core.jar" />
   </target>
   
