@@ -4,7 +4,7 @@
     <mkdir dir="bin" />
     <!--		<javac target="1.5" srcdir="src" destdir="bin" classpath="../ant/ant.jar" debug="true"/>-->
 <!--    <javac target="1.5" srcdir="src" destdir="bin" classpath="/usr/share/ant/ant.jar" debug="true"/>-->
-    <javac target="1.5" 
+    <javac 
 	   srcdir="src" destdir="bin" 
 	   debug="true" 
 	   includeantruntime="true" />

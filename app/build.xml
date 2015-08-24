@@ -52,7 +52,7 @@
     <echo message="override ${env.JAVA_HOME}/lib/tools.jar" />
     <fail />
 -->
-    <javac target="1.5" 
+    <javac  
 	   srcdir="src" 
 	   destdir="bin" 
 	   excludes="**/tools/format/**" 
