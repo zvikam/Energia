@@ -353,7 +353,7 @@ public class Compiler implements MessageConsumer {
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         "msp430-elf-g++",
         "-Os",
-	"-g",
+	//"-g",
         // msp430 linker has an issue with main residing in an archive, cora.a in this case.
         // -u,main works around this by forcing the linker to find a definition for main.
         "-Wl,-gc-sections,-u,main", 
@@ -365,7 +365,7 @@ public class Compiler implements MessageConsumer {
         baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         "arm-stellaris-eabi-g++",
         "-Os",
-	"-g",
+	//"-g",
         "-nostartfiles","-nostdlib",
         "-Wl,--gc-sections",
         "-T", corePath + File.separator + boardPreferences.get("ldscript"),
@@ -397,7 +397,7 @@ public class Compiler implements MessageConsumer {
         baseCommandLinker.add("-v28");//compile for unified memory model
         baseCommandLinker.add("-ml");//compile for unified memory model
         baseCommandLinker.add("-mt");//compile for unified memory model
-        baseCommandLinker.add("-g");//compile for unified memory model
+        //baseCommandLinker.add("-g");//compile for unified memory model
         baseCommandLinker.add("--gcc");//compile for unified memory model
         baseCommandLinker.add("--define=ENERGIA=" + Base.EREVISION);
         baseCommandLinker.add("--define=F_CPU=" + boardPreferences.get("build.f_cpu"));
@@ -430,7 +430,7 @@ public class Compiler implements MessageConsumer {
       baseCommandLinker = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-gcc",
         "-Os",
-	"-g",
+	//"-g",
         "-Wl,--gc-sections"+optRelax,
         "-mmcu=" + boardPreferences.get("build.mcu"),
         "-o",
@@ -1060,7 +1060,8 @@ public class Compiler implements MessageConsumer {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
           "msp430-elf-gcc",
           "-c", // compile, don't link
-          "-g", // include debugging info (so errors include line numbers)
+	  "-mhwmult=auto",
+          //"-g", // include debugging info (so errors include line numbers)
           "-assembler-with-cpp",
           "-mmcu=" + boardPreferences.get("build.mcu"),
           "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
@@ -1075,7 +1076,7 @@ public class Compiler implements MessageConsumer {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
           "arm-stellaris-eabi-gcc",
           "-c",
-          "-g",
+          //"-g",
 //          "-gdwarf-2",
           "-assembler-with-cpp",
           Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
@@ -1107,7 +1108,7 @@ public class Compiler implements MessageConsumer {
         baseCommandCompiler.add("--asm_extension=S");//change assembly extension so it picks up S files
         baseCommandCompiler.add("-ml");//compile for unified memory model
         baseCommandCompiler.add("-mt");//compile for large memory model
-        baseCommandCompiler.add("-g"); // include debugging info (so errors include line numbers)
+        //baseCommandCompiler.add("-g"); // include debugging info (so errors include line numbers)
         for (int i = 0; i < includePaths.size(); i++) {
         	baseCommandCompiler.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
         }      
@@ -1126,7 +1127,7 @@ public class Compiler implements MessageConsumer {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
            basePath + "avr-gcc",
           "-c", // compile, don't link
-          "-g", // include debugging info (so errors include line numbers)
+          //"-g", // include debugging info (so errors include line numbers)
           "-assembler-with-cpp",
           "-mmcu=" + boardPreferences.get("build.mcu"),
           "-DF_CPU=" + boardPreferences.get("build.f_cpu"),
@@ -1164,7 +1165,8 @@ public class Compiler implements MessageConsumer {
       baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
         "msp430-elf-gcc",
         "-c", // compile, don't link
-        "-g", // include debugging info (so errors include line numbers)
+	"-mhwmult=auto",
+        //"-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -1218,7 +1220,7 @@ public class Compiler implements MessageConsumer {
           //baseCommandCompiler.add("-O2");//optimize level 2
           baseCommandCompiler.add("-ml");//compile for unified memory model
           baseCommandCompiler.add("-mt");//compile for large memory model
-          baseCommandCompiler.add("-g"); // include debugging info (so errors include line numbers)
+          //baseCommandCompiler.add("-g"); // include debugging info (so errors include line numbers)
           for (int i = 0; i < includePaths.size(); i++) {
         	  baseCommandCompiler.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
           }      
@@ -1238,7 +1240,7 @@ public class Compiler implements MessageConsumer {
         baseCommandCompiler = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-gcc",
         "-c", // compile, don't link
-        "-g", // include debugging info (so errors include line numbers)
+        //"-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -1281,7 +1283,8 @@ public class Compiler implements MessageConsumer {
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
         "msp430-elf-g++",
         "-c", // compile, don't link
-        "-g", // include debugging info (so errors include line numbers)
+	"-mhwmult=auto",
+        //"-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-ffunction-sections", // place each function in its own section
@@ -1300,7 +1303,7 @@ public class Compiler implements MessageConsumer {
         baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
           "arm-stellaris-eabi-g++",
           "-c",
-          "-g", // include debugging info (so errors include line numbers)
+          //"-g", // include debugging info (so errors include line numbers)
 //          "-gdwarf-2",
           "-Os",
           Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
@@ -1337,7 +1340,7 @@ public class Compiler implements MessageConsumer {
       //baseCommandCompilerCPP.add("-O2");//optimize level 2
       baseCommandCompilerCPP.add("-ml");//compile for unified memory model
       baseCommandCompilerCPP.add("-mt");//compile for large memory model
-      baseCommandCompilerCPP.add("-g"); // include debugging info (so errors include line numbers)
+      //baseCommandCompilerCPP.add("-g"); // include debugging info (so errors include line numbers)
       for (int i = 0; i < includePaths.size(); i++) {
       	baseCommandCompilerCPP.add("--include_path=" + '\"' + (String) includePaths.get(i)+ '\"' );
       }      
@@ -1356,7 +1359,7 @@ public class Compiler implements MessageConsumer {
       baseCommandCompilerCPP = new ArrayList(Arrays.asList(new String[] {
         basePath + "avr-g++",
         "-c", // compile, don't link
-        "-g", // include debugging info (so errors include line numbers)
+        //"-g", // include debugging info (so errors include line numbers)
         "-Os", // optimize for size
         Preferences.getBoolean("build.verbose") ? "-Wall" : "-w", // show warnings if verbose
         "-fno-exceptions",
