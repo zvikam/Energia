@@ -360,6 +360,7 @@ uint16_t analogRead(uint8_t pin)
         __bis_SR_register(CPUOFF + GIE);    // LPM0 with interrupts enabled
     }
     /* POWER: Turn ADC and reference voltage off to conserve power */
+    ADC10CTL0 &= ~(ADC10ENC);
     ADC10CTL0 &= ~(ADC10ON | REFON);
 #endif
 #if defined(__MSP430_HAS_ADC10_B__)
@@ -379,6 +380,7 @@ uint16_t analogRead(uint8_t pin)
         __bis_SR_register(CPUOFF + GIE);    // LPM0 with interrupts enabled
     }
     /* POWER: Turn ADC and reference voltage off to conserve power */
+    ADC10CTL0 &= ~(ADC10ENC);
     ADC10CTL0 &= ~(ADC10ON);
     REFCTL0 &= ~REFON;
 #endif
@@ -401,6 +403,7 @@ uint16_t analogRead(uint8_t pin)
         __bis_SR_register(CPUOFF + GIE);    // LPM0 with interrupts enabled
     }
     /* POWER: Turn ADC and reference voltage off to conserve power */
+    ADCCTL0 &= ~(ADCENC);
     ADCCTL0 &= ~(ADCON);
     //REFCTL0 &= ~REFON;
     PMMCTL2 &= ~(INTREFEN | TSENSOREN);
@@ -428,6 +431,7 @@ uint16_t analogRead(uint8_t pin)
         __bis_SR_register(CPUOFF + GIE);    // LPM0 with interrupts enabled
     }
     /* POWER: Turn ADC and reference voltage off to conserve power */
+    ADC12CTL0 &= ~(ADC12ENC);
     ADC12CTL0 &= ~(ADC12ON);
     REFCTL0 &= ~REFON;
 #endif
@@ -455,6 +459,7 @@ uint16_t analogRead(uint8_t pin)
         __bis_SR_register(CPUOFF + GIE);    // LPM0 with interrupts enabled
     }
     /* POWER: Turn ADC and reference voltage off to conserve power */
+    ADC12CTL0 &= ~(ADC12ENC);
     ADC12CTL0 &= ~(ADC12ON);
     REFCTL0 &= ~(REFON);
 #endif
