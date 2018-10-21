@@ -103,6 +103,16 @@ public class PdePreprocessor {
           return (file.getName());
       }
 
+      public String getFullPath()
+      {
+          try {
+              return (file.getCanonicalPath());
+          }
+          catch (Exception e) {
+              return (file.getAbsolutePath());
+          }
+      }
+
       public int getLineCount()
       {
           return (lineCount);
@@ -219,6 +229,7 @@ public class PdePreprocessor {
     // generate main.cpp (it depends on what's in the .ino files)
     if (Base.getArch() == "cc3200emt"
         || Base.getArch() == "msp432"
+        || Base.getArch() == "msp432e"
         || Base.getArch() == "cc2600emt") {
 
         String template = Preferences.get("preproc.main.template");
@@ -365,8 +376,23 @@ public class PdePreprocessor {
    *  sketchName - the name of the sketch project
    *  isEMT      - generate code to support multiple setup/loop pairs
    */
+
   public String generate(String buildPath, ArrayList<InoCode> code,
                          String sketchName, boolean isEMT)
+  {
+    String primaryClassName = null;
+    try {
+        primaryClassName = generate(buildPath, code, sketchName, null, isEMT);
+    }
+    catch (Exception e) {
+          System.err.println(e);
+          e.printStackTrace();
+    }
+    return primaryClassName;
+  }
+
+  public String generate(String buildPath, ArrayList<InoCode> code,
+                         String sketchName, String aSketchName, boolean isEMT)
       throws Exception
   {
       // 0. sort code into canonical order
@@ -413,7 +439,7 @@ public class PdePreprocessor {
                   bigCode.append("#define setup setup" +  inoName + "\n");
                   bigCode.append("#define loop loop" +  inoName + "\n");
               }
-              bigCode.append("#line 1 \"" + isc.getFileName() + "\"\n");
+              bigCode.append("#line 1 \"" + isc.getFullPath().replace("\\", "\\\\") + "\"\n");
           }
       
           bigCode.append(in);
@@ -424,6 +450,8 @@ public class PdePreprocessor {
       // 2. generate main.cpp and the first part of the sketch.cpp;
       //    i.e., up to the concatenated *.ino content
       int prefixLen = 0;
+      sketchName = aSketchName == null ? sketchName:aSketchName;
+
       try {
           prefixLen = writePrefix(bigCode.toString(),
                                    buildPath,
